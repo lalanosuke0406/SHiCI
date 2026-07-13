@@ -1,0 +1,9 @@
+{
+  "name": "SHiCI",
+  "short_name": "SHiCI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f4f4f4",
+  "theme_color": "#202020",
+  "icons": []
+}

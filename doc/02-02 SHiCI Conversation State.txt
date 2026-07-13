@@ -1,0 +1,346 @@
+02-02 SHiCI Conversation State
+
+
+1. Purpose
+
+Conversation Stateは、会話中に現在参照している対象（Entity）および会話の状態を保持し、SHiCIが文脈を理解するための設計仕様である。
+
+Conversation Stateは、会話を継続するための最低限の状態のみを保持する。
+
+Conversation State自体は判断・推論を行わず、ConversationStateEngineが状態の保存および取得のみを担当する。
+
+Conversation Stateは、Entity Resolutionを補完する存在であり、Entity Resolutionを置き換えるものではない。
+
+
+
+2. Scope
+
+Conversation Stateが管理する対象は以下に限定する。
+
+・現在会話しているEntity
+
+・現在表示しているView
+
+・会話履歴
+
+Conversation Stateは以下を管理しない。
+
+・推論結果
+
+・Snapshot
+
+・検索結果
+
+・Reasoning結果
+
+・Response
+
+Conversation Stateは知識を保持する仕組みではない。
+
+Conversation Stateは会話の状態のみを保持する。
+
+
+
+3. Responsibility
+
+ConversationStateEngineの責務は以下の三つに限定する。
+
+3.1 保持
+
+現在のConversation Stateを保存する。
+
+3.2 更新
+
+Entity Resolutionによって新しいEntityが確定した場合のみConversation Stateを更新する。
+
+3.3 取得
+
+必要に応じてConversation Stateを取得する。
+
+ConversationStateEngineはこれ以外の責務を持たない。
+
+
+
+4. Managed State
+
+Conversation Stateが保持する情報は以下とする。
+
+currentEntity
+
+現在会話対象となっているEntity。
+
+例
+
+Product
+Material
+Machine
+Mold
+
+など。
+
+currentView
+
+現在表示しているView。
+
+例
+
+ProductSnapshot
+
+MaterialSnapshot
+
+MachineSnapshot
+history
+
+Conversation Stateの履歴。
+
+履歴はConversationの流れを保持するために利用する。
+
+Version1では履歴は最低限の保持のみとし、将来的な拡張対象とする。
+
+
+
+5. State Transition
+
+Conversation Stateは会話に応じて状態遷移する。
+
+初期状態
+
+currentEntity = null
+
+製品検索
+
+currentEntity
+↓
+
+P-000020
+
+別製品検索
+
+P-000020
+
+↓
+
+P-000031
+
+Entity Resolutionが失敗した場合
+
+P-000031
+
+↓
+
+変更なし
+
+Conversation StateはEntity Resolutionが成功した場合のみ更新される。
+
+
+
+6. Update Rules
+
+Conversation Stateは以下の場合のみ更新する。
+
+更新する
+
+Entity ResolutionによってEntityが確定した場合
+
+例
+
+「カバーテイル」
+
+↓
+
+Product
+
+↓
+
+currentEntity更新
+更新しない
+
+Entity Resolutionが失敗した場合
+
+例
+
+「6000個作るには？」
+
+↓
+
+Entityなし
+
+↓
+
+Conversation State変更なし
+
+Conversation Stateは推測によって更新してはならない。
+
+
+
+7. Retrieval Rules
+
+Conversation Stateは以下の場合に利用する。
+
+Entity ResolutionがEntityを特定できなかった場合。
+
+Entity Resolution
+
+↓
+
+No Entity
+
+↓
+
+Conversation State
+
+↓
+
+currentEntity取得
+
+↓
+
+Snapshot生成
+
+Conversation StateはEntity Resolutionより優先されない。
+
+Conversation StateはEntity Resolutionを補完するために存在する。
+
+
+
+8. Lifetime
+
+Conversation StateはConversation開始時に生成される。
+
+Conversation終了時に破棄される。
+
+Conversation Stateは永続記憶ではない。
+
+Conversation StateはKnowledgeではない。
+
+Conversation Stateは現在のConversationにのみ存在する。
+
+
+
+9. Design Principles
+
+Conversation Stateは以下の設計原則に従う。
+
+単一責務
+
+Conversation Stateは状態のみ保持する。
+
+推論はReasoning Engineが担当する。
+
+検索はEntity Resolutionが担当する。
+
+Snapshot生成はSnapshot Engineが担当する。
+
+最小保持
+
+Conversation Stateは必要最低限の状態のみ保持する。
+
+不要な情報を保持してはならない。
+
+Snapshotを保持しない
+
+Snapshotは必要に応じて生成する。
+
+Conversation StateはSnapshotを保持しない。
+
+Entityを保持する
+
+Conversation Stateが保持する中心情報はEntityである。
+
+Conversation StateはEntity中心設計を維持する。
+
+Entity Resolutionを尊重する
+
+Conversation StateはEntity Resolutionを置き換えない。
+
+Conversation StateはEntity Resolutionを補完する。
+
+
+
+10. Examples
+Example 1
+ユーザー
+
+カバーテイル
+
+↓
+
+currentEntity
+
+P-000020
+
+↓
+
+6000個作るには？
+
+↓
+
+Conversation Stateより
+
+P-000020
+
+を取得。
+
+↓
+
+材料計算。
+
+Example 2
+この材料は？
+
+↓
+
+Conversation Stateより
+
+P-000020
+
+↓
+
+Material取得。
+
+Example 3
+型温は？
+
+↓
+
+Conversation Stateより
+
+P-000020
+
+↓
+
+標準条件取得。
+
+
+
+11. Future Extensions
+
+Conversation Stateは以下の拡張を想定する。
+
+・複数Entity保持
+
+・Entity比較
+
+・Conversation履歴管理
+
+・Entityロールバック
+
+・View履歴
+
+・Branch Conversation
+
+・Conversation Merge
+
+・複数ユーザーConversation
+
+Version1では実装しない。
+
+Conversation Stateは最小構成から開始し、必要に応じて段階的に拡張する。
+
+Conclusion
+
+Conversation Stateは、SHiCIが会話を理解するための状態管理仕様である。
+
+Conversation Stateは推論を行わず、会話に必要な最小限の状態のみを保持する。
+
+Conversation StateはEntity Resolution、Snapshot Engine、Reasoning Engineを補完し、SHiCIにおける自然な会話の継続性を実現するための基盤となる。

@@ -114,6 +114,10 @@ function ConversationStateEngine_handle(text, sessionId) {
   const candidates = resolveEntityCandidates(text);
 
   if (candidates.length === 0) {
+    if (state.currentEntity) {
+      return EntityHandler_dispatch(state.currentEntity);
+    }
+
     return "現在のEntity Resolution Knowledgeでは、該当する候補が見つかりませんでした。";
   }
 

@@ -1,0 +1,302 @@
+02-99 SHiCI Architecture Map
+
+
+
+1. Purpose
+
+Architecture Mapは、SHiCIの設計仕様と実装コードとの対応関係を定義する文書である。
+
+本書は、設計書をコードへ正しく反映し、設計と実装の一貫性を維持することを目的とする。
+
+Architecture Mapはシステム仕様を定義するものではない。
+
+Architecture Mapは設計書と実装コードを結び付けるための対応表である。
+
+
+
+
+2. Scope
+
+Architecture Mapは以下を対象とする。
+
+・設計書
+
+・エンジン
+
+・Handler
+
+・Snapshot
+
+・Response
+
+・Frontend
+
+Architecture Mapはデータ構造を定義しない。
+
+Architecture Mapはアルゴリズムを定義しない。
+
+
+
+
+
+3. Design Hierarchy
+
+SHiCIは以下の設計階層を持つ。
+
+00 SHiCI Charter
+
+↓
+
+01 SHiCI Constitution
+
+↓
+
+02 SHiCI Core Design
+
+├──02-01 SHiCI Processing Model
+├──02-02 SHiCI Conversation State
+└──02-03 SHiCI Response Specification
+
+↓
+
+03 SHiCI Architecture Map
+
+↓
+
+Source Code
+
+Architecture Mapは設計書とコードの橋渡しを担当する。
+
+
+
+
+
+4. Processing Model Mapping
+Understand
+
+設計書
+
+02-01 SHiCI Processing Model
+
+実装
+
+20_UnderstandingEngine.js
+Resolve
+
+設計書
+
+02-01 SHiCI Processing Model
+
+実装
+
+22_EntityResolutionEngine.js
+Conversation State
+
+設計書
+
+02-02 SHiCI Conversation State
+
+実装
+
+21_ConversationStateEngine.js
+Compose
+
+設計書
+
+02-01 SHiCI Processing Model
+
+実装
+
+40_SnapshotEngine.js
+Express
+
+設計書
+
+02-03 SHiCI Response Specification
+
+実装
+
+60_ResponseSpecification.js
+Output
+
+設計書
+
+02-03 SHiCI Response Specification
+
+実装
+
+Frontend
+
+ApiClient
+
+ChatController
+
+
+
+
+
+5. Engine Responsibilities
+Understanding Engine
+
+役割
+
+質問の理解。
+
+Intent解析。
+
+View判定。
+
+Conversation開始。
+
+Entity Resolution Engine
+
+役割
+
+Entity候補検索。
+
+Entity特定。
+
+Conversation State Engine
+
+役割
+
+Conversation状態保持。
+
+Entity保持。
+
+View保持。
+
+履歴保持。
+
+Snapshot Engine
+
+役割
+
+Knowledge生成。
+
+EntityからSnapshot構築。
+
+Response Specification
+
+役割
+
+KnowledgeをResponseへ変換。
+
+
+
+
+
+
+6. Data Flow
+User
+
+↓
+
+Frontend
+
+↓
+
+Understanding Engine
+
+↓
+
+Entity Resolution
+
+↓
+
+Conversation State
+
+↓
+
+Snapshot Engine
+
+↓
+
+Response Specification
+
+↓
+
+Frontend
+
+↓
+
+User
+
+
+
+
+7. Source Code Structure
+backend
+
+00_Main
+
+10_RouteRequest
+
+20_UnderstandingEngine
+
+21_ConversationStateEngine
+
+22_EntityResolutionEngine
+
+30_EntityHandler
+
+40_SnapshotEngine
+
+50_AnswerBuilder
+（移行対象）
+
+60_ResponseSpecification
+
+
+
+
+
+8. Future Refactoring
+
+AnswerBuilderは将来的に廃止する。
+
+Express層はResponse Specificationへ統合する。
+
+Conversation Stateは正式ルートへ統合する。
+
+HandlerはEntity処理のみ担当する。
+
+
+
+
+
+9. Design Principles
+
+Architecture Mapは設計書を置き換えない。
+
+Architecture Mapはコードを置き換えない。
+
+Architecture Mapは設計とコードを結び付ける。
+
+Architecture Mapは実装変更時に必ず更新する。
+
+
+
+
+
+10. Maintenance Rules
+
+新しいEngineを追加した場合。
+
+Architecture Mapを更新する。
+
+新しい設計書を追加した場合。
+
+Architecture Mapを更新する。
+
+責務変更を行った場合。
+
+Architecture Mapを更新する。
+
+Conclusion
+
+Architecture Mapは、SHiCIにおける設計書と実装コードとの対応関係を定義する文書である。
+
+Architecture Mapはシステム仕様ではない。
+
+Architecture Mapは設計と実装の整合性を維持し、開発者が設計思想をコードへ正しく反映するための指針となる。

@@ -1,0 +1,336 @@
+ SHiCI Core Design
+
+
+---
+
+# 0. Philosophy（理念）
+
+> **「個々のデータではなく、Entityとその関係性を知識として扱う。」**
+
+SHiCIは情報を検索するシステムではない。
+
+Entityを理解し、**世界を構造として表現するシステム**である。
+
+知識は情報から生まれるのではない。
+
+Entity・Relation・Snapshot・Contextによって形成される。
+
+---
+
+# 1. Structure Before Function
+
+SHiCIは機能から設計しない。
+
+まず世界の構造を定義する。
+
+* Entityとは何か
+* Relationとは何か
+* Snapshotとは何か
+* Eventとは何か
+* Contextとは何か
+
+これらを定義した結果として、
+
+受注管理
+
+在庫管理
+
+品質管理
+
+設備管理
+
+生産管理
+
+工程管理
+
+などの機能は自然に生まれる。
+
+構造が先。
+
+機能は後である。
+
+---
+
+# 2. Entity First
+
+すべてはEntityから始まる。
+
+例えば、
+
+「ワンワン」
+
+というEntityには、
+
+* 材料
+* 金型
+* 標準条件
+* トラブル
+* 図面
+* 工程
+* 受注
+* 在庫
+* 品質
+
+など、あらゆるEntityが関連付く。
+
+SHiCIでは、
+
+ファイルではなく、
+
+Entityが主役である。
+
+---
+
+# 3. Snapshot Never Rewrite
+
+データは上書きしない。
+
+現在の状態はSnapshotとして保存する。
+
+```
+Entity
+    ↓
+Snapshot 1
+    ↓
+Snapshot 2
+    ↓
+Snapshot 3
+```
+
+履歴そのものが知識になる。
+
+過去は失われない。
+
+---
+
+# 4. Relation is Knowledge
+
+知識とは、
+
+Entity単体ではない。
+
+```
+Entity
+    ↕
+Material
+    ↕
+Mold
+    ↕
+Machine
+    ↕
+Condition
+    ↕
+Trouble
+```
+
+Entity同士の関係性そのものが知識である。
+
+---
+
+# 5. AI Native
+
+AIは後付け機能ではない。
+
+SHiCIは、
+
+**AIが最も理解しやすい構造**
+
+を最優先に設計する。
+
+文章ではなく、
+
+構造で知識を保持する。
+
+人間にも見やすい画面を提供するが、
+
+最初に理解するのはAIである。
+
+---
+
+# 6. Layer Independent
+
+SHiCIは層ごとに独立する。
+
+```
+User Interface
+
+↓
+
+Application
+
+↓
+
+Knowledge
+
+↓
+
+Entity
+
+↓
+
+Storage
+```
+
+各Layerは互いに直接依存しない。
+
+Storageを変更しても、
+
+Knowledgeは変わらない。
+
+UIを変更しても、
+
+Entityは変わらない。
+
+---
+
+# 7. Engine Independent
+
+各Engineは独立する。
+
+例えば、
+
+* Entity Engine
+* Snapshot Engine
+* Knowledge Engine
+* Search Engine
+* Conversation Engine
+* View Resolution Engine
+
+Engine同士は直接依存しない。
+
+役割によってのみ協調する。
+
+---
+
+# 8. Component Based UI
+
+SHiCIには固定された画面は存在しない。
+
+存在するのはComponentだけである。
+
+例えば、
+
+* ChatBubble
+* EntityCard
+* SnapshotCard
+* Timeline
+* PropertyTable
+* RelationshipGraph
+
+これらを組み合わせ、
+
+目的に応じたViewを構成する。
+
+画面は作るものではない。
+
+必要に応じて生成されるものである。
+
+---
+
+# 9. Human & AI Collaboration
+
+SHiCIは、
+
+AIだけのシステムではない。
+
+人間だけのシステムでもない。
+
+人間とAIが、
+
+同じEntityを見て、
+
+同じ知識空間を共有し、
+
+協働するための基盤である。
+
+---
+
+# 10. Knowledge Never Lost
+
+どんな情報も、
+
+未来で意味を持つ可能性がある。
+
+だから、
+
+基本的には削除しない。
+
+必要なのは、
+
+消すことではない。
+
+見えなくすることである。
+
+---
+
+# 11. Search is Conversation
+
+SHiCIは検索しない。
+
+会話する。
+
+```
+「ワンワン」
+
+↓
+
+Entityを理解する
+
+↓
+
+曖昧さを解決する
+
+↓
+
+必要なら質問する
+
+↓
+
+知識を構成する
+
+↓
+
+答える
+```
+
+検索とは、
+
+Entityを理解する対話である。
+
+---
+
+# 12. Everything is Connected
+
+世界は分断されていない。
+
+```
+材料 ─ 製品 ─ 金型 ─ 設備 ─ 工程
+ │         │        │        │
+ └──── 品質 ─── 顧客 ─── 受注
+```
+
+これらは別々のデータではない。
+
+一つの世界である。
+
+SHiCIは、
+
+EntityとRelationによって、
+
+その世界を再構築する。
+
+---
+
+# Design Principle
+
+SHiCIは、
+
+世界を機能で分割しない。
+
+世界を構造として理解する。
+
+そして、
+
+その構造から、
+
+必要な機能を自然に生み出す。

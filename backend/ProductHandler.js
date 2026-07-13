@@ -31,7 +31,9 @@ function ProductHandler_buildCandidateView(entity) {
 
   const product = getProductById(entity.entityId);
 
-  const mold = getMoldById(product["金型ID"]);
+  const mold =
+    getMoldById(product["金型ID"]) ||
+    getMoldByProductId(entity.entityId);
 
   Logger.log(product["金型ID"]);
   Logger.log(mold);

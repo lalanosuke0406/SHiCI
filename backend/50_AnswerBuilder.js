@@ -101,6 +101,7 @@ function formatSnapshotAnswer(userText, snapshot) {
     text += "■材料\n";
     if (material["材料名"]) text += "材料名： " + material["材料名"] + "\n";
     if (material["グレード"]) text += "グレード： " + material["グレード"] + "\n";
+    if (material["色番"]) text += "色番： " + material["色番"] + "\n";
     if (material["乾燥条件"]) text += "乾燥条件： " + material["乾燥条件"] + "\n";
     text += "\n";
   }
@@ -125,6 +126,7 @@ function formatSnapshotAnswer(userText, snapshot) {
     text += "■現在標準条件\n";
     
     if (condition["条件名"]) text += "条件名： " + condition["条件名"] + "\n";
+    if (condition["備考"]) text += condition["備考"] + "\n";
     if (condition["条件状態"]) text += "状態： " + condition["条件状態"] + "\n";
     text += "\n";
   }

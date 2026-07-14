@@ -64,23 +64,37 @@ async function handleSubmit(event) {
         }
         else if (result.messageType === "candidate") {
 
-           // 「確認しています...」を消す
-            loading.remove();
-     
-            // 説明文を表示
-            addMessage(result.message, "shici");
-        
-            addCandidateCards(result.candidates);
-        
-        } 
+        // 「確認しています...」を消す
+        loading.remove();
+
+        // 説明文を表示
+        addMessage(
+            result.message || "",
+            "shici"
+        );
+
+        addCandidateCards(
+            result.candidates || []
+        );
+
+        }
+        else if (result.messageType === "error") {
+
+            updateMessage(
+                loading,
+                "エラーが発生しました。\n\n" +
+                (result.message || "原因不明のエラーです。")
+            );
+
+        }
         else {
-        
+
             updateMessage(
                 loading,
                 "未対応のメッセージです。"
             );
 
-}
+        }
 
     }
     catch (error) {

@@ -19,7 +19,25 @@ function routeRequest(text, sessionId) {
     };
   }
 
-  const result = askShici(text, sessionId);
+  let result;
+
+  try {
+
+    result =
+      askShici(text, sessionId);
+
+  } catch (error) {
+
+    Logger.log(error);
+
+    return createError(
+      error &&
+      error.message
+        ? error.message
+        : String(error)
+    );
+
+  }
 
   // 候補カードなどの構造化された回答
   if (

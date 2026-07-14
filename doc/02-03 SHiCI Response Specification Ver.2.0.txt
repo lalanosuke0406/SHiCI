@@ -1,0 +1,434 @@
+02-03 SHiCI Response Specification
+
+Version 2.0
+
+------
+
+1. Purpose
+
+Response Specificationは、SHiCIがComposeしたKnowledgeを、人間・AI・外部システムへ一貫した形で提供するための設計仕様である。
+
+Response SpecificationはKnowledgeを生成しない。
+
+Response SpecificationはKnowledgeを書き換えない。
+
+Response Specificationは、Knowledgeを利用者に最適な形で表現する責務のみを持つ。
+
+Knowledgeの構築はProcessing ModelのComposeで行われる。
+
+Response SpecificationはCompose済みKnowledgeをExpressし、Outputする方法を定義する。
+
+------
+
+2. Scope
+
+Response Specificationは以下を対象とする。
+
+・Natural Language
+
+・Entity Card
+
+・Snapshot
+
+・List
+
+・Compare
+
+・Timeline
+
+・Table
+
+・JSON
+
+・API Response
+
+・AI Contract
+
+Response Specificationは推論を定義しない。
+
+Response SpecificationはKnowledgeを生成しない。
+
+Response SpecificationはConversation Stateを保持しない。
+
+------
+
+3. Responsibility
+
+Response Engineの責務は以下に限定する。
+
+3.1 Presentation
+
+Knowledgeを利用者に最適な形式で表現する。
+
+------
+
+3.2 Consistency
+
+同じKnowledgeは常に同じ意味を持つ。
+
+表示形式が変わっても意味は変化しない。
+
+------
+
+3.3 Readability
+
+利用者が理解しやすいResponseを生成する。
+
+------
+
+3.4 AI Contract
+
+Compose済みKnowledgeを、
+
+AIが推測ではなくKnowledgeを根拠として利用できる形式へ変換する。
+
+AI ContractはKnowledgeを書き換えない。
+
+AI ContractはKnowledgeを補完しない。
+
+------
+
+4. Response Types
+
+SHiCIは以下のResponseを持つ。
+
+Natural Language
+
+人間向け自然言語。
+
+------
+
+Entity Card
+
+Entity識別用Response。
+
+------
+
+Snapshot
+
+Compose済みKnowledge。
+
+------
+
+List
+
+一覧表示。
+
+------
+
+Compare
+
+比較表示。
+
+------
+
+Timeline
+
+履歴表示。
+
+------
+
+Table
+
+構造化表示。
+
+------
+
+JSON
+
+外部システム向けResponse。
+
+------
+
+AI Contract
+
+AIへKnowledgeを受け渡すための構造化Response。
+
+AI Contractは以下を持つ。
+
+* System Instruction
+* Response Policy
+* Context
+* User Question
+
+AI ContractはPromptではない。
+
+AI ContractはLLMへ渡すための構造化Knowledgeである。
+
+------
+
+5. Response Selection
+
+ResponseはKnowledgeに応じて決定する。
+
+Entityが一件
+
+↓
+
+Snapshot
+
+Entityが複数
+
+↓
+
+Entity Card
+
+比較要求
+
+↓
+
+Compare
+
+履歴要求
+
+↓
+
+Timeline
+
+API要求
+
+↓
+
+JSON
+
+AI要求
+
+↓
+
+AI Contract
+
+Response SelectionはKnowledgeを書き換えない。
+
+------
+
+6. Response Principles
+
+Knowledge First
+
+ResponseはKnowledgeを表現する。
+
+Knowledgeを変更してはならない。
+
+------
+
+Human First
+
+人間に理解しやすいResponseを優先する。
+
+------
+
+AI Friendly
+
+AIが理解しやすい構造を維持する。
+
+------
+
+Single Meaning
+
+Knowledgeは一つの意味しか持たない。
+
+Responseによって意味は変化しない。
+
+------
+
+Progressive Disclosure
+
+必要な情報だけを表示する。
+
+詳細は必要になった時点で表示する。
+
+------
+
+Knowledge Before Intelligence
+
+AIはKnowledgeを根拠として回答しなければならない。
+
+Knowledgeに存在しない事実を生成してはならない。
+
+Knowledgeが不足している場合は、
+
+不足していることを回答する。
+
+------
+
+7. Response Composition
+
+ResponseはCompose済みKnowledgeから構築される。
+
+ResponseはKnowledgeを生成しない。
+
+ResponseはKnowledgeを書き換えない。
+
+ResponseはKnowledgeを利用者に適した形式へ変換する。
+
+AI ContractもCompose済みKnowledgeから構築される。
+
+------
+
+8. Design Principles
+
+Presentation Only
+
+Responseは表示のみを担当する。
+
+------
+
+Stateless
+
+Responseは状態を保持しない。
+
+Conversation StateはConversationStateEngineが管理する。
+
+------
+
+Entity Centered
+
+ResponseはEntityを中心とする。
+
+------
+
+Snapshot Oriented
+
+Responseの基本単位はSnapshotである。
+
+------
+
+Consistent
+
+同じKnowledgeは常に同じ構造でResponseされる。
+
+------
+
+LLM Independent
+
+Response Specificationは特定のLLMに依存しない。
+
+AI ContractはLLM非依存である。
+
+Prompt生成はLLM Interfaceが担当する。
+
+------
+
+9. Examples
+
+Example 1
+
+ユーザー
+
+カバーテイル
+
+↓
+
+Entity Card
+
+------
+
+Example 2
+
+ユーザー
+
+KLJ-MC4630000
+
+↓
+
+Snapshot
+
+------
+
+Example 3
+
+ユーザー
+
+6000個作るには？
+
+↓
+
+Conversation State
+
+↓
+
+Snapshot
+
+↓
+
+AI Contract
+
+↓
+
+LLM
+
+↓
+
+Natural Language
+
+------
+
+Example 4
+
+ユーザー
+
+MC163とMC463を比較
+
+↓
+
+Compare
+
+------
+
+Example 5
+
+API Request
+
+↓
+
+JSON
+
+------
+
+10. Future Extensions
+
+将来的に以下を追加可能とする。
+
+・Graph
+
+・Tree
+
+・Network
+
+・Dashboard
+
+・Chart
+
+・3D Visualization
+
+・Workflow
+
+・Mixed Response
+
+・Voice Response
+
+・Vision Response
+
+Version2では実装しない。
+
+------
+
+Conclusion
+
+Response Specificationは、ComposeされたKnowledgeを、人間・AI・外部システムへ届けるための最終工程である。
+
+Response SpecificationはKnowledgeを生成しない。
+
+Response SpecificationはKnowledgeを書き換えない。
+
+Response SpecificationはKnowledgeを最適な形式へ変換することのみを責務とする。
+
+AIもまたKnowledgeの利用者である。
+
+Response SpecificationはAIに対してAI Contractを提供し、AIがKnowledgeを根拠として回答できる環境を構築する。
+
+Prompt生成はResponse Specificationの責務ではない。
+
+Prompt生成はLLM Interfaceが担当する。
+
+SHiCIはKnowledgeを中心とした設計を維持し、人間・AI・外部システムのすべてが同一のKnowledgeを共有することによって、一貫性と信頼性を維持する。

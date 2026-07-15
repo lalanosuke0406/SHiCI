@@ -1,3 +1,102 @@
+/**
+ * Entity Resolution用の文字列正規化
+ *
+ * ・全角／半角を統一
+ * ・大文字／小文字を統一
+ * ・記号を空白へ変換
+ * ・連続する空白を統一
+ */
+function EntityResolution_normalizeText(value) {
+
+  return String(value || "")
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(
+      /[、。，．,・\/／_\-‐-–—―:：;；()（）[\]［］{}｛｝「」『』【】]/g,
+      " "
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+
+}
+
+
+/**
+ * 正規化済みの入力とAliasが一致するか判定する。
+ *
+ * 1. 完全一致
+ * 2. 一方が他方を含む
+ * 3. 入力が複数単語の場合、すべての入力単語がAlias内に存在する
+ *
+ * 例:
+ * 入力  : cover tail
+ * Alias : COVER,24MM TAIL
+ * 結果  : true
+ */
+function EntityResolution_isMatch(
+  normalizedKeyword,
+  normalizedAlias
+) {
+
+  if (
+    !normalizedKeyword ||
+    !normalizedAlias
+  ) {
+    return false;
+  }
+
+  // 完全一致
+  if (
+    normalizedKeyword ===
+    normalizedAlias
+  ) {
+    return true;
+  }
+
+  // 従来の部分一致
+  if (
+    normalizedKeyword.includes(
+      normalizedAlias
+    ) ||
+    normalizedAlias.includes(
+      normalizedKeyword
+    )
+  ) {
+    return true;
+  }
+
+  /*
+   * 複数単語による照合
+   *
+   * cover tail
+   * ↓
+   * ["cover", "tail"]
+   *
+   * Alias側に両方存在すれば一致とする。
+   */
+  const keywordTokens =
+    normalizedKeyword
+      .split(" ")
+      .filter(Boolean);
+
+  if (keywordTokens.length < 2) {
+    return false;
+  }
+
+  const aliasTokens =
+    normalizedAlias
+      .split(" ")
+      .filter(Boolean);
+
+  return keywordTokens.every(
+    function(token) {
+      return aliasTokens.includes(token);
+    }
+  );
+}
+
+
+
 function loadEntityResolutionKnowledge() {
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -35,21 +134,29 @@ function loadEntityResolutionKnowledge() {
 
 
 function resolveEntityCandidates(question) {
-  const keyword = extractSearchKeyword(question);
+  const keyword =
+    EntityResolution_normalizeText(
+      extractSearchKeyword(question)
+    );
   const knowledge = loadEntityResolutionKnowledge();
 
   const candidates = [];
 
   knowledge.forEach(function(item) {
-    const alias = String(item.alias || "").trim();
+    const alias =
+      EntityResolution_normalizeText(
+        item.alias
+      );
 
     if (!alias) {
       return;
     }
 
     if (
-      keyword.includes(alias) ||
-      alias.includes(keyword)
+      EntityResolution_isMatch(
+        keyword,
+        alias
+      )
     ) {
       candidates.push({
         originalText: question,
@@ -103,6 +210,39 @@ function resolveEntityCandidates(question) {
     return a.priority - b.priority;
   });
 
-  return entityCandidates;
+  /*
+  * Knowledge Resolutionで候補が見つかった場合は、
+  * その結果をそのまま返す。
+  */
+  if (entityCandidates.length > 0) {
+    return entityCandidates;
+  }
+
+  /*
+  * Knowledge Resolutionで解決できなかったため、
+  * Semantic Resolutionを実行する。
+  */
+  const semanticCandidates =
+    SemanticEntityResolution_findCandidates(
+      question,
+      knowledge
+    );
+
+  if (semanticCandidates.length > 0) {
+
+    semanticCandidates.sort(function(a, b) {
+
+      return (
+        b.semanticConfidence -
+        a.semanticConfidence
+      );
+
+    });
+
+    return semanticCandidates;
+
+  }
+
+  return [];
 }
 

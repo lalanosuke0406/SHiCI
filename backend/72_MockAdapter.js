@@ -1,54 +1,53 @@
-function UnderstandingEngine_respond(userText, entity) {
+/**
+ * SHiCI Contract Viewer
+ *
+ * AI Contractをそのまま人間へ表示する。
+ * 外部AIは呼び出さない。
+ *
+ * Version 1.0
+ */
 
-  if (!entity) {
-    return "Entityが特定できませんでした。";
-  }
+function MockAdapter_generate(aiContract) {
 
-  // 現在Response Specificationに対応しているのは製品Entity
-  if (entity.entityType === "product") {
+  MockAdapter_validateContract(aiContract);
 
-    const snapshot =
-      SnapshotEngine_getProductSnapshot(entity.entityId);
+  Logger.log(
+    "===== AI CONTRACT =====\n" +
+    JSON.stringify(aiContract, null, 2)
+  );
 
-    if (!snapshot || snapshot.status !== "success") {
-      return "製品情報を取得できませんでした。";
-    }
+  return OpenAIAdapter_preview(
+    aiContract
+    );
 
-    /*
-     * 候補選択直後は、
-     * これまでどおり製品Snapshotを表示する。
-     *
-     * 例
-     * 「1」
-     * 「2」
-     * 「①」
-     */
-    if (/^[0-9０-９①-⑳]+$/.test(String(userText).trim())) {
+}
 
-      return AnswerBuilder_buildProductSnapshot(
-        snapshot.product["製品名"],
-        snapshot
-      );
 
-    }
+/**
+ * Contract最低限チェック
+ */
+function MockAdapter_validateContract(aiContract) {
 
-    /*
-     * それ以外はAI Contractを構築し、
-     * LLMへ渡す。
-     */
-    const aiContract =
-      ResponseSpecification_build(
-        userText,
-        snapshot
-      );
+  if (
+    !aiContract ||
+    typeof aiContract !== "object"
+  ) {
 
-    return LLMInterface_generate(
-      aiContract
+    throw new Error(
+      "AI Contractがありません。"
     );
 
   }
 
-  // 製品以外は従来どおり
-  return EntityHandler_dispatch(entity);
+  if (
+    aiContract.responseType !==
+    "ai_contract"
+  ) {
+
+    throw new Error(
+      "responseTypeがai_contractではありません。"
+    );
+
+  }
 
 }

@@ -1,0 +1,403 @@
+SHiCI Understanding Model
+Version 1.0
+
+-----
+
+Philosophy
+What is Understanding?
+
+Understandingとは、
+
+ユーザーが何をしようとしているのかを理解するためのモデルである。
+
+Understandingは、
+
+Knowledgeを検索しない。
+
+Databaseへアクセスしない。
+
+Entityを解決しない。
+
+AIへ問い合わせない。
+
+Understandingは、
+
+「理解」だけを担当する。
+
+-----
+
+Purpose
+
+SHiCIは、
+
+人間の思考を再現することを目的としない。
+
+一方で、
+
+人間が自然に会話できる理解順序
+
+を採用する。
+
+これはAIの能力を制限するためではない。
+
+AIが持つ高い処理能力を維持したまま、
+
+人間との自然な対話を実現するためである。
+
+
+-----
+
+Core Principles
+
+
+Principle 1
+Understanding First
+
+すべての処理は、
+
+Understandingから始まる。
+
+Knowledge取得は、
+
+Understandingの結果として実行される。
+
+
+Principle 2
+Separation of Responsibility
+
+Understandingは、
+
+Knowledgeを知らない。
+
+Understandingは、
+
+Entity Resolutionを行わない。
+
+Understandingは、
+
+Snapshotを生成しない。
+
+Understandingは、
+
+AI Contractを生成しない。
+
+Understandingは、
+
+理解結果のみを返す。
+
+
+Principle 3
+Human Conversation
+
+SHiCIは、
+
+人間の能力を模倣しない。
+
+しかし、
+
+人間が自然に感じる会話の流れを理解する。
+
+人間らしく考えることではなく、
+
+人間が違和感なく会話できること
+
+を目的とする。
+
+
+Principle 4
+AI Native
+
+SHiCIは、
+
+AIの能力を前提として設計される。
+
+Understandingは、
+
+AIを制限するためではない。
+
+AIが一貫した理解を行うための基盤である。
+
+-----
+
+Understanding Flow
+
+Understandingは、
+
+以下の順序で発話を理解する。
+
+User Input
+      │
+      ▼
+Communication
+      │
+      ▼
+Intent
+      │
+      ▼
+Conversation
+      │
+      ▼
+Entity
+      │
+      ▼
+View
+      │
+      ▼
+Memory
+      │
+      ▼
+Understanding Result
+
+
+Step 1
+Communication
+
+Communicationは、
+
+Knowledge取得のための処理ではない。
+
+Communicationは、
+
+ユーザーとの自然な対話を維持するための理解である。
+
+例
+
+・おはよう
+
+・こんにちは
+
+・ありがとう
+
+・よろしくお願いします
+
+・お疲れさまでした
+
+これらはKnowledgeを必要としない。
+
+しかし、
+
+SHiCIはパートナーとして自然に応答する。
+
+Communicationのみで会話が完結する場合、
+
+Understandingはここで終了してよい。
+
+
+Step 2
+Intent
+
+ユーザーは、
+
+何をしたいのか。
+
+Intentは、
+
+Knowledgeの取得方法ではなく、
+
+ユーザーの目的を理解する。
+
+例
+
+・質問
+
+・登録
+
+・更新
+
+・削除
+
+・相談
+
+・確認
+
+
+Step 3
+Conversation
+
+現在の会話との関係を理解する。
+
+Conversationは、
+
+Entityを解決しない。
+
+Conversationは、
+
+話題の流れだけを理解する。
+
+例
+
+Continue
+
+現在の話題を継続する。
+
+Change
+
+別の話題へ移る。
+
+New
+
+新しい会話を開始する。
+
+Conversationは、
+
+会話の状態を理解するだけであり、
+
+Knowledge操作は行わない。
+
+
+Step 4
+Entity
+
+ユーザーが
+
+何について話しているのかを理解する。
+
+ここでは、
+
+Entity IDへの変換を行わない。
+
+Entity Resolutionが
+
+後続処理として実施される。
+
+例
+
+ワンワン
+
+MC163
+
+Cover Tail
+
+BNO-74
+
+
+Step 5
+View
+
+ユーザーが、
+
+何を見たいのかを理解する。
+
+例
+
+材料
+
+乾燥
+
+型温
+
+ショット重量
+
+トラブル履歴
+
+Viewは、
+
+Knowledgeの構造ではなく、
+
+ユーザーが知りたい情報を表す。
+
+
+Step 6
+Memory
+
+Memoryは、
+
+Knowledgeそのものではない。
+
+Memoryは、
+
+今回の会話において、どの範囲のKnowledgeを前面へ展開するべきか
+
+を理解する。
+
+現時点ではMemoryの実装は定義しない。
+
+しかし、
+
+Understandingは、
+
+Memory Decisionを返す。
+
+Memoryの階層構造については、
+
+今後の設計に委ねる。
+
+-----
+
+Understanding Result
+
+Understandingは、
+
+Knowledgeを返さない。
+
+理解結果のみを返す。
+
+例
+
+{
+  communication: "...",
+
+  intent: "...",
+
+  conversation: {
+    action: "continue"
+  },
+
+  entity: {
+    query: "MC163"
+  },
+
+  view: {
+    name: "material"
+  },
+
+  memory: {
+    decision: "..."
+  }
+}
+
+-----
+
+Relationship
+
+SHiCIは、
+
+Knowledge Systemである。
+
+しかし、
+
+Knowledge Systemである前に、
+
+ユーザーの仕事を共に行うパートナー
+
+である。
+
+Communicationは、
+
+その関係を維持するために存在する。
+
+Communicationは、
+
+業務処理とは独立した、
+
+Understandingの最初の責務である。
+
+-----
+
+Final Definition
+
+SHiCI Understanding Modelとは、
+
+ユーザーの発話を、
+
+人間が自然に感じる理解順序で解釈し、
+
+その結果を後続のKnowledge Engineへ引き渡すための認知モデルである。
+
+Understandingは、
+
+AIの能力を制限するものではない。
+
+AIが持つ高い処理能力を維持しながら、
+
+人間との自然な対話を実現するための基盤として存在する。

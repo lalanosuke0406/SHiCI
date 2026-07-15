@@ -1,0 +1,465 @@
+SHiCI Conversation State Model
+
+Version 1.0
+
+
+-----
+
+Philosophy
+What is Conversation State?
+
+Conversation Stateとは、
+
+会話中に現在有効な認知状態を保持するモデルである。
+
+Conversation Stateは、
+
+Knowledgeを理解しない。
+
+Entityを検索しない。
+
+Intentを推測しない。
+
+回答を生成しない。
+
+Conversation Stateは、
+
+「いま何について話しているか」
+
+だけを保持する。
+
+
+-----
+
+Purpose
+
+人間は、
+
+会話のたびに全てを説明し直さない。
+
+例
+
+ワンワン
+
+↓
+
+材料は？
+
+↓
+
+乾燥は？
+
+↓
+
+型温は？
+
+人間は、
+
+"ワンワン"
+
+を毎回言わなくても、
+
+会話を続けられる。
+
+Conversation Stateは、
+
+この
+
+「会話中の現在の認知状態」
+
+を保持する。
+
+
+-----
+
+
+Core Principles
+
+--
+
+Principle 1
+
+Conversation First
+
+Conversation Stateは、
+
+Knowledgeではなく、
+
+会話を保持する。
+
+Knowledgeは変わらない。
+
+Conversationは変化する。
+
+Conversation Stateは、
+
+Conversationだけを管理する。
+
+--
+
+Principle 2
+
+Current Context
+
+Conversationには、
+
+現在の話題が存在する。
+
+Conversation Stateは、
+
+現在もっとも重要なEntityを
+
+currentEntity
+
+として保持する。
+
+例
+
+ワンワン
+
+↓
+
+currentEntity
+
+P-000035
+
+--
+
+Principle 3
+
+Working Memory
+
+Conversation Stateは、
+
+人間の作業記憶をモデル化する。
+
+人間は、
+
+会話中に必要な情報だけを
+
+一時的に保持する。
+
+Conversation Stateも、
+
+現在必要な情報だけを保持する。
+
+Knowledge全体を保持しない。
+
+--
+
+Principle 4
+
+Temporary Memory
+
+Conversation Stateは、
+
+永続記憶ではない。
+
+会話が終了すれば、
+
+Conversation Stateは破棄される。
+
+Knowledgeは永続する。
+
+Conversation Stateは一時的である。
+
+--
+
+Principle 5
+
+Conversation Ownership
+
+Conversation Stateは、
+
+一つのConversationだけに属する。
+
+Conversation A
+
+と
+
+Conversation B
+
+は、
+
+互いに影響しない。
+
+
+-----
+
+
+
+Current State
+
+Version1では、
+
+Conversation Stateは
+
+以下を保持する。
+
+--
+
+currentEntity
+
+currentView
+
+candidateEntities
+currentEntity
+
+現在会話しているEntity
+
+例
+
+P-000035
+
+--
+
+currentView
+
+現在見ているView
+
+例
+
+Material
+
+Condition
+
+Trouble
+
+Drawing
+
+--
+
+candidateEntities
+
+Entity Resolutionで
+
+候補が複数存在した場合の
+
+Candidate List
+
+例
+
+COVER, TAIL
+
+↓
+
+候補
+
+MC163
+
+MC164
+
+MC165
+
+
+-----
+
+
+Input
+
+Conversation Stateは、
+
+Conversation Eventを入力とする。
+
+例
+
+ワンワン
+
+または
+
+材料は？
+
+または
+
+2番
+
+
+-----
+
+
+Processing
+
+Conversation Stateは、
+
+以下の順序で処理する。
+
+Conversation Event
+        │
+        ▼
+View Update
+        │
+        ▼
+Candidate Selection
+        │
+        ▼
+Entity Resolution
+        │
+        ▼
+State Update
+
+--
+
+Step 1
+
+View Update
+
+Conversationから
+
+View変更を検出する。
+
+例
+
+材料
+
+↓
+
+currentView
+
+Material
+
+--
+
+Step 2
+
+Candidate Selection
+
+Candidateが存在する場合、
+
+ユーザーの選択を解決する。
+
+例
+
+2番
+
+↓
+
+Candidate[2]
+
+--
+
+Step 3
+
+Entity Resolution
+
+新しいEntityが見つかった場合、
+
+currentEntityを更新する。
+
+Entityが存在しなければ、
+
+現在のcurrentEntityを維持する。
+
+--
+
+Step 4
+
+State Update
+
+Conversation Stateを更新する。
+
+例
+
+currentEntity
+
+↓
+
+P-000091
+
+
+-----
+
+
+Output
+
+Conversation Stateは、
+
+Knowledgeを返さない。
+
+回答も返さない。
+
+Conversation Stateは、
+
+更新されたConversation Stateだけを返す。
+
+
+-----
+
+
+Human Conversation Model
+
+人間は、
+
+会話中に
+
+「現在話している対象」
+
+を保持している。
+
+Conversation Stateは、
+
+この認知構造を再現する。
+
+Conversation Stateは、
+
+人間の記憶を模倣するものではない。
+
+会話を自然に継続するための
+
+認知状態を保持するモデルである。
+
+
+-----
+
+
+Future Extension
+
+Version1では、
+
+Conversation Stateは
+
+currentEntity
+
+のみを中心とする。
+
+将来的には、
+
+Conversation Stateを
+
+階層化されたWorking Memoryへ拡張できる。
+
+例
+
+Primary Memory
+
+Secondary Memory
+
+Candidate Memory
+
+View Memory
+
+ただし、
+
+Version1では実装しない。
+
+
+-----
+
+
+
+Final Definition
+
+Conversation Stateとは、
+
+Conversation中の現在有効な認知状態を保持するモデルである。
+
+Conversation Stateは、
+
+Knowledgeを保持しない。
+
+Knowledgeを理解しない。
+
+Conversation Stateは、
+
+「いま何について会話しているか」
+
+だけを保持する。

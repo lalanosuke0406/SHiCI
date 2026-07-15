@@ -16,9 +16,14 @@ function ResponseSpecification_build(userText, snapshot) {
   }
 
   return {
-    contractVersion: "2.0",
+    schemaVersion: "1.0",
 
     responseType: "ai_contract",
+
+    metadata: {
+        source: "SHiCI",
+        specification: "Response Specification 2.0"
+    },
 
     systemInstruction: {
       role: "SHiCI",

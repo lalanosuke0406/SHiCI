@@ -1,0 +1,254 @@
+SHiCI Entity Resolution Model
+Version 2.0
+
+
+-----
+
+
+Philosophy
+What is Entity Resolution?
+
+Entity Resolutionとは、
+
+人間が会話の中で指している対象を、SHiCIと共有するための認知モデルである。
+
+Entity Resolutionの目的は、
+
+Entityを決定することではない。
+
+人間とSHiCIが、同じEntityを見て会話できる状態を作ることである。
+
+Entity Resolutionは、
+
+Conversation全体を理解しない。
+
+Intentを解釈しない。
+
+Knowledgeを説明しない。
+
+Snapshotを生成しない。
+
+Entity Resolutionは、
+
+「ユーザーは今、何を指しているのか」
+
+だけを扱う。
+
+
+
+-----
+
+
+Purpose
+
+人間は、
+
+同じ対象を様々な呼び方で表現する。
+
+例
+
+ワンワン
+LEVER, CLAMP
+KLW-M374C-000
+P-000035
+あの犬みたいな部品
+
+これらは、
+
+Knowledge上では一つのEntityである。
+
+しかし、
+
+人間がどの表現を使うかは予測できない。
+
+Entity Resolutionは、
+
+人間の表現をKnowledge上のEntityへ結び付ける。
+
+必要であれば、
+
+ユーザーへ確認することもEntity Resolutionの役割である。
+
+
+-----
+
+
+Core Principles
+
+
+--
+
+Principle 1
+Shared Understanding
+
+Entity Resolutionの目的は、
+
+Entityを当てることではない。
+
+人間とSHiCIが同じ対象を共有すること
+
+である。
+
+--
+
+Principle 2
+Human Expression
+
+人間は、
+
+Knowledge上の正式名称では話さない。
+
+略称
+
+通称
+
+誤入力
+
+英語
+
+日本語
+
+途中までの名称
+
+様々な表現を使う。
+
+Entity Resolutionは、
+
+それらを自然に受け入れる。
+
+--
+
+Principle 3
+Confidence
+
+Entity Resolutionは、
+
+Candidateを評価する。
+
+Candidateが十分に確信できる場合のみ、
+
+Entityを確定する。
+
+確信できない場合は、
+
+推測しない。
+
+ユーザーへ確認する。
+
+--
+
+Principle 4
+Collaboration
+
+Entity Resolutionは、
+
+一人で解決しようとしない。
+
+必要であれば、
+
+ユーザーへ
+
+「もしかしてこちらですか？」
+
+と確認する。
+
+理解は、
+
+SHiCIだけで作るものではなく、
+
+ユーザーと共同で作るものである。
+
+--
+
+Principle 5
+Canonical Entity
+
+Knowledge上のEntityだけを扱う。
+
+新しいEntityは生成しない。
+
+Canonical Entityだけを共有対象とする。
+
+
+-----
+
+
+Input
+
+Understanding Result
+
+--
+
+Processing
+
+Entity Candidate
+      │
+      ▼
+Normalization
+      │
+      ▼
+Knowledge Resolution
+      │
+      ▼
+Semantic Resolution
+      │
+      ▼
+Confidence Evaluation
+      │
+      ├──────────────┐
+      ▼              ▼
+High           Medium / Low
+Confidence      Confidence
+      │              │
+      ▼              ▼
+Entity確定      User Confirmation
+      │              │
+      └──────┬───────┘
+             ▼
+     Shared Entity
+
+--
+
+Output
+
+Entity Resolutionは、
+
+Knowledgeそのものを返さない。
+
+返すのは、
+
+Shared Entityである。
+
+結果は次のいずれかとなる。
+
+Resolved
+Candidate List
+Not Found
+
+Candidate Listは、
+
+失敗ではない。
+
+共同で理解を完成させるための対話である。
+
+
+-----
+
+
+Final Definition
+
+Entity Resolutionとは、
+
+人間が指している対象を、SHiCIと共有するための認知モデルである。
+
+その目的は、
+
+Entityを当てることではない。
+
+人間とSHiCIが同じ対象を見ながら会話できる状態を作ることである。
+
+理解が曖昧であれば、
+
+SHiCIは推測しない。
+
+対話によって理解を完成させる。

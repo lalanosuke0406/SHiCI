@@ -61,3 +61,98 @@ function LLMInterface_validate(aiContract) {
   }
 
 }
+
+
+
+
+/**
+ * Semantic Entity ResolutionをLLMへ依頼する。
+ *
+ * 通常回答用のAI Contractとは異なり、
+ * Entity候補を構造化データとして取得する。
+ *
+ * @param {Object} semanticContract
+ * @return {Object}
+ */
+function LLMInterface_resolveEntityCandidates(
+  semanticContract
+) {
+
+  LLMInterface_validateSemanticContract(
+    semanticContract
+  );
+
+  const provider =
+    Config_getLLMProvider();
+
+  switch (provider) {
+
+    case "openai":
+      return OpenAIAdapter_resolveEntityCandidates(
+        semanticContract
+      );
+
+    case "mock":
+      /*
+       * Mock Providerでは外部AIを利用しないため、
+       * Semantic候補なしとして扱う。
+       */
+      return {
+        candidates: []
+      };
+
+    default:
+      throw new Error(
+        "Semantic Entity Resolutionに未対応のLLM Providerです: " +
+        provider
+      );
+  }
+}
+
+
+/**
+ * Semantic Resolution Contractの
+ * 最低限の構造を確認する。
+ */
+function LLMInterface_validateSemanticContract(
+  semanticContract
+) {
+
+  if (
+    !semanticContract ||
+    typeof semanticContract !== "object"
+  ) {
+    throw new Error(
+      "Semantic Resolution Contractが指定されていません。"
+    );
+  }
+
+  if (
+    semanticContract.taskType !==
+    "semantic_entity_resolution"
+  ) {
+    throw new Error(
+      "Task Typeがsemantic_entity_resolutionではありません。"
+    );
+  }
+
+  if (
+    !String(
+      semanticContract.entityQuery || ""
+    ).trim()
+  ) {
+    throw new Error(
+      "Semantic Resolution ContractにEntity Queryがありません。"
+    );
+  }
+
+  if (
+    !Array.isArray(
+      semanticContract.candidates
+    )
+  ) {
+    throw new Error(
+      "Semantic Resolution ContractにCandidate一覧がありません。"
+    );
+  }
+}

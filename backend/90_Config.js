@@ -15,7 +15,7 @@ const SPREADSHEET_ID =
  */
 function Config_getLLMProvider() {
 
-  return "mock";
+  return "openai";
 
 }
 

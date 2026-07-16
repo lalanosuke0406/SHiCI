@@ -1,3 +1,89 @@
+/* =========================================================
+   SHiCI Design System v1.0
+   Concept: Quiet Intelligence
+========================================================= */
+
+
+/* =========================================================
+   Design Tokens
+========================================================= */
+
+:root {
+
+  /* Brand colors */
+
+  --color-blue: #2563eb;
+  --color-blue-dark: #1d4ed8;
+  --color-purple: #a855f7;
+
+  --color-gradient:
+    linear-gradient(
+      135deg,
+      var(--color-purple) 0%,
+      var(--color-blue) 100%
+    );
+
+
+  /* Background and surfaces */
+
+  --color-background: #f6f8fc;
+  --color-surface: #ffffff;
+  --color-surface-soft: #f9fafc;
+
+
+  /* Text */
+
+  --color-text-primary: #1f2937;
+  --color-text-secondary: #6b7280;
+  --color-text-tertiary: #9ca3af;
+
+
+  /* Lines */
+
+  --color-border: #e5e7eb;
+  --color-border-light: #edf0f5;
+
+
+  /* Message colors */
+
+  --color-user-message: #eaf1ff;
+  --color-user-message-border: #dbe7ff;
+
+
+  /* Radius */
+
+  --radius-small: 12px;
+  --radius-medium: 18px;
+  --radius-large: 22px;
+  --radius-round: 999px;
+
+
+  /* Shadow */
+
+  --shadow-soft:
+    0 8px 24px rgba(31, 41, 55, 0.06);
+
+  --shadow-floating:
+    0 10px 30px rgba(37, 99, 235, 0.18);
+
+
+  /* Layout */
+
+  --header-height: 58px;
+  --content-max-width: 760px;
+
+
+  /* Motion */
+
+  --transition-fast: 180ms ease;
+  --transition-normal: 250ms ease;
+}
+
+
+/* =========================================================
+   Reset
+========================================================= */
+
 * {
   margin: 0;
   padding: 0;
@@ -8,268 +94,808 @@ html,
 body {
   width: 100%;
   height: 100%;
-  margin: 0;
-  padding: 0;
+}
+
+html {
+  background: var(--color-background);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   height: 100dvh;
   overflow: hidden;
 
+  background: var(--color-background);
+  color: var(--color-text-primary);
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Helvetica Neue",
+    "Segoe UI",
+    "Noto Sans JP",
+    sans-serif;
+
+  font-size: 16px;
+  line-height: 1.5;
+
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+textarea {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+
+/* =========================================================
+   Application Layout
+========================================================= */
+
+.app {
+  width: 100%;
+  height: 100dvh;
+
   display: flex;
   flex-direction: column;
 
-  background:#eef1f5;
-  color: #222;
-  font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", sans-serif;
+  overflow: hidden;
 }
 
-/* ===========================
+
+/* =========================================================
    Header
-=========================== */
+========================================================= */
 
-.app-header{
+.app-header {
+  position: relative;
+  z-index: 100;
 
-    position:sticky;
-    top:0;
+  flex-shrink: 0;
 
-    z-index:100;
+  width: 100%;
+  min-height: calc(
+    var(--header-height) + env(safe-area-inset-top)
+  );
 
-    height:56px;
+  padding:
+    env(safe-area-inset-top)
+    20px
+    0;
 
-    padding:0 16px;
+  display: flex;
+  align-items: center;
 
-    display:flex;
-    align-items:center;
+  background: rgba(255, 255, 255, 0.9);
 
-    background:rgba(28,28,30,.72);
+  border-bottom:
+    1px solid rgba(229, 231, 235, 0.8);
 
-    backdrop-filter:blur(20px);
-    -webkit-backdrop-filter:blur(20px);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
 
-    border-bottom:1px solid rgba(255,255,255,.08);
+.app-brand {
+  width: 100%;
+  height: var(--header-height);
+
+  display: flex;
+  align-items: center;
+}
+
+.app-logo {
+  color: var(--color-text-primary);
+
+  font-size: 24px;
+  font-weight: 750;
+  line-height: 1;
+
+  letter-spacing: -0.4px;
+}
+
+
+/* Small brand accent */
+
+.logo-text{
+
+    display:block;
 
 }
 
-.app-logo{
+.logo-accent{
 
-    color:white;
+    width:6px;
 
-    font-size:24px;
+    height:6px;
 
-    font-weight:800;
+    margin-left:6px;
 
-    letter-spacing:.3px;
+    margin-top:2px;
+
+    border-radius:50%;
+
+    background:#D1D5DB;
+
+    transition:
+
+        background .35s ease,
+
+        transform .35s ease,
+
+        box-shadow .35s ease;
 
 }
 
-/* ===========================
-   Input
-=========================== */
+
+.logo-text{
+
+    display:block;
+
+}
+
+.logo-accent{
+
+    width:6px;
+
+    height:6px;
+
+    margin-left:6px;
+
+    margin-top:2px;
+
+    border-radius:50%;
+
+    background:#D1D5DB;
+
+    transition:
+
+        background .35s ease,
+
+        transform .35s ease,
+
+        box-shadow .35s ease;
+
+}
+
+
+/* =========================================================
+   Chat Area
+========================================================= */
+
+.chat {
+  flex: 1;
+  min-height: 0;
+
+  width: 100%;
+
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+
+  display: flex;
+  flex-direction: column;
+
+  padding:
+    20px
+    16px
+    24px;
+
+  scroll-behavior: smooth;
+}
+
+
+/* Scrollbar */
+
+.chat::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.35);
+  border-radius: var(--radius-round);
+}
+
+
+/* =========================================================
+   Welcome
+========================================================= */
+
+.welcome {
+  width: 100%;
+  max-width: 520px;
+
+  margin: auto;
+  padding: 32px 24px 52px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  text-align: center;
+}
+
+
+/* Decorative relationship symbol */
+
+.welcome-symbol {
+  position: relative;
+
+  width: 96px;
+  height: 78px;
+
+  margin-bottom: 28px;
+}
+
+.welcome-hexagon {
+  position: absolute;
+
+  width: 58px;
+  height: 50px;
+
+  opacity: 0.92;
+
+  background: var(--color-gradient);
+
+  clip-path: polygon(
+    25% 0%,
+    75% 0%,
+    100% 50%,
+    75% 100%,
+    25% 100%,
+    0% 50%
+  );
+}
+
+.welcome-hexagon::after {
+  content: "";
+
+  position: absolute;
+  inset: 3px;
+
+  background: var(--color-background);
+
+  clip-path: inherit;
+}
+
+.welcome-hexagon-primary {
+  top: 3px;
+  left: 8px;
+
+  transform: rotate(-4deg);
+}
+
+.welcome-hexagon-secondary {
+  right: 7px;
+  bottom: 3px;
+
+  transform: rotate(5deg);
+  opacity: 0.7;
+}
+
+.welcome-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-greeting {
+  margin-bottom: 8px;
+
+  color: var(--color-text-secondary);
+
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.welcome-title {
+  margin-bottom: 18px;
+
+  color: var(--color-text-primary);
+
+  font-size: clamp(25px, 7vw, 32px);
+  font-weight: 750;
+  line-height: 1.3;
+
+  letter-spacing: -0.8px;
+}
+
+.welcome-description {
+  color: var(--color-text-secondary);
+
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+
+/* ==========================================
+   Welcome Animation
+========================================== */
+
+.welcome {
+
+    opacity: 1;
+
+    transform: translateY(0);
+
+    transition:
+        opacity .35s ease,
+        transform .35s ease;
+
+}
+
+.welcome.hide {
+
+    opacity: 0;
+
+    transform: translateY(-20px);
+
+    pointer-events: none;
+
+}
+
+
+
+
+/* =========================================================
+   Messages
+========================================================= */
+
+.message {
+  width: fit-content;
+  max-width: 90%;
+
+  margin: 7px 0;
+  padding: 13px 16px;
+
+  border-radius: var(--radius-medium);
+
+  font-size: 16px;
+  line-height: 1.65;
+
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+
+/* SHiCI response */
+
+.message.shici {
+  align-self: flex-start;
+
+  background: var(--color-surface);
+
+  border:
+    1px solid var(--color-border-light);
+
+  border-bottom-left-radius: 6px;
+
+  box-shadow: var(--shadow-soft);
+}
+
+
+/* User message */
+
+.message.user {
+  align-self: flex-end;
+
+  background: var(--color-user-message);
+
+  border:
+    1px solid var(--color-user-message-border);
+
+  border-bottom-right-radius: 6px;
+
+  color: var(--color-text-primary);
+}
+
+
+/* Candidate list wrapper */
+
+.message.bot {
+  align-self: stretch;
+
+  width: 100%;
+  max-width: 100%;
+
+  padding: 0;
+  margin: 7px 0;
+
+  background: transparent;
+  border: none;
+  box-shadow: none;
+
+  white-space: normal;
+}
+
+
+/* =========================================================
+   Candidate Card
+========================================================= */
+
+.candidate-card {
+  position: relative;
+
+  width: 100%;
+
+  margin: 10px 0;
+  padding: 17px 46px 17px 18px;
+
+  background: var(--color-surface);
+
+  border:
+    1px solid var(--color-border-light);
+
+  border-radius: var(--radius-large);
+
+  box-shadow: var(--shadow-soft);
+
+  cursor: pointer;
+
+  transition:
+    transform var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.candidate-card::after {
+  content: "›";
+
+  position: absolute;
+  top: 50%;
+  right: 18px;
+
+  transform: translateY(-52%);
+
+  color: var(--color-text-tertiary);
+
+  font-size: 27px;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.candidate-card:hover {
+  border-color: rgba(37, 99, 235, 0.26);
+
+  box-shadow:
+    0 10px 28px rgba(31, 41, 55, 0.08);
+}
+
+.candidate-card:active {
+  transform: scale(0.985);
+}
+
+.candidate-drawing {
+  margin-bottom: 5px;
+
+  color: var(--color-text-primary);
+
+  font-size: 17px;
+  font-weight: 720;
+  line-height: 1.4;
+
+  letter-spacing: -0.2px;
+}
+
+.candidate-name {
+  color: var(--color-text-secondary);
+
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.candidate-mold {
+  margin-top: 8px;
+
+  color: var(--color-text-tertiary);
+
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   Input Area
+========================================================= */
 
 .input-area {
+  position: relative;
+  z-index: 100;
+
   flex-shrink: 0;
-  display: grid;
-  grid-template-columns: minmax(0,1fr) 72px;
-  gap: 8px;
-  padding: 8px 10px;
-  padding-bottom: calc(8px + env(safe-area-inset-bottom));
 
-  background:rgba(255,255,255,.72);
+  width: 100%;
 
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
+  padding:
+    10px
+    12px
+    calc(10px + env(safe-area-inset-bottom));
 
-  border-top:1px solid rgba(255,255,255,.35);
+  background:
+    rgba(246, 248, 252, 0.88);
+
+  border-top:
+    1px solid rgba(229, 231, 235, 0.78);
+
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  transform: translateY(0);
+
+  transition:
+      transform .35s ease;
 }
 
-#query {
+.input-container {
+  width: 100%;
+
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+
+  padding: 5px 5px 5px 16px;
+
+  background: var(--color-surface);
+
+  border:
+    1px solid var(--color-border);
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 7px 22px rgba(31, 41, 55, 0.07);
+
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.input-container:focus-within {
+  border-color: rgba(37, 99, 235, 0.46);
+
+  box-shadow:
+    0 8px 26px rgba(37, 99, 235, 0.11);
+}
+
+
+/* Textarea */
+
+#query,
+.query-input {
+  flex: 1;
+
   width: 100%;
   min-width: 0;
 
-  min-height: 44px;
-  max-height: 120px;
+  min-height: 42px;
+  max-height: 128px;
 
-  padding: 10px 12px;
+  padding: 10px 0 9px;
 
-  border: 1px solid #ccc;
-  border-radius: 14px;
+  border: 0;
+  outline: 0;
 
-  background: #fff;
+  background: transparent;
+
+  color: var(--color-text-primary);
 
   font-size: 16px;
   line-height: 1.45;
 
   resize: none;
   overflow-y: auto;
-  outline: none;
 }
 
-#query:focus{
-  border-color:#202020;
+#query::placeholder,
+.query-input::placeholder {
+  color: var(--color-text-tertiary);
+  opacity: 1;
 }
 
-#sendButton{
 
-  height:44px;
+/* Send button */
 
-  border:none;
-  border-radius:14px;
+#sendButton,
+.send-button {
+  flex: 0 0 auto;
 
-  background:#202020;
-  color:#fff;
+  width: 42px;
+  height: 42px;
 
-  font-size:16px;
-  font-weight:700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 50%;
+
+  background: var(--color-gradient);
+  color: #ffffff;
+
+  cursor: pointer;
+
+  box-shadow: var(--shadow-floating);
+
+  transition:
+    transform var(--transition-fast),
+    opacity var(--transition-fast),
+    box-shadow var(--transition-fast);
 }
 
-#sendButton:active{
-  opacity:.75;
+#sendButton:hover,
+.send-button:hover {
+  box-shadow:
+    0 12px 30px rgba(37, 99, 235, 0.23);
 }
 
-/* ===========================
-   Chat
-=========================== */
-
-.chat{
-  flex:1;
-  min-height:0;
-
-  overflow-y:auto;
-  -webkit-overflow-scrolling:touch;
-
-  display:flex;
-  flex-direction:column;
-
-  padding:12px;
+#sendButton:active,
+.send-button:active {
+  transform: scale(0.92);
 }
 
-/* ===========================
-   Message
-=========================== */
-
-.message{
-
-  margin:8px 0;
-
-  padding:12px 14px;
-
-  border-radius:16px;
-
-  font-size:16px;
-  line-height:1.5;
-
-  white-space:pre-wrap;
-  word-break:break-word;
-
-  box-shadow:0 2px 6px rgba(0,0,0,.08);
-
+#sendButton:disabled,
+.send-button:disabled {
+  opacity: 0.42;
+  cursor: default;
+  box-shadow: none;
 }
 
-.message.shici{
-  background:#fff;
-  align-self:flex-start;
-  max-width:92%;
+.send-button-icon {
+  display: block;
+
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+
+  transform: translateY(-1px);
 }
 
-.message.user{
-  background:#dce8ff;
-  margin-left:15%;
-}
 
-/* ===========================
-   Candidate Card
-=========================== */
+/* ==========================================
+   Chat Mode
+========================================== */
 
-.candidate-card{
+.input-area.chat-mode{
 
-  background:#fff;
-
-  border-radius:16px;
-
-  padding:16px;
-
-  margin:10px 0;
-
-  box-shadow:0 2px 8px rgba(0,0,0,.08);
-
-  cursor:pointer;
-
-  transition:.15s;
-
-}
-
-.candidate-card:active{
-
-  transform:scale(.98);
-
-}
-
-.candidate-drawing{
-
-  font-size:18px;
-  font-weight:700;
-
-  margin-bottom:4px;
-
-}
-
-.candidate-name{
-
-  font-size:15px;
-
-  color:#666;
-
-}
-
-.candidate-mold{
-
-    margin-top:8px;
-
-    font-size:13px;
-
-    color:#888;
+    transform:translateY(-6px);
 
 }
 
 
-/* 候補一覧 */
 
-.message.bot{
 
-  background:transparent;
 
-  padding:0;
 
-  margin:8px 0;
+/* =========================================================
+   Focus Visibility
+========================================================= */
 
-  box-shadow:none;
+button:focus-visible,
+.candidate-card:focus-visible {
+  outline:
+    3px solid rgba(37, 99, 235, 0.25);
 
-  white-space:normal;
-
+  outline-offset: 2px;
 }
 
-@media (min-width:800px){
 
-  body{
+/* =========================================================
+   Desktop
+========================================================= */
 
-    max-width:760px;
+@media (min-width: 800px) {
 
-    margin:0 auto;
-
-    background:#e9e9e9;
-
+  body {
+    background:
+      linear-gradient(
+        135deg,
+        rgba(168, 85, 247, 0.04),
+        rgba(37, 99, 235, 0.05)
+      ),
+      var(--color-background);
   }
 
-  .app-header,
-  .input-area{
+  .app {
+    max-width: var(--content-max-width);
 
-    max-width:760px;
+    margin: 0 auto;
 
-    margin:0 auto;
+    background: var(--color-background);
 
+    border-left:
+      1px solid rgba(229, 231, 235, 0.8);
+
+    border-right:
+      1px solid rgba(229, 231, 235, 0.8);
+
+    box-shadow:
+      0 0 40px rgba(31, 41, 55, 0.05);
   }
 
+  .chat {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  .input-area {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .welcome {
+    padding-bottom: 80px;
+  }
+
+  .message {
+    max-width: 82%;
+  }
+}
+
+
+/* =========================================================
+   Small Mobile Screens
+========================================================= */
+
+@media (max-width: 390px) {
+
+  .app-header {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .chat {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .welcome {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .welcome-title {
+    font-size: 25px;
+  }
+
+  .message {
+    max-width: 94%;
+  }
+
+  .input-area {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+}
+
+
+/* =========================================================
+   Reduced Motion
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
 

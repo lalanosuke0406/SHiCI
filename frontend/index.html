@@ -5,9 +5,12 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
 
-    <meta name="theme-color" content="#202020">
+    <meta name="theme-color" content="#2563EB">
 
     <title>SHiCI</title>
 
@@ -20,34 +23,126 @@
 <body>
 
     <!-- ==========================================
-         Header
+         Application
     =========================================== -->
 
-    <header class="app-header">
-        <div class="app-logo">SHiCI</div>
-    </header>
+    <div class="app">
 
-    <!-- ==========================================
-         Chat Area
-    =========================================== -->
+        <!-- ======================================
+             Header
+        ======================================= -->
 
-    <main id="chat" class="chat">
+        <header class="app-header">
 
-        <div class="message shici">こんにちは。何を調べますか？</div>
+            <div class="app-brand">
 
-    </main>
+                <div class="app-logo">
 
-    <!-- ==========================================
-         Input Area
-    =========================================== -->
+                    <span class="logo-text">
+                        SHiCI
+                    </span>
 
-    <form id="inputForm" class="input-area">
+                    <span
+                        id="logoAccent"
+                        class="logo-accent"
+                    ></span>
 
-        <textarea id="query" rows="1" autocomplete="off" placeholder="SHiCIに質問する"></textarea>
+                </div>
 
-        <button id="sendButton" type="submit">送信</button>
+            </div>
 
-    </form>
+        </header>
+
+        <!-- ======================================
+             Chat Area
+        ======================================= -->
+
+        <main
+            id="chat"
+            class="chat"
+            aria-live="polite"
+        >
+
+            <!--
+                初期表示用のウェルカムエリアです。
+
+                質問送信後は、JavaScript側から
+                この要素を非表示にします。
+            -->
+
+            <section
+                id="welcome"
+                class="welcome"
+            >
+
+                <div class="welcome-symbol" aria-hidden="true">
+
+                    <span class="welcome-hexagon welcome-hexagon-primary"></span>
+
+                    <span class="welcome-hexagon welcome-hexagon-secondary"></span>
+
+                </div>
+
+                <div class="welcome-content">
+
+                    <p class="welcome-greeting">
+                        こんにちは。
+                    </p>
+
+                    <h1 class="welcome-title">
+                        今日は何を調べますか？
+                    </h1>
+
+                    <p class="welcome-description">
+                        SHiCIが知識をつなぎ、<br>
+                        あなたの「知りたい」を探します。
+                    </p>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- ======================================
+             Input Area
+        ======================================= -->
+
+        <form
+            id="inputForm"
+            class="input-area"
+        >
+
+            <div class="input-container">
+
+                <textarea
+                    id="query"
+                    class="query-input"
+                    rows="1"
+                    autocomplete="off"
+                    enterkeyhint="send"
+                    aria-label="SHiCIへの質問"
+                    placeholder="SHiCIに質問する"
+                ></textarea>
+
+                <button
+                    id="sendButton"
+                    class="send-button"
+                    type="submit"
+                    aria-label="質問を送信する"
+                >
+
+                    <span class="send-button-icon" aria-hidden="true">
+                        ↑
+                    </span>
+
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
 
     <!-- ==========================================
          JavaScript

@@ -10,6 +10,8 @@ ChatController.js
 */
 
 let sendButton;
+let welcome;
+let logoAccent;
 
 /**
  * 初期化
@@ -17,6 +19,8 @@ let sendButton;
 function initializeChat() {
 
     sendButton = document.getElementById("sendButton");
+    welcome = document.getElementById("welcome");
+    logoAccent = document.getElementById("logoAccent");
 
     inputForm.addEventListener(
         "submit",
@@ -38,6 +42,29 @@ async function handleSubmit(event) {
 
     // ユーザー発言
     addMessage(text, "user");
+
+    // Welcome非表示
+    if (welcome) {
+
+        welcome.classList.add("hide");
+
+        inputForm.classList.add("chat-mode");
+
+        if (logoAccent){
+
+            logoAccent.classList.add("active");
+
+        }
+
+        setTimeout(() => {
+
+            welcome.remove();
+
+            welcome = null;
+
+        }, 350);
+
+    }
 
     // 入力欄リセット
     clearTextarea();

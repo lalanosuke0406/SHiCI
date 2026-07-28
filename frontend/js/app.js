@@ -1,4 +1,10 @@
-document.addEventListener("DOMContentLoaded", () => {
-    initializeTextarea();
-    initializeChat();
-});
+document.addEventListener(
+    "DOMContentLoaded",
+    function() {
+
+        initializeAuthentication();
+
+        initializeChat();
+
+    }
+);

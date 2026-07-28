@@ -23,10 +23,53 @@
 <body>
 
     <!-- ==========================================
+     Login
+    =========================================== -->
+
+    <section
+        id="loginView"
+        class="login-view"
+
+
+        <div class="login-panel">
+
+            <div class="login-brand">
+                SHiCI
+            </div>
+
+            <h1 class="login-title">
+                SHiCIへログイン
+            </h1>
+
+            <p class="login-description">
+                Googleアカウントでログインしてください。
+            </p>
+
+            <div id="googleSignInButton"></div>
+
+            <p
+                id="loginError"
+                class="login-error"
+                role="alert"
+            ></p>
+
+        </div>
+
+    </section>
+
+
+
+
+
+    <!-- ==========================================
          Application
     =========================================== -->
 
-    <div class="app">
+    <div
+        id="appView"
+        class="app"
+        hidden
+    >
 
         <!-- ======================================
              Header
@@ -148,6 +191,8 @@
          JavaScript
     =========================================== -->
 
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
     <script src="js/SessionStore.js"></script>
 
     <script src="js/UIRenderer.js"></script>
@@ -155,6 +200,8 @@
     <script src="js/ApiClient.js"></script>
 
     <script src="js/TextareaController.js"></script>
+
+    <script src="js/AuthController.js"></script>
 
     <script src="js/ChatController.js"></script>
 

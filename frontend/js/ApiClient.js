@@ -32,7 +32,49 @@ async function selectCandidate(entityId) {
 
 
 
+async function callApi(
+    action,
+    body = {}
+) {
 
+    const response =
+        await fetch(
+            GAS_API_URL,
+            {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+
+                body: JSON.stringify({
+
+                    action,
+
+                    sessionId:
+                        getSessionId(),
+
+                    ...body
+
+                })
+
+            }
+
+        );
+
+    if (!response.ok) {
+
+        throw new Error(
+            "通信に失敗しました。"
+        );
+
+    }
+
+    return await response.json();
+
+}
 
 
 

@@ -17,21 +17,30 @@ const SESSION_KEY = "shiciSessionId";
  */
 function getSessionId() {
 
-    let sessionId = localStorage.getItem(SESSION_KEY);
+    return localStorage.getItem(
+        SESSION_KEY
+    ) || "";
 
-    if (!sessionId) {
-
-        sessionId =
-            "session_" +
-            Date.now() +
-            "_" +
-            Math.random().toString(36).substring(2);
-
-        localStorage.setItem(SESSION_KEY, sessionId);
-    }
-
-    return sessionId;
 }
+
+
+
+
+function setSessionId(
+    sessionId
+) {
+
+    localStorage.setItem(
+        SESSION_KEY,
+        sessionId
+    );
+
+}
+
+
+
+
+
 
 /**
  * セッションIDを削除する
@@ -41,12 +50,4 @@ function clearSessionId() {
     localStorage.removeItem(SESSION_KEY);
 }
 
-/**
- * セッションIDを強制再生成する
- */
-function regenerateSessionId() {
 
-    clearSessionId();
-
-    return getSessionId();
-}

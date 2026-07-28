@@ -106,14 +106,99 @@ function renderGoogleSignInButton() {
 }
 
 
-function handleGoogleCredential(
+async function handleGoogleCredential(
     response
 ) {
 
-    console.log(
-        "Google credential received.",
-        response
-    );
+    if (
+        !response ||
+        !response.credential
+    ) {
+
+        showLoginError(
+            "Googleログイン情報を取得できませんでした。"
+        );
+
+        return;
+
+    }
+
+    try {
+
+        const result =
+            await callApi(
+                "login",
+                {
+                    idToken:
+                        response.credential
+                }
+            );
+
+        if (
+            result.status !==
+            "success"
+        ) {
+
+            throw new Error(
+                result.message ||
+                "ログインに失敗しました。"
+            );
+
+        }
+
+        if (!result.sessionId) {
+
+            throw new Error(
+                "セッションIDを取得できませんでした。"
+            );
+
+        }
+
+        setSessionId(
+            result.sessionId
+        );
+
+        showApplicationView();
+
+    }
+    catch (error) {
+
+        showLoginError(
+            error.message
+        );
+
+    }
+
+}
+
+
+function showApplicationView() {
+
+    const loginView =
+        document.getElementById(
+            "loginView"
+        );
+
+    const appView =
+        document.getElementById(
+            "appView"
+        );
+
+    if (
+        !loginView ||
+        !appView
+    ) {
+
+        showLoginError(
+            "画面の切り替えに失敗しました。"
+        );
+
+        return;
+
+    }
+
+    loginView.hidden = true;
+    appView.hidden = false;
 
 }
 

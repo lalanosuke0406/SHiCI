@@ -1,0 +1,249 @@
+SHiCI Contract Specification
+Version 1.0
+
+
+
+1. Purpose（目的）
+
+SHiCIは、多数のEngineが連携して動作するシステムである。
+
+Engine同士は、内部実装を共有してはならない。
+
+Engine同士は、
+
+Contract
+
+を介してのみ情報を受け渡す。
+
+Contract Specificationは、
+
+SHiCI内部で利用される全てのContractの構造、責務、および利用規則を定義する。
+
+Contractは、
+
+Engineの実装方法を定義するものではない。
+
+Engine同士の約束を定義する。
+
+
+
+
+
+2. What is a Contract?（Contractとは何か）
+
+Contractとは、
+
+あるEngineが生成し、
+
+別のEngineが受け取る、
+
+意味を持った構造化データ
+
+である。
+
+Contractは、
+
+単なるObjectではない。
+
+Contractには、
+
+意味
+責務
+利用目的
+
+が存在する。
+
+Engineは、
+
+Contract以外の情報を前提としてはならない。
+
+
+
+
+
+
+3. Contract Philosophy（Contractの思想）
+
+SHiCIでは、
+
+Engineは互いの内部実装を知らない。
+
+例えば、
+
+SnapshotEngine
+
+は、
+
+LLMがOpenAIなのか、
+
+Mockなのか、
+
+将来Claudeなのか、
+
+知らない。
+
+同様に、
+
+OpenAIAdapter
+
+は、
+
+SnapshotがSpreadsheetから作られたのか、
+
+Databaseなのか、
+
+将来Graph DBなのか、
+
+知らない。
+
+Engine同士を接続する唯一の約束が、
+
+Contractである。
+
+
+
+
+
+
+
+4. General Rules（共通規則）
+
+全てのContractは、
+
+可能な限り次の構造を持つ。
+
+{
+    schemaVersion: "1.0",
+
+    contractType: "...",
+
+    metadata: { },
+
+    payload: { }
+}
+
+必要に応じて、
+
+policy
+
+context
+
+result
+
+などを追加できる。
+
+
+
+
+
+5. Contract Principles（基本原則）
+
+
+Principle 1
+
+Contractは、
+
+意味を持ったObjectである。
+
+単なるParameterではない。
+
+
+Principle 2
+
+Contractは、
+
+受け取る側ではなく、
+
+生成する側が責任を持つ。
+
+
+Principle 3
+
+Contractは、
+
+Versionを持つ。
+
+Versionが異なるContractは、
+
+互換性を保証しない。
+
+
+Principle 4
+
+Contractは、
+
+Engine内部の状態を含めない。
+
+
+Principle 5
+
+Contractは、
+
+他Engineの実装を前提としてはならない。
+
+
+Principle 6
+
+Contractは、
+
+自己完結している。
+
+受け取ったEngineは、
+
+Contractだけで処理できることを目指す。
+
+
+
+
+
+
+6. Contract Lifecycle（Contractのライフサイクル）
+
+Create
+    ↓
+Validate
+    ↓
+Use
+    ↓
+Dispose
+
+Contractは、
+
+利用後に変更してはならない。
+
+変更が必要なら、
+
+新しいContractを生成する。
+
+
+
+
+
+
+7. Current Contracts
+
+Version1.0では、
+
+次のContractを正式Contractとして定義する。
+
+Conversation State
+
+Knowledge Boundary Result
+
+Understanding Result
+
+Entity Resolution Result
+
+Semantic Resolution Contract
+
+Snapshot
+
+Response Specification
+
+AI Contract
+
+Candidate Response
+
+API Response
+
+この一覧を見れば分かるように、ここでArchitecture Mapとの接続が生まれます。

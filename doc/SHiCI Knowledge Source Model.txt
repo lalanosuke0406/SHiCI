@@ -1,0 +1,618 @@
+SHiCI Knowledge Source Model
+Version 1.0
+1. Purpose（目的）
+
+Knowledge Source Modelは、SHiCIが利用する知識源（Knowledge Source）の種類、およびその役割を定義する。
+
+Knowledge Sourceとは、
+
+回答の根拠となる情報の出所
+
+である。
+
+Knowledge Source Modelは、
+
+「どのように回答するか」
+
+ではなく、
+
+どこから知識を得るか
+
+を定義する。
+
+Knowledge Boundary Modelが、
+
+「どこまで回答してよいか」
+
+を定義するのに対し、
+
+Knowledge Source Modelは、
+
+「どこから回答の根拠を得るか」
+
+を定義する。
+
+2. Position in Design Hierarchy（設計階層上の位置）
+
+Knowledge Source Modelは、Processing ModelおよびKnowledge Boundary Modelを補完する設計書である。
+
+Processing Model
+        │
+        ▼
+Knowledge Boundary Model
+        │
+        ▼
+Knowledge Source Model
+        │
+        ▼
+Compose
+        │
+        ▼
+Response Specification
+
+Knowledge Boundaryは、
+
+利用可能な知識の範囲を決定する。
+
+Knowledge Sourceは、
+
+その範囲の中で利用する情報源を決定する。
+
+3. What is a Knowledge Source?（Knowledge Sourceとは何か）
+
+Knowledge Sourceとは、
+
+SHiCIが回答を生成するために利用できる、
+
+根拠を持った情報源である。
+
+Knowledge Sourceは、
+
+回答そのものではない。
+
+Knowledge SourceからKnowledgeを構築し、
+
+Knowledgeから回答を生成する。
+
+Knowledge Sourceは、
+
+必ず何らかの客観的根拠を持つ。
+
+推測、
+
+想像、
+
+幻覚（Hallucination）
+
+はKnowledge Sourceではない。
+
+4. Knowledge Generation Flow（知識生成の流れ）
+
+SHiCIでは、
+
+回答を直接生成しない。
+
+必ず、
+
+Knowledge SourceからKnowledgeを構築する。
+
+基本的な流れは次の通りである。
+
+User Question
+        │
+        ▼
+Knowledge Source Selection
+        │
+        ▼
+Knowledge Acquisition
+        │
+        ▼
+Knowledge Construction
+        │
+        ▼
+Response Specification
+        │
+        ▼
+Natural Language Response
+
+Knowledge Sourceを経由しない回答生成は、
+
+SHiCIでは行わない。
+
+5. Current Knowledge Sources（Version 1.0）
+
+Version 1.0では、
+
+次のKnowledge Sourceを正式に定義する。
+
+Company Knowledge Source
+
+General Knowledge Source
+
+Conversation Source
+
+Derived Knowledgeは、
+
+Knowledge Sourceではなく、
+
+Knowledge Transformationとして扱う。
+
+Unknownは、
+
+Knowledge Sourceではなく、
+
+Knowledge探索結果である。
+
+6. Company Knowledge Source
+Purpose
+
+Company Knowledge Sourceは、
+
+SHiCI内部に登録された業務Knowledgeを提供する。
+
+Information Examples
+製品
+
+材料
+
+金型
+
+設備
+
+成形条件
+
+標準条件
+
+図番
+
+トラブル履歴
+
+金型履歴
+
+Entity
+
+Relation
+Characteristics
+
+Company Knowledgeは、
+
+SHiCIに登録された内容のみを利用する。
+
+存在しない情報を推測して生成してはならない。
+
+Company Knowledgeは、
+
+SHiCIにおける最優先Knowledge Sourceである。
+
+7. General Knowledge Source
+Purpose
+
+General Knowledge Sourceは、
+
+社内Knowledgeではない、
+
+一般的な知識を提供する。
+
+Information Examples
+材料特性
+
+物理
+
+化学
+
+数学
+
+法律
+
+規格
+
+射出成形一般
+
+一般技術
+
+統計
+
+歴史
+
+言語
+Characteristics
+
+General Knowledgeは、
+
+一般論として回答する。
+
+Company Knowledgeとして断定してはならない。
+
+必要に応じて、
+
+「一般的には」
+
+など、
+
+知識の立場を明示する。
+
+8. Conversation Source
+Purpose
+
+Conversation Sourceは、
+
+現在の会話内容をKnowledgeとして利用する。
+
+Information Examples
+現在のEntity
+
+候補選択
+
+現在のView
+
+会話履歴
+
+直前の質問
+
+Conversation Sourceは、
+
+Conversation Stateとは異なる。
+
+Conversation Stateは、
+
+状態管理である。
+
+Conversation Sourceは、
+
+回答根拠として利用可能な会話情報である。
+
+9. Knowledge Transformation
+
+Knowledge Transformationとは、
+
+Knowledge Sourceから取得したKnowledgeを加工し、
+
+新しいKnowledgeを生成する処理である。
+
+Transformationは、
+
+Knowledge Sourceではない。
+
+Transformation自身は、
+
+新しい根拠を持たない。
+
+Examples
+数量 × 製品重量
+
+↓
+
+材料使用量
+サイクル
+
+↓
+
+生産能力
+トラブル履歴
+
+↓
+
+異常発生頻度
+
+Transformationは、
+
+元Knowledgeを保持する。
+
+Transformationによって、
+
+元の根拠を失ってはならない。
+
+10. Mixed Knowledge
+
+実際の回答では、
+
+複数のKnowledge Sourceを利用する場合がある。
+
+例
+
+Company Knowledge
+
+↓
+
+General Knowledge
+
+↓
+
+Transformation
+
+または
+
+Conversation
+
+↓
+
+Company Knowledge
+
+など。
+
+Mixed Knowledgeでは、
+
+Knowledge Sourceを混在させてもよい。
+
+ただし、
+
+どのKnowledgeが、
+
+どのSourceから得られたかを失ってはならない。
+
+11. Future Knowledge Sources
+
+SHiCIは、
+
+将来的に、
+
+Knowledge Sourceを追加できる構造を持つ。
+
+例
+
+Document Source
+
+Image Source
+
+CAD Source
+
+Audio Source
+
+Sensor Source
+
+IoT Source
+
+MES Source
+
+ERP Source
+
+PLM Source
+
+Web Source
+
+External Database Source
+
+Knowledge Sourceは、
+
+追加されても、
+
+既存Knowledge Sourceを変更する必要はない。
+
+12. Knowledge Source Selection
+
+Knowledge Sourceは、
+
+質問ごとに選択される。
+
+全Knowledge Sourceを毎回利用するわけではない。
+
+例
+
+POMとは？
+
+↓
+
+General Knowledge
+ワンワンの材料は？
+
+↓
+
+Company Knowledge
+ワンワンはPOMだけど耐熱温度は？
+
+↓
+
+Company
+
+↓
+
+General
+
+Source Selectionは、
+
+Knowledge Boundaryと連携する。
+
+13. Knowledge Source Priority
+
+複数Sourceが利用可能な場合、
+
+Version1.0では、
+
+次の優先順位を採用する。
+
+Conversation
+
+↓
+
+Company
+
+↓
+
+Knowledge Transformation
+
+↓
+
+General
+
+Conversationは、
+
+現在の質問文脈を最優先する。
+
+Company Knowledgeは、
+
+SHiCI内部Knowledgeとして最も信頼する。
+
+Transformationは、
+
+Company Knowledge等を加工した結果である。
+
+General Knowledgeは、
+
+不足する知識を補うために利用する。
+
+14. Unknown
+
+Unknownは、
+
+Knowledge Sourceではない。
+
+Unknownとは、
+
+Knowledge Source探索の結果、
+
+必要なKnowledgeを取得できなかった状態である。
+
+例
+
+Knowledge Source Selection
+
+↓
+
+Company
+
+×
+
+General
+
+×
+
+Conversation
+
+×
+
+↓
+
+Unknown
+
+Unknownでは、
+
+推測によってKnowledgeを生成してはならない。
+
+必要に応じて、
+
+追加情報を求める。
+
+15. Relationship with Knowledge Boundary
+
+Knowledge BoundaryとKnowledge Sourceは、
+
+異なる責務を持つ。
+
+Knowledge Boundaryは、
+
+回答可能な範囲を決定する。
+
+Knowledge Sourceは、
+
+回答根拠を取得する場所を決定する。
+
+例
+
+Knowledge Boundary
+
+↓
+
+General
+
+と判定されても、
+
+Knowledge Sourceとして
+
+Conversation
+
+を利用することは可能である。
+
+逆に、
+
+Company Knowledge Sourceを利用していても、
+
+Knowledge Boundaryによって、
+
+回答可能範囲が制限される場合がある。
+
+16. Relationship with Compose
+
+Knowledge Sourceは、
+
+Composeで利用される。
+
+Composeは、
+
+Knowledge SourceからKnowledgeを取得し、
+
+EntityおよびRelationを中心にKnowledgeを構築する。
+
+Knowledge Source自身は、
+
+回答を生成しない。
+
+17. Knowledge Source Principles
+Principle 1
+
+Knowledge Sourceは、
+
+回答ではなく、
+
+回答根拠である。
+
+Principle 2
+
+Knowledge Sourceは、
+
+客観的根拠を持つ。
+
+Principle 3
+
+Knowledge Sourceを経由しないKnowledge生成は行わない。
+
+Principle 4
+
+Knowledge SourceとKnowledge Boundaryを混同しない。
+
+Principle 5
+
+Knowledge Transformationは、
+
+Knowledge Sourceではない。
+
+Principle 6
+
+Unknownは、
+
+Knowledge Sourceではない。
+
+Principle 7
+
+複数Knowledge Sourceを利用してもよい。
+
+ただし、
+
+各Knowledgeの出所は保持されなければならない。
+
+Principle 8
+
+Knowledge Sourceは、
+
+将来追加されることを前提とする。
+
+18. Conclusion
+
+SHiCIは、
+
+回答を直接生成するシステムではない。
+
+SHiCIは、
+
+Knowledge SourceからKnowledgeを構築し、
+
+そのKnowledgeを基に回答を生成する。
+
+Knowledge Sourceは、
+
+SHiCIにおける知識の出発点であり、
+
+Knowledge Boundaryとともに、
+
+回答の正確性と説明可能性を支える基盤である。
+
+Knowledge Sourceは、回答ではない。Knowledge Sourceは、回答の根拠である。

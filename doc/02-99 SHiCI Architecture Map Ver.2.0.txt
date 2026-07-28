@@ -1,0 +1,1172 @@
+SHiCI Architecture Map
+Version 1.0
+
+
+------
+
+
+1. Purpose（目的）
+
+SHiCI Architecture Mapは、SHiCIの設計思想、Processing Model、および実装コードの対応関係を定義する文書である。
+
+本書の目的は、設計上の概念が、どのコードによって実現されるのかを明確にし、設計と実装の一貫性を維持することである。
+
+Architecture Mapは、個別機能の詳細仕様を定義する文書ではない。
+
+また、アルゴリズム、データ項目、画面デザイン、Promptの具体的内容を定義する文書でもない。
+
+Architecture Mapは、
+
+設計思想と実装責務を結び付ける地図
+
+である。
+
+
+------
+
+
+
+2. Position in Design Hierarchy（設計階層上の位置）
+
+SHiCIの設計文書は、次の階層を持つ。
+
+00 SHiCI Charter
+        ↓
+01 SHiCI Constitution
+        ↓
+02 SHiCI Core Design
+        ↓
+各Domain Model
+        ├─ Processing Model
+        ├─ Understanding Model
+        ├─ Conversation State Model
+        ├─ Entity Resolution Model
+        ├─ Knowledge Boundary Model
+        ├─ View Specification Model
+        └─ Response Specification
+        ↓
+SHiCI Architecture Map
+        ↓
+Source Code
+
+上位文書ほど、長期間維持される原則を定義する。
+
+下位文書ほど、具体的な実装との対応を定義する。
+
+Architecture Mapは、上位の設計書を置き換えない。
+
+Architecture Mapは、それらの設計をコードへ対応付ける。
+
+
+------
+
+
+
+3. Fundamental Architecture（基本構造）
+
+SHiCIの処理は、Processing Modelに基づき、次の六段階で構成される。
+
+Input
+  ↓
+Understand
+  ↓
+Resolve
+  ↓
+Compose
+  ↓
+Express
+  ↓
+Output
+
+ただし、これはEngineの実行順をそのまま示すものではない。
+
+Knowledge BoundaryやView Resolutionなどは、各Processing段階の内部で行われる。
+
+Conversation Stateは独立した処理段階ではなく、会話の継続性を保持する横断的な状態基盤である。
+
+
+------
+
+
+
+4. System Overview（システム全体図）
+┌──────────────────────────────────────────────┐
+│ User                                         │
+└───────────────────┬──────────────────────────┘
+                    │
+                    │ Input
+                    ▼
+┌──────────────────────────────────────────────┐
+│ Frontend                                     │
+│                                              │
+│ ・ユーザー入力の受付                         │
+│ ・sessionIdの付与                            │
+│ ・APIへの送信                                │
+│ ・回答および候補カードの表示                 │
+└───────────────────┬──────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────┐
+│ API Entry / Routing                          │
+│                                              │
+│ 00_Main.js                                   │
+│ 10_RouteRequest.js                           │
+│                                              │
+│ ・HTTP Requestの受付                         │
+│ ・Chat処理へのルーティング                    │
+│ ・ResultをAPI Responseへ変換                  │
+└───────────────────┬──────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────┐
+│ Understanding                                │
+│                                              │
+│ 20_UnderstandingEngine.js                    │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ Knowledge Boundary Selection             │ │
+│ │ 25_KnowledgeBoundaryEngine.js            │ │
+│ └──────────────────────────────────────────┘ │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ Communication                            │ │
+│ │ 19_CommunicationEngine.js                │ │
+│ └──────────────────────────────────────────┘ │
+│                                              │
+│ ┌──────────────────────────────────────────┐ │
+│ │ View Resolution                          │ │
+│ │ 23_ViewResolutionEngine.js               │ │
+│ └──────────────────────────────────────────┘ │
+└───────────────────┬──────────────────────────┘
+                    │
+                    │ Resolveが必要な場合
+                    ▼
+┌──────────────────────────────────────────────┐
+│ Resolution                                   │
+│                                              │
+│ 22_EntityResolutionEngine.js                 │
+│ 24_SemanticEntityResolutionEngine.js         │
+│ EntityResolver.js                            │
+│ EntityEngine.js                              │
+│ EntityHandler.js                             │
+│                                              │
+│ ・Entity候補の探索                           │
+│ ・候補の正規化                               │
+│ ・Semantic候補の取得                         │
+│ ・曖昧性の保持                               │
+│ ・ユーザー確認への移行                       │
+└───────────────────┬──────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────┐
+│ Compose                                      │
+│                                              │
+│ 40_SnapshotEngine.js                         │
+│                                              │
+│ ・確定Entityを起点としたデータ取得           │
+│ ・Relationの追跡                             │
+│ ・目的に必要なKnowledgeの構築                │
+│ ・Snapshotの生成                             │
+└───────────────────┬──────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────┐
+│ Express                                      │
+│                                              │
+│ 60_ResponseSpecification.js                  │
+│ 70_LLMInterface.js                           │
+│ 71_OpenAIAdapter.js                          │
+│ 72_MockAdapter.js                            │
+│                                              │
+│ ・KnowledgeからAI Contractを構築              │
+│ ・回答根拠と許可範囲を定義                   │
+│ ・Providerを選択                             │
+│ ・外部LLM形式へ変換                          │
+│ ・自然言語回答を生成                         │
+└───────────────────┬──────────────────────────┘
+                    │
+                    │ Output
+                    ▼
+┌──────────────────────────────────────────────┐
+│ API Response / Frontend                      │
+│                                              │
+│ ・通常テキスト                               │
+│ ・候補カード                                 │
+│ ・将来のEntity Card / Table / Timeline       │
+└───────────────────┬──────────────────────────┘
+                    │
+                    ▼
+┌──────────────────────────────────────────────┐
+│ User                                         │
+└──────────────────────────────────────────────┘
+
+
+------
+
+
+
+5. Cross-Cutting State（横断的状態基盤）
+Conversation State
+
+実装：
+
+21_ConversationStateEngine.js
+
+Conversation Stateは、Processing Model上の独立した段階ではない。
+
+会話をまたいで必要となる状態を保持し、UnderstandおよびResolveを支援する。
+
+保持対象の例：
+
+currentEntity
+candidateEntities
+currentView
+conversation history
+
+Conversation Stateは、次の場面で利用される。
+
+Understand
+    ├─ 現在のEntityを参照する
+    ├─ 現在のViewを参照する
+    └─ 直前の候補選択を解釈する
+
+Resolve
+    ├─ 候補一覧を保存する
+    ├─ 選択されたEntityを確定する
+    └─ 曖昧性を次の発話へ引き継ぐ
+
+Conversation State自身が、Entityを探索したり回答を生成したりしてはならない。
+
+
+------
+
+
+
+6. Processing Model Mapping
+
+--
+
+6.1 Input
+責務
+
+外部から入力を受け取る。
+
+入力の意味は解釈しない。
+
+実装
+frontend/index.html
+Frontend JavaScript
+00_Main.js
+10_RouteRequest.js
+入力例
+チャットテキスト
+sessionId
+候補選択
+API Parameter
+禁止事項
+
+Input層は、Entityを確定してはならない。
+
+Input層は、Knowledgeを生成してはならない。
+
+--
+
+6.2 Understand
+責務
+
+ユーザーが何を伝えようとしているかを理解する。
+
+主実装
+20_UnderstandingEngine.js
+補助実装
+19_CommunicationEngine.js
+23_ViewResolutionEngine.js
+25_KnowledgeBoundaryEngine.js
+21_ConversationStateEngine.js
+Understand内部の判断
+User Input
+    ↓
+Knowledge Boundary Selection
+    ├─ Communication
+    ├─ Knowledge
+    ├─ Derived Knowledge
+    ├─ General Knowledge
+    └─ Unknown
+
+Version 1.0の実装では、まずCommunicationとKnowledgeを区別する。
+
+Knowledge以外のBoundaryは、段階的に実装する。
+
+Understandが決定してよいこと
+発話がCommunicationか
+どのKnowledge Boundaryを必要とするか
+どのViewを求めているか
+既存のConversation Contextを利用するか
+Entity Resolutionが必要か
+Understandが決定してはならないこと
+Canonical Entityの最終確定
+Snapshotの構築
+業務上の回答内容
+一般知識による事実補完
+
+--
+
+6.3 Resolve
+責務
+
+理解した発話を、SHiCI内のCanonical EntityおよびContextへ対応付ける。
+
+主実装
+22_EntityResolutionEngine.js
+補助実装
+24_SemanticEntityResolutionEngine.js
+EntityResolver.js
+EntityEngine.js
+EntityHandler.js
+ProductHandler.js
+21_ConversationStateEngine.js
+Resolutionの順序
+Entity Query
+    ↓
+Knowledge Resolution
+    ├─ 正規化
+    ├─ Alias照合
+    └─ Canonical候補取得
+    ↓
+候補なしの場合
+    ↓
+Semantic Resolution
+    ↓
+Candidate提示
+    ↓
+User Selection
+    ↓
+Canonical Entity確定
+
+Semantic Resolutionは、候補を提示するだけである。
+
+Semantic ResolutionがEntityを自動確定してはならない。
+
+Resolveの出力
+{
+  entityType: "...",
+  entityId: "...",
+  ...
+}
+
+または、
+
+{
+  messageType: "candidate",
+  candidates: [...]
+}
+
+
+禁止事項
+
+Resolveは、Snapshotを構築してはならない。
+
+Resolveは、業務回答を生成してはならない。
+
+Resolveは、一般知識を使って存在しないEntityを生成してはならない。
+
+--
+
+6.4 Compose
+責務
+
+確定したEntityとRelationを基に、回答に必要なKnowledgeを構築する。
+
+主実装
+40_SnapshotEngine.js
+現在の対象
+Product
+Material
+Machine
+Mold
+Condition
+Condition Detail
+Composeの出力
+{
+  status: "success",
+  product: {...},
+  material: {...},
+  machine: {...},
+  mold: {...},
+  condition: {...},
+  conditionDetail: {...}
+}
+
+Snapshotは、単なる検索結果の集合ではない。
+
+Entityを中心に、回答に必要な関連情報を一つのKnowledge Contextとして構成したものである。
+
+禁止事項
+
+Composeは、自然言語回答を生成してはならない。
+
+Composeは、表示形式を決定してはならない。
+
+Composeは、欠落情報を一般知識で補ってはならない。
+
+--
+
+6.5 Express
+責務
+
+ComposeされたKnowledgeを、人間または外部システムが理解できる形式へ変換する。
+
+主実装
+60_ResponseSpecification.js
+LLM技術層
+70_LLMInterface.js
+71_OpenAIAdapter.js
+72_MockAdapter.js
+Expressの内部構造
+Snapshot / Communication Context
+        ↓
+AI Contract
+        ↓
+LLM Interface
+        ↓
+Provider Adapter
+        ↓
+Natural Language Response
+AI Contractの責務
+
+AI Contractは、次を定義する。
+
+回答の目的
+回答時の規則
+Knowledge Boundary
+利用可能なContext
+計算の可否
+推論の可否
+一般知識利用の可否
+情報不足時の挙動
+回答言語
+LLM Interfaceの責務
+AI Contractの検証
+Providerの選択
+適切なAdapterへの委譲
+
+LLM Interfaceは、OpenAI固有のRequest形式を知らない。
+
+Adapterの責務
+AI ContractをProvider固有形式へ変換
+外部APIへの通信
+API Responseの解析
+エラーの正規化
+
+Adapterは、Knowledge Boundaryの意味を判断しない。
+
+Adapterは、業務ロジックを持たない。
+
+--
+
+6.6 Output
+責務
+
+Expressされた結果を利用者へ届ける。
+
+意味を変更しない。
+
+実装
+10_RouteRequest.js
+frontend
+現在の出力形式
+text
+candidate
+error
+将来の出力形式
+Entity Card
+Snapshot Card
+Property Table
+Timeline
+Relation Graph
+File
+Image
+Audio
+
+Output層は、回答内容を追加・削除・推測してはならない。
+
+
+------
+
+
+
+7. Knowledge Boundary Mapping
+
+Knowledge Boundaryは、独立したProcessing段階ではない。
+
+Understand段階において、今後どのKnowledge経路を利用するかを決定するための分類である。
+
+実装：
+
+25_KnowledgeBoundaryEngine.js
+
+--
+
+7.1 Communication
+実装
+19_CommunicationEngine.js
+経路
+User Input
+    ↓
+Understanding Engine
+    ↓
+Knowledge Boundary = communication
+    ↓
+Communication Engine
+    ↓
+AI Contract
+    ↓
+LLM Interface
+    ↓
+Adapter
+    ↓
+Response
+特徴
+Entity Resolutionを行わない
+Snapshotを構築しない
+社内Knowledgeを渡さない
+業務上の事実を生成しない
+自然な会話を許可する
+
+Communicationも、正式なAI Contract経路を使用する。
+
+Communication専用のOpenAI API経路は作らない。
+
+--
+
+7.2 Knowledge
+経路
+Understand
+    ↓
+Resolve
+    ↓
+Compose
+    ↓
+Knowledge用AI Contract
+    ↓
+Express
+根拠
+
+SHiCI内部に登録されたKnowledgeのみ。
+
+原則
+Contextにない事実を補わない
+登録がなければ登録されていないと答える
+内部構造名をユーザーへ露出しない
+
+--
+
+7.3 Derived Knowledge
+経路
+Knowledge
+    ↓
+再現可能な計算・導出
+    ↓
+Derived Knowledge
+原則
+元データを明確にする
+計算式を再現可能にする
+一般値や推定値を無断で混ぜない
+
+Derived Knowledgeは、Knowledgeを根拠とする。
+
+--
+
+7.4 General Knowledge
+経路
+Understand
+    ↓
+General Knowledge Contract
+    ↓
+LLM Interface
+    ↓
+Adapter
+原則
+社内Knowledgeと区別する
+「一般的には」など、根拠の立場を明示する
+社内仕様として断定しない
+
+Version 1.0では未実装である。
+
+--
+
+7.5 Unknown
+対象
+必要な社内情報が存在しない
+一般知識でも安全に回答できない
+質問の意味を特定できない
+根拠が不足している
+原則
+推測で埋めない
+架空のEntityを生成しない
+内部用語を表示しない
+必要に応じて追加情報を求める
+
+Version 1.0では、Knowledge Resolution失敗時のユーザー向け表現を改善する必要がある。
+
+
+------
+
+
+8. Code Responsibility Map
+ファイル	主責務	所属段階
+00_Main.js	HTTP Entry、API分岐	Input / Output
+10_RouteRequest.js	Chat統一入口、Response整形、Error整形	Input / Output
+11_CRUD.js	既存データ操作API	Application / Storage Access
+19_CommunicationEngine.js	Communication判定、Communication用AI Contract構築	Understand / Express準備
+20_UnderstandingEngine.js	会話入力の統括、処理経路の選択	Understand
+21_ConversationStateEngine.js	会話状態の保持・更新	Cross-Cutting State
+22_EntityResolutionEngine.js	Entity候補探索・確定支援	Resolve
+23_ViewResolutionEngine.js	ユーザーが求めるViewの解決	Understand
+24_SemanticEntityResolutionEngine.js	LLMによるSemantic候補生成の準備	Resolve
+25_KnowledgeBoundaryEngine.js	Knowledge Boundaryの選択	Understand
+40_SnapshotEngine.js	EntityとRelationからSnapshotを構築	Compose
+50_AnswerBuilder.js	旧形式の固定回答生成	Legacy Express
+60_ResponseSpecification.js	SnapshotからAI Contractを構築	Express
+70_LLMInterface.js	Provider非依存のLLM入口	Express Infrastructure
+71_OpenAIAdapter.js	OpenAI Responses APIへの変換と通信	Express Infrastructure
+72_MockAdapter.js	AI Contract確認・外部通信なしの試験	Express Infrastructure
+90_Config.js	Provider・Model・秘密情報等の設定取得	Infrastructure
+EntityEngine.js	Entityデータ取得・操作の既存機構	Resolve / Data Access
+EntityResolver.js	Entity照合の既存機構	Resolve
+EntityHandler.js	Entityの表示用変換・処理補助	Resolve / Express境界
+ProductHandler.js	Product固有処理	Domain Handler
+findProduct.js	Product検索の旧実装	Legacy / Data Access
+
+
+------
+
+
+9. Dependency Rules（依存関係規則）
+
+--
+
+9.1 正式な依存方向
+Input
+  ↓
+Understand
+  ↓
+Resolve
+  ↓
+Compose
+  ↓
+Express
+  ↓
+Output
+
+下流層は、上流層の判断を勝手に変更してはならない。
+
+--
+
+9.2 許可される依存
+Understanding Engine
+    → Knowledge Boundary Engine
+    → Communication Engine
+    → View Resolution Engine
+    → Conversation State Engine
+    → Entity Resolution Engine
+
+Entity Resolution Engine
+    → Semantic Entity Resolution Engine
+    → Entity Data Access
+    → Conversation State Engine
+
+Snapshot Engine
+    → Entity Data Access
+
+Response Specification
+    → Snapshot Data
+
+LLM Interface
+    → Config
+    → Provider Adapter
+
+Provider Adapter
+    → Config
+    → External API
+
+--
+
+9.3 禁止される依存
+Frontend
+    × Snapshot Engineを直接呼ぶ
+    × OpenAI Adapterを直接呼ぶ
+
+Communication Engine
+    × Entity Resolutionを実行する
+    × 社内Knowledgeを推測する
+
+Entity Resolution Engine
+    × 自然言語回答を生成する
+    × Snapshotを構築する
+
+Snapshot Engine
+    × LLMを呼び出す
+    × 表示文章を生成する
+
+Response Specification
+    × Spreadsheetを直接読む
+    × Entityを再解決する
+
+LLM Interface
+    × 業務判断を行う
+    × Knowledgeを変更する
+
+OpenAI Adapter
+    × Knowledge Boundaryを決定する
+    × SHiCIの業務ルールを独自判断する
+
+
+------
+
+
+
+10. Contract Rules
+
+SHiCIの各層は、曖昧な引数の受け渡しではなく、責務に応じたContractによって接続する。
+
+現在存在するContract：
+
+AI Contract
+Semantic Resolution Contract
+Snapshot
+Candidate Response
+API Response
+Conversation State
+
+将来正式化するContract：
+
+Understanding Result
+Resolution Result
+Knowledge Boundary Result
+View Specification
+Compose Request
+General Knowledge Contract
+Unknown Response Contract
+
+各Contractは、
+
+Schema Version
+Type
+Input
+Policy
+Context
+Result
+
+を可能な限り明示する。
+
+
+------
+
+
+
+11. Current Implementation Flow（現在の実装経路）
+
+現在のChat処理は、概ね次のように実装されている。
+
+doGet()
+    ↓
+routeRequest()
+    ↓
+askShici()
+    ↓
+UnderstandingEngine_handle()
+    ↓
+KnowledgeBoundaryEngine_select()
+    ├─ communication
+    │      ↓
+    │  CommunicationEngine
+    │      ↓
+    │  AI Contract
+    │      ↓
+    │  LLMInterface_generate()
+    │
+    └─ knowledge
+           ↓
+       View Resolution
+           ↓
+       Conversation State確認
+           ↓
+       Entity Resolution
+           ↓
+       Snapshot Engine
+           ↓
+       Response Specification
+           ↓
+       LLMInterface_generate()
+           ↓
+       OpenAIAdapter / MockAdapter
+
+候補が複数存在する場合は、Composeへ進まず、Candidate ResponseをFrontendへ返す。
+
+Entity Resolution
+    ↓
+Multiple Candidates
+    ↓
+Conversation Stateへ保存
+    ↓
+Candidate Response
+    ↓
+Frontend
+    ↓
+User Selection
+
+
+------
+
+
+
+
+12. Known Architectural Gaps（現在認識されている差異）
+
+Architecture Map Version 1.0作成時点で、次の差異が存在する。
+
+--
+
+12.1 Understanding Engineの責務が広い
+
+現在のUnderstandingEngine_handle()は、
+
+Understand
+Resolveの制御
+Composeの起動
+Expressの起動
+最終回答の返却
+
+まで担当している。
+
+Processing Model上では、Understandingは入力理解のみを担当すべきである。
+
+将来的には、Application OrchestratorまたはConversation Engineへ、処理全体の統括責務を分離する余地がある。
+
+ただし、Version 1.0では直ちに分割しない。
+
+--
+
+12.2 AnswerBuilderが残存している
+
+50_AnswerBuilder.jsは、LLM以前の固定形式回答を生成する旧Express実装である。
+
+現在も候補選択直後など、一部経路で利用されている。
+
+将来的には、
+
+View Specification
+Response Specification
+Component Output
+
+へ移行し、AnswerBuilderへの依存を段階的に削減する。
+
+--
+
+12.3 内部構造名がユーザーへ露出する
+
+現在、Entity候補が見つからない場合に、
+
+現在のEntity Resolution Knowledgeでは、
+該当する候補が見つかりませんでした。
+
+と返している。
+
+これは内部構造の露出であり、SHiCIの会話原則に反する。
+
+将来的には、Unknown Boundaryに基づく自然な回答へ置き換える。
+
+例：
+
+その名前に一致する登録情報は見つかりませんでした。
+別の呼び方や図番が分かれば教えてください。
+
+--
+
+12.4 General KnowledgeとUnknownが未実装
+
+Knowledge Boundary Modelでは定義済みだが、実装はCommunicationとKnowledgeの初期判定に留まっている。
+
+今後、次を追加する。
+
+General Knowledge Route
+Derived Knowledge Route
+Unknown Route
+
+--
+
+12.5 一部の責務がファイル間で混在している
+
+現状では、LLMInterface_接頭辞を持つ処理がAdapter側へ置かれている箇所など、責務境界が完全には統一されていない。
+
+原則として、
+
+LLMInterface_* → 70_LLMInterface.js
+OpenAIAdapter_* → 71_OpenAIAdapter.js
+MockAdapter_* → 72_MockAdapter.js
+
+へ整理する。
+
+
+------
+
+
+
+
+13. Refactoring Policy（リファクタリング方針）
+
+リファクタリングは、一度に全体を作り直さない。
+
+次の優先順位で行う。
+
+1. ユーザーへ内部構造を露出しない
+2. 回答根拠のBoundaryを守る
+3. 既存機能を壊さない
+4. Contract経路を統一する
+5. 重複責務を整理する
+6. Processing Modelとの一致を高める
+
+設計上の理想だけを理由に、動作中のコードを大規模に変更してはならない。
+
+各変更は、独立して検証可能な単位で行う。
+
+
+------
+
+
+
+14. Architecture Change Rules
+
+新しいEngine、Contract、Adapter、Knowledge Boundary、Viewを追加した場合は、Architecture Mapを更新する。
+
+次の変更を行う場合も更新する。
+
+Engineの責務変更
+処理経路の変更
+依存関係の変更
+Contract形式の変更
+Legacy実装の廃止
+新しいInputまたはOutputの追加
+新しい外部Providerの追加
+
+コードだけを変更し、Architecture Mapを更新しない状態を放置してはならない。
+
+
+------
+
+
+
+15. Architectural Principles
+
+--
+
+Principle 1
+
+SHiCIは、機能ではなく構造から設計する。
+
+--
+
+Principle 2
+
+Entity Resolutionより先に、発話の意味とKnowledge Boundaryを理解する。
+
+--
+
+Principle 3
+
+KnowledgeはComposeで構築し、Expressで表現する。
+
+--
+
+Principle 4
+
+Knowledgeと表現を混同しない。
+
+--
+
+Principle 5
+
+Conversation Stateは、会話の連続性を保持するが、業務判断を行わない。
+
+--
+
+Principle 6
+
+LLMは、Knowledgeを所有しない。
+
+LLMは、Contractに従ってKnowledgeを表現する。
+
+--
+
+Principle 7
+
+Adapterは、Provider固有の技術差だけを吸収する。
+
+--
+
+Principle 8
+
+内部構造は、ユーザーへ露出しない。
+
+--
+
+Principle 9
+
+登録されたKnowledge、導出されたKnowledge、一般知識、Communication、Unknownを区別する。
+
+--
+
+Principle 10
+
+知らないことを、推測によって知っているように表現しない。
+
+
+
+------
+
+
+
+Conclusion
+
+SHiCI Architecture Mapは、SHiCIの思想、Processing Model、各Domain Model、およびSource Codeを結び付ける文書である。
+
+SHiCIの基本処理は、
+
+Input
+  ↓
+Understand
+  ↓
+Resolve
+  ↓
+Compose
+  ↓
+Express
+  ↓
+Output
+
+によって構成される。
+
+Knowledge BoundaryはUnderstandの内部で回答根拠を決定し、Conversation Stateは会話全体を横断して継続性を保持する。
+
+Entity Resolutionは対象を特定し、Snapshot EngineはKnowledgeを構築する。
+
+Response SpecificationはKnowledgeをAI Contractへ変換し、LLM InterfaceとAdapterは、そのContractを外部AIによって表現する。
+
+SHiCIにおいて、AIは事実を作る存在ではない。
+
+SHiCIが構築したKnowledgeを、定められたBoundaryの中で、人間へ届ける存在である。
+
+
+
+------
+
+
+
+16. Evolution Principle（進化原則）
+
+SHiCIは、最初から完全な構造を実装することを目的としない。
+
+Architecture Mapは、SHiCIが最終的に目指す構造を示すものであり、実装は段階的にそこへ近づいていく。
+
+したがって、開発途中では、一時的に責務が一つのEngineへ集約されることを許容する。
+
+例：
+
+UnderstandingEngine
+
+    ・Knowledge Boundary
+    ・Conversation State
+    ・View Resolution
+    ・Entity Resolutionの制御
+
+これらが一つのEngine内に存在していても、それだけを理由に分割を行わない。
+
+責務分割そのものは目的ではない。
+
+目的は、
+
+保守性・理解しやすさ・拡張性を高めることである。
+
+そのため、次の優先順位を守る。
+
+① 正しく動作する
+
+↓
+
+② 設計思想と一致する
+
+↓
+
+③ 機能を完成させる
+
+↓
+
+④ 重複責務を整理する
+
+↓
+
+⑤ Engineを分離する
+
+機能追加中は、新しい機能をArchitecture Mapで定義された責務へ追加する。
+
+一方で、途中段階で過度なリファクタリングは行わない。
+
+Refactoring Trigger（リファクタリング開始条件）
+
+次のいずれかを満たしたとき、責務分割を検討する。
+
+Rule 1
+
+一つのEngineが複数の独立した責務を持ち、理解が難しくなったとき。
+
+Rule 2
+
+同じ処理が複数のEngineへ重複し始めたとき。
+
+Rule 3
+
+新しい機能追加よりも、保守性向上の効果が大きくなったとき。
+
+Rule 4
+
+Architecture Mapとの乖離が大きくなったとき。
+
+Premature Refactoring（早すぎるリファクタリングの禁止）
+
+次の理由だけでEngineを分離してはならない。
+
+ファイルが長くなった。
+Engine名が気に入らない。
+将来使うかもしれない。
+「きれいな設計」に見える。
+
+リファクタリングは、実際の責務が明確になった後に行う。
+
+Evolution Policy（進化方針）
+
+SHiCIは、
+
+Idea
+    ↓
+Prototype
+    ↓
+Working System
+    ↓
+Architecture Alignment
+    ↓
+Optimization
+
+という順序で成長する。
+
+設計は実装を導く。
+
+しかし、実装によって得られた知見は、設計へ必ず還元する。
+
+Architecture Mapは固定された仕様書ではない。
+
+SHiCIの成長に合わせて更新され続ける設計図である。
+
+
+
+

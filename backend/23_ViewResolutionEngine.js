@@ -22,9 +22,10 @@ function resolveView(text) {
     if (keyword.includes(knowledgeKeyword)) {
 
       candidates.push({
-        view: row[1],
-        priority: Number(row[2]) || 999,
-        notes: row[3]
+          keyword: knowledgeKeyword,
+          view: row[1],
+          priority: Number(row[2]) || 999,
+          notes: row[3]
       });
 
     }

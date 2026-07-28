@@ -134,6 +134,7 @@ function loadEntityResolutionKnowledge() {
 
 
 function resolveEntityCandidates(question) {
+  
   const keyword =
     EntityResolution_normalizeText(
       extractSearchKeyword(question)

@@ -111,6 +111,7 @@ function ConversationStateEngine_handle(text, sessionId) {
   }
 
   // 2. 新規Entity解決
+ 
   const candidates = resolveEntityCandidates(text);
 
   if (candidates.length === 0) {

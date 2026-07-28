@@ -1,5 +1,27 @@
 function UnderstandingEngine_handle(text, sessionId) {
   const state = getConversationState(sessionId);
+  const knowledgeBoundary =
+    KnowledgeBoundaryEngine_select(text);
+
+  /*
+  * Communication
+  */
+  if (knowledgeBoundary === "communication") {
+      return CommunicationEngine_respond(text);
+  }
+
+  /*
+  * General Knowledge
+  */
+  if (knowledgeBoundary === "general") {
+      return GeneralKnowledgeEngine_respond(text);
+  }
+
+  /*
+  * Version 1.1
+  *
+  * それ以外はCompany Knowledgeとして処理する。
+  */
 
   // 1. Viewを解決してStateに保存
   const view = resolveView(text);
@@ -7,6 +29,13 @@ function UnderstandingEngine_handle(text, sessionId) {
     state.currentView = view;
     saveConversationState(sessionId, state);
   }
+
+  const entityQuery =
+    UnderstandingEngine_extractEntityQuery(
+      text,
+      view
+    );
+
 
   // 2. 直前候補から選択できるか確認
   const selected = selectCandidateFromState(text, state);
@@ -20,7 +49,12 @@ function UnderstandingEngine_handle(text, sessionId) {
   }
 
   // 3. 新規Entity解決
-  const candidates = resolveEntityCandidates(text);
+  const candidates =
+    entityQuery
+      ? resolveEntityCandidates(
+          entityQuery
+        )
+      : [];
 
   if (candidates.length === 0) {
 
@@ -114,5 +148,39 @@ function UnderstandingEngine_respond(userText, entity) {
 }
 
 
+
+function UnderstandingEngine_extractEntityQuery(
+  text,
+  view
+) {
+
+  let query =
+    String(text || "");
+
+  /*
+   * Viewとして理解した語を除去する。
+   */
+
+  if (view) {
+
+    query =
+      query.replace(
+        view.keyword,
+        ""
+      );
+
+  }
+
+  query =
+    query
+      .replace(/は\?/g, "")
+      .replace(/\?/g, "")
+      .replace(/いる/g, "")
+      .replace(/教えて/g, "")
+      .trim();
+
+  return query;
+
+}
 
 

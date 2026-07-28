@@ -1,0 +1,454 @@
+SHiCI View Specification Model
+
+Version 1.0
+
+
+------
+
+
+Philosophy
+What is View?
+
+Viewとは、
+
+Knowledgeの内容を、
+
+人間が理解しやすい形へ変換して提示するための表示モデルである。
+
+Viewは、
+
+Knowledgeを変更しない。
+
+Knowledgeを解釈しない。
+
+Knowledgeを推測しない。
+
+Viewは、
+
+人間がその場で判断するために必要な情報だけを提示する。
+
+
+
+------
+
+
+Purpose
+
+Knowledgeには、
+
+Systemを成立させるために必要な情報と、
+
+人間が理解するために必要な情報が混在している。
+
+Viewは、
+
+その両者を明確に分離する。
+
+
+
+------
+
+
+
+Core Principles
+
+--
+
+Principle 1
+Human First
+
+Viewは、
+
+Systemではなく、
+
+人間を基準に設計する。
+
+表示する情報は、
+
+人間の判断に必要かどうか
+
+だけで決定する。
+
+--
+
+Principle 2
+Hide Internal Structure
+
+Knowledge内部の構造は、
+
+Viewへ露出しない。
+
+例
+
+表示しない
+
+EntityID
+Internal UUID
+RevisionID
+Database Key
+CreatedAt
+UpdatedAt
+
+これらはSystem内部情報である。
+
+--
+
+Principle 3
+Meaning First
+
+Viewは、
+
+データではなく、
+
+意味を表示する。
+
+例
+
+Knowledge
+
+entityId : P-000035
+
+View
+
+製品名
+LEVER, CLAMP
+
+--
+
+Principle 4
+Minimum Necessary Information
+
+Viewは、
+
+必要最小限の情報だけを表示する。
+
+情報量が多いことは、
+
+価値ではない。
+
+理解しやすいことが価値である。
+
+--
+
+Principle 5
+Progressive Disclosure
+
+詳細情報は、
+
+必要になったときだけ表示する。
+
+通常会話
+
+材料
+
+ジュラコン M90-44
+
+詳細要求
+
+材料の詳細
+
+↓
+
+グレード
+
+メーカー
+
+樹脂分類
+
+乾燥条件
+
+比重
+
+などを追加表示する。
+
+
+
+------
+
+
+
+View Responsibility
+
+Viewの責任
+
+・表示順序
+
+・表示名
+
+・表示項目
+
+・省略
+
+・詳細表示
+
+Viewの責任ではないもの
+
+・Knowledge検索
+
+・Entity Resolution
+
+・Conversation State
+
+・Snapshot生成
+
+・推論
+
+
+
+------
+
+
+
+Standard Product View
+
+通常表示
+
+製品名
+
+図番
+
+金型番号
+
+材料
+
+成形機
+
+標準条件
+
+表示しない
+
+EntityID
+
+ProductID
+
+Database Key
+
+Revision
+
+UUID
+
+
+
+------
+
+
+
+Standard Material View
+
+通常表示
+
+材料名
+
+グレード
+
+メーカー
+
+樹脂分類
+
+詳細表示
+
+乾燥条件
+
+比重
+
+MFR
+
+収縮率
+
+ガラス繊維率
+
+特徴
+
+注意事項
+
+
+
+------
+
+
+
+Standard Mold View
+
+通常表示
+
+金型番号
+
+取数
+
+ゲート方式
+
+詳細表示
+
+温調方式
+
+ホットランナー
+
+製作年月
+
+メンテナンス履歴
+
+
+
+------
+
+
+
+Standard Condition View
+
+通常表示
+
+条件名
+
+樹脂温度
+
+金型温度
+
+サイクル
+
+詳細表示
+
+射出速度
+
+保圧
+
+背圧
+
+スクリュー回転
+
+計量位置
+
+乾燥条件
+
+
+
+------
+
+
+
+Standard Machine View
+
+通常表示
+
+成形機
+
+型締力
+
+メーカー
+
+詳細表示
+
+スクリュー径
+
+プランジャー径
+
+最大射出圧
+
+最大射出速度
+
+
+
+------
+
+
+
+Information Priority
+
+Viewは、
+
+情報を重要度順に表示する。
+
+Level 1
+
+人間が最初に知りたい情報
+
+↓
+
+Level 2
+
+判断に必要な情報
+
+↓
+
+Level 3
+
+詳細情報
+
+↓
+
+Level 4
+
+内部情報（通常非表示）
+
+
+
+------
+
+
+
+Relationship with Knowledge
+Knowledge
+        │
+        │
+        ▼
+View Specification
+        │
+        ▼
+Formatter
+        │
+        ▼
+Human
+
+Knowledgeは事実を保持する。
+
+View Specificationは、
+
+何を見せるかを決定する。
+
+Formatterは、
+
+どう見せるかを決定する。
+
+
+
+------
+
+
+Internal Concept Hiding
+
+SHiCIは、内部アーキテクチャを人間に見せない。
+
+例えば、
+
+表示しない言葉
+
+Entity Resolution
+Knowledge
+Snapshot
+Conversation State
+Canonical Entity
+EntityID
+
+これらは設計書の中では重要です。
+
+しかし、会話の中では存在しないものとして扱う。
+
+
+
+
+------
+
+
+
+Final Definition
+
+View Specificationとは、
+
+Knowledgeを人間中心の視点で整理し、
+
+その場の判断に必要な情報だけを、
+
+適切な順序と粒度で提示するための表示モデルである。
+
+ViewはKnowledgeの写しではない。
+
+Viewは、人間とKnowledgeを結ぶ**「理解のための窓」**である。

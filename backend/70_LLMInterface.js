@@ -9,30 +9,44 @@
 
 function LLMInterface_generate(aiContract) {
 
-  LLMInterface_validate(aiContract);
+  const startTime = Date.now();
 
-  const provider =
-    Config_getLLMProvider();
+  try {
 
-  switch (provider) {
+    LLMInterface_validate(aiContract);
 
-    case "mock":
+    const provider =
+      Config_getLLMProvider();
+
+    switch (provider) {
+
+      case "mock":
         return MockAdapter_generate(
-        aiContract
+          aiContract
         );
 
-    case "openai":
+      case "openai":
         return OpenAIAdapter_generate(
-        aiContract
+          aiContract
         );
 
-    default:
+      default:
         throw new Error(
-        "未対応のLLM Providerです: " +
-        provider
+          "未対応のLLM Providerです: " +
+          provider
         );
 
     }
+
+  } finally {
+
+    Logger.log(
+      "[TIME] LLMInterface_generate: " +
+      (Date.now() - startTime) +
+      " ms"
+    );
+
+  }
 
 }
 
@@ -156,3 +170,11 @@ function LLMInterface_validateSemanticContract(
     );
   }
 }
+
+
+
+
+
+
+
+

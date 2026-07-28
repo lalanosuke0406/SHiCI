@@ -19,12 +19,30 @@ function routeRequest(text, sessionId) {
     };
   }
 
+  let session = null;
+
+  if (
+    sessionId &&
+    SessionEngine_isSessionValid(
+      sessionId
+    )
+  ) {
+
+    session =
+      SessionEngine_getSession(
+        sessionId
+      );
+
+  }
+
+
+
   let result;
 
   try {
 
     result =
-      askShici(text, sessionId);
+      askShici(text, session);
 
   } catch (error) {
 

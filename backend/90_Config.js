@@ -102,3 +102,35 @@ function Config_getOpenAIMaxOutputTokens() {
   return number;
 
 }
+
+
+
+/*
+=========================================
+Google Authentication
+=========================================
+*/
+
+function Config_getGoogleClientId() {
+
+  const clientId =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        "GOOGLE_CLIENT_ID"
+      );
+
+  if (
+    !clientId ||
+    !String(clientId).trim()
+  ) {
+
+    throw new Error(
+      "GOOGLE_CLIENT_IDが設定されていません。"
+    );
+
+  }
+
+  return String(clientId).trim();
+
+}

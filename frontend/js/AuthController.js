@@ -15,19 +15,53 @@ const GOOGLE_CLIENT_ID =
 
 function initializeAuthentication() {
 
+    waitForGoogleIdentityService(0);
+
+}
+
+
+function waitForGoogleIdentityService(
+    attempt
+) {
+
+    const maxAttempts = 50;
+
     if (
-        !window.google ||
-        !google.accounts ||
-        !google.accounts.id
+        window.google &&
+        google.accounts &&
+        google.accounts.id
     ) {
 
+        renderGoogleSignInButton();
+        return;
+
+    }
+
+    if (attempt >= maxAttempts) {
+
         showLoginError(
-            "Googleログインの読み込みに失敗しました。"
+            "Googleログインの読み込みに失敗しました。ページを再読み込みしてください。"
         );
 
         return;
 
     }
+
+    setTimeout(
+        function() {
+
+            waitForGoogleIdentityService(
+                attempt + 1
+            );
+
+        },
+        100
+    );
+
+}
+
+
+function renderGoogleSignInButton() {
 
     google.accounts.id.initialize({
 
@@ -43,6 +77,18 @@ function initializeAuthentication() {
         document.getElementById(
             "googleSignInButton"
         );
+
+    if (!buttonContainer) {
+
+        showLoginError(
+            "ログイン画面の初期化に失敗しました。"
+        );
+
+        return;
+
+    }
+
+    buttonContainer.innerHTML = "";
 
     google.accounts.id.renderButton(
         buttonContainer,

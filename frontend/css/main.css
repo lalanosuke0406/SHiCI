@@ -899,7 +899,123 @@ button:focus-visible,
 }
 
 
+/*
+=========================================
+SHiCI
+Login
+=========================================
+*/
 
+.login-view {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 100dvh;
+    padding:
+        max(24px, env(safe-area-inset-top))
+        max(24px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(24px, env(safe-area-inset-left));
+
+    background:
+        linear-gradient(
+            180deg,
+            #f7f9fc 0%,
+            #eef2f7 100%
+        );
+}
+
+.login-panel {
+    width: 100%;
+    max-width: 380px;
+    padding: 40px 32px;
+
+    text-align: center;
+
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid rgba(20, 35, 55, 0.08);
+    border-radius: 24px;
+
+    box-shadow:
+        0 24px 60px rgba(20, 35, 55, 0.12);
+}
+
+.login-brand {
+    margin-bottom: 28px;
+
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+
+    color: #182433;
+}
+
+.login-title {
+    margin: 0 0 12px;
+
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.4;
+
+    color: #182433;
+}
+
+.login-description {
+    margin: 0 0 28px;
+
+    font-size: 14px;
+    line-height: 1.7;
+
+    color: #667085;
+}
+
+#googleSignInButton {
+    display: flex;
+    justify-content: center;
+
+    min-height: 44px;
+}
+
+.login-error {
+    min-height: 1.5em;
+    margin: 18px 0 0;
+
+    font-size: 13px;
+    line-height: 1.5;
+
+    color: #c62828;
+}
+
+@media (max-width: 480px) {
+
+    .login-view {
+        align-items: stretch;
+        padding: 0;
+    }
+
+    .login-panel {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        max-width: none;
+        min-height: 100dvh;
+        padding:
+            max(40px, env(safe-area-inset-top))
+            28px
+            max(40px, env(safe-area-inset-bottom));
+
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+}
 
 
 

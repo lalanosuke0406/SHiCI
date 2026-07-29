@@ -84,6 +84,30 @@ function ActionRouter_routePost(data) {
 
     }
 
+    if (data.action === "ask") {
+
+        if (
+            !SessionEngine_isSessionValid(
+                data.sessionId
+            )
+        ) {
+
+            return {
+                status: "error",
+                messageType: "error",
+                code: "SESSION_INVALID",
+                message: "セッションが無効です。再度ログインしてください。"
+            };
+
+        }
+
+        return routeRequest(
+            data.text,
+            data.sessionId
+        );
+
+    }
+
     if (data.action === "updateProduct") return updateProduct(sheet, data);
 
     if (data.action === "addTrouble") return addTrouble(data);

@@ -78,3 +78,20 @@ async function callApi(
 
 
 
+/**
+ * SHiCIへ質問を送信する
+ *
+ * @param {string} text
+ * @returns {Promise<Object>}
+ */
+async function askShici(text) {
+
+    return await callApi(
+        "ask",
+        {
+            text: text
+        }
+    );
+
+}
+

@@ -32,7 +32,7 @@ function SessionEntity_create(
 
     expiresAt:
       now + (
-        24 * 60 * 60 * 1000
+        6 * 60 * 60 * 1000
       ),
 
     status:

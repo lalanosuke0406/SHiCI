@@ -4,6 +4,8 @@ document.addEventListener(
 
         initializeAuthentication();
 
+        initializeTextarea();
+
         initializeChat();
 
     }

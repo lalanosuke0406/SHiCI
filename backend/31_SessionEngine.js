@@ -10,24 +10,23 @@ SHiCI
 
 
 function SessionEngine_createSession(
-  userId
+    userId
 ) {
 
-  const session =
-    SessionEntity_create(
-      userId
-    );
+    const session =
+        SessionEntity_create(
+            userId
+        );
 
-  const cache =
-    CacheService.getScriptCache();
+    CacheService
+        .getScriptCache()
+        .put(
+            session.sessionId,
+            JSON.stringify(session),
+            21600
+        );
 
-  cache.put(
-    session.sessionId,
-    JSON.stringify(session),
-    60 * 60 * 24
-  );
-
-  return session;
+    return session;
 
 }
 

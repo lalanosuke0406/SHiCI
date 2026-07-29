@@ -42,7 +42,7 @@ function routeRequest(text, sessionId) {
   try {
 
     result =
-      askShici(text, session);
+      askShici(text, sessionId);
 
   } catch (error) {
 

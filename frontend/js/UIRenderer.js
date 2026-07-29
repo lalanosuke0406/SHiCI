@@ -112,31 +112,133 @@ function addCandidateCards(candidates) {
 }
 
 
-document.addEventListener("click", async function(e) {
+document.addEventListener(
+    "click",
+    async function(event) {
 
-    const card = e.target.closest(".candidate-card");
+        const card =
+            event.target.closest(
+                ".candidate-card"
+            );
 
-    if (!card) return;
+        if (!card) {
+            return;
+        }
 
-    const entityId = card.dataset.entityId;
+        const entityId =
+            String(
+                card.dataset.entityId || ""
+            ).trim();
 
-    try {
+        if (!entityId) {
 
-        const result = await selectCandidate(entityId);
+            addMessage(
+                "候補情報を取得できませんでした。",
+                "shici"
+            );
 
-        if (result.messageType === "text") {
+            return;
+        }
 
-            addMessage(result.answer, "shici");
+        const candidateCards =
+            document.querySelectorAll(
+                ".candidate-card"
+            );
+
+        candidateCards.forEach(
+            function(candidateCard) {
+
+                candidateCard.style.pointerEvents =
+                    "none";
+
+            }
+        );
+
+        try {
+
+            const result =
+                await selectCandidate(
+                    entityId
+                );
+
+            if (
+                result.messageType ===
+                "text"
+            ) {
+
+                addMessage(
+                    result.answer || "",
+                    "shici"
+                );
+
+                return;
+            }
+
+            if (
+                result.messageType ===
+                "error"
+            ) {
+
+                addMessage(
+                    "エラーが発生しました。\n\n" +
+                    (
+                        result.message ||
+                        "候補を選択できませんでした。"
+                    ),
+                    "shici"
+                );
+
+                candidateCards.forEach(
+                    function(candidateCard) {
+
+                        candidateCard.style.pointerEvents =
+                            "";
+
+                    }
+                );
+
+                return;
+            }
+
+            addMessage(
+                "候補選択後の応答を処理できませんでした。",
+                "shici"
+            );
+
+            candidateCards.forEach(
+                function(candidateCard) {
+
+                    candidateCard.style.pointerEvents =
+                        "";
+
+                }
+            );
+
+        }
+        catch (error) {
+
+            addMessage(
+                "通信エラーが発生しました。\n\n" +
+                (
+                    error.message ||
+                    "候補を選択できませんでした。"
+                ),
+                "shici"
+            );
+
+            candidateCards.forEach(
+                function(candidateCard) {
+
+                    candidateCard.style.pointerEvents =
+                        "";
+
+                }
+            );
+
         }
 
     }
-    catch (err) {
-
-        alert(err.message);
-
-    }
-
-});
+);
 
 
 

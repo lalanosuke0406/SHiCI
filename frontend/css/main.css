@@ -1089,23 +1089,7 @@ Login Loading
     letter-spacing: 0.12em;
 }
 
-.login-loading-spinner {
-    width: 46px;
-    height: 46px;
 
-    margin-bottom: 26px;
-
-    border:
-        4px solid rgba(37, 99, 235, 0.14);
-
-    border-top-color:
-        var(--color-blue);
-
-    border-radius: 50%;
-
-    animation:
-        login-loading-spin 0.85s linear infinite;
-}
 
 .login-loading-title {
     margin: 0 0 12px;
@@ -1126,17 +1110,7 @@ Login Loading
     line-height: 1.7;
 }
 
-@keyframes login-loading-spin {
 
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-
-}
 
 @media (max-width: 480px) {
 
@@ -1165,5 +1139,237 @@ Login Loading
 }
 
 
+/*
+=========================================
+SHiCI Hexagon Loading
+=========================================
+*/
 
+.shici-loading-symbol {
+    position: relative;
+
+    width: 132px;
+    height: 132px;
+
+    margin-bottom: 28px;
+
+    animation:
+        shici-loading-float 2.8s ease-in-out infinite;
+}
+
+
+/* Hexagons */
+
+.loading-hexagon {
+    position: absolute;
+
+    width: 34px;
+    height: 30px;
+
+    clip-path: polygon(
+        25% 0%,
+        75% 0%,
+        100% 50%,
+        75% 100%,
+        25% 100%,
+        0% 50%
+    );
+
+    background:
+        linear-gradient(
+            135deg,
+            var(--color-purple) 0%,
+            var(--color-blue) 100%
+        );
+
+    box-shadow:
+        0 8px 22px rgba(37, 99, 235, 0.2);
+
+    opacity: 0;
+
+    animation:
+        shici-hexagon-appear 2.4s ease-in-out infinite;
+}
+
+
+/* Center */
+
+.loading-hexagon-center {
+    top: 51px;
+    left: 49px;
+
+    width: 36px;
+    height: 32px;
+
+    opacity: 1;
+
+    animation:
+        shici-center-pulse 1.8s ease-in-out infinite;
+}
+
+
+/* Outer hexagons */
+
+.loading-hexagon-top {
+    top: 7px;
+    left: 49px;
+
+    animation-delay: 0.25s;
+}
+
+.loading-hexagon-right {
+    top: 51px;
+    right: 5px;
+
+    animation-delay: 0.5s;
+}
+
+.loading-hexagon-bottom {
+    bottom: 7px;
+    left: 49px;
+
+    animation-delay: 0.75s;
+}
+
+.loading-hexagon-left {
+    top: 51px;
+    left: 5px;
+
+    animation-delay: 1s;
+}
+
+
+/* Connection lines */
+
+.loading-connection {
+    position: absolute;
+
+    z-index: -1;
+
+    width: 32px;
+    height: 2px;
+
+    border-radius: 999px;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(168, 85, 247, 0.25),
+            rgba(37, 99, 235, 0.85)
+        );
+
+    transform-origin: left center;
+
+    opacity: 0;
+
+    animation:
+        shici-connection-appear 2.4s ease-in-out infinite;
+}
+
+.loading-connection-top {
+    top: 49px;
+    left: 65px;
+
+    transform: rotate(-90deg);
+
+    animation-delay: 0.25s;
+}
+
+.loading-connection-right {
+    top: 66px;
+    left: 82px;
+
+    animation-delay: 0.5s;
+}
+
+.loading-connection-bottom {
+    top: 82px;
+    left: 66px;
+
+    transform: rotate(90deg);
+
+    animation-delay: 0.75s;
+}
+
+.loading-connection-left {
+    top: 66px;
+    left: 50px;
+
+    transform: rotate(180deg);
+
+    animation-delay: 1s;
+}
+
+
+/* Animations */
+
+@keyframes shici-hexagon-appear {
+
+    0%,
+    15% {
+        opacity: 0;
+        transform: scale(0.55);
+    }
+
+    35%,
+    75% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+}
+
+@keyframes shici-center-pulse {
+
+    0%,
+    100% {
+        transform: scale(0.92);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+        filter: brightness(1.12);
+    }
+
+}
+
+@keyframes shici-connection-appear {
+
+    0%,
+    20% {
+        opacity: 0;
+        scale: 0 1;
+    }
+
+    40%,
+    75% {
+        opacity: 1;
+        scale: 1 1;
+    }
+
+    100% {
+        opacity: 0;
+        scale: 1 1;
+    }
+
+}
+
+@keyframes shici-loading-float {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+
+}
 

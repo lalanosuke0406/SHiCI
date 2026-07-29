@@ -142,42 +142,125 @@ function ConversationStateEngine_handle(text, sessionId) {
 
 
 
-function ConversationStateEngine_selectCandidate(entityId, sessionId) {
+function ConversationStateEngine_selectCandidate(
+  entityId,
+  entityType,
+  sessionId
+) {
 
-  const state = getConversationState(sessionId);
+  const normalizedEntityId =
+    String(
+      entityId || ""
+    ).trim();
+
+  const normalizedEntityType =
+    String(
+      entityType || ""
+    ).trim();
 
   if (
-    !state ||
-    !state.candidateEntities ||
-    state.candidateEntities.length === 0
+    !normalizedEntityId ||
+    !normalizedEntityType
   ) {
-    return createError("選択できる候補がありません。");
+
+    return createError(
+      "選択された候補情報が不足しています。"
+    );
+
   }
 
-  const entity = state.candidateEntities.find(function(candidate) {
-    return candidate.entityId === entityId;
-  });
+  const state =
+    getConversationState(
+      sessionId
+    );
+
+  let entity =
+    null;
+
+  /*
+   * まず、直前に保存された候補Stateから探す。
+   */
+  if (
+    state &&
+    Array.isArray(
+      state.candidateEntities
+    )
+  ) {
+
+    entity =
+      state.candidateEntities.find(
+        function(candidate) {
+
+          return (
+            String(
+              candidate.entityId || ""
+            ).trim() ===
+              normalizedEntityId &&
+
+            String(
+              candidate.entityType || ""
+            ).trim() ===
+              normalizedEntityType
+          );
+
+        }
+      ) || null;
+
+  }
+
+  /*
+   * Cacheから候補Stateを取得できなかった場合は、
+   * Entity Resolution Knowledgeから再取得する。
+   */
+  if (!entity) {
+
+    entity =
+      EntityResolution_findById(
+        normalizedEntityType,
+        normalizedEntityId
+      );
+
+  }
 
   if (!entity) {
-    return createError("選択された候補が見つかりません。");
+
+    return createError(
+      "選択された候補が見つかりません。"
+    );
+
   }
 
-  // 選択されたEntityを現在のEntityとして保存
-  state.currentEntity = entity;
+  state.currentEntity =
+    entity;
 
-  // 候補一覧は選択完了後に空にする
-  state.candidateEntities = [];
+  state.candidateEntities =
+    [];
 
-  saveConversationState(sessionId, state);
+  saveConversationState(
+    sessionId,
+    state
+  );
 
-  // 通常のEntity処理へ渡して製品詳細を生成
-  const answer = EntityHandler_dispatch(entity);
+  const answer =
+    EntityHandler_dispatch(
+      entity
+    );
 
   return {
-    status: "success",
-    messageType: "text",
-    answer: String(answer || "")
+
+    status:
+      "success",
+
+    messageType:
+      "text",
+
+    answer:
+      String(
+        answer || ""
+      )
+
   };
+
 }
 
 

@@ -247,3 +247,134 @@ function resolveEntityCandidates(question) {
   return [];
 }
 
+
+
+/**
+ * entityTypeとentityIdから
+ * Entity Resolution Knowledge上のEntityを取得する
+ */
+function EntityResolution_findById(
+  entityType,
+  entityId
+) {
+
+  const normalizedEntityType =
+    String(
+      entityType || ""
+    ).trim();
+
+  const normalizedEntityId =
+    String(
+      entityId || ""
+    ).trim();
+
+  if (
+    !normalizedEntityType ||
+    !normalizedEntityId
+  ) {
+
+    return null;
+
+  }
+
+  const knowledge =
+    loadEntityResolutionKnowledge();
+
+  const matchedItems =
+    knowledge.filter(
+      function(item) {
+
+        return (
+          String(
+            item.entityType || ""
+          ).trim() ===
+            normalizedEntityType &&
+
+          String(
+            item.entityId || ""
+          ).trim() ===
+            normalizedEntityId
+        );
+
+      }
+    );
+
+  if (
+    matchedItems.length === 0
+  ) {
+
+    return null;
+
+  }
+
+  matchedItems.sort(
+    function(a, b) {
+
+      return (
+        Number(
+          a.priority || 999
+        ) -
+        Number(
+          b.priority || 999
+        )
+      );
+
+    }
+  );
+
+  const primary =
+    matchedItems[0];
+
+  return {
+
+    originalText:
+      "",
+
+    keyword:
+      primary.keyword,
+
+    alias:
+      primary.alias,
+
+    entityType:
+      primary.entityType,
+
+    entityId:
+      primary.entityId,
+
+    priority:
+      Number(
+        primary.priority || 999
+      ),
+
+    notes:
+      primary.notes,
+
+    sources:
+      matchedItems.map(
+        function(item) {
+
+          return {
+
+            alias:
+              item.alias,
+
+            keyword:
+              item.keyword,
+
+            notes:
+              item.notes,
+
+            priority:
+              Number(
+                item.priority || 999
+              )
+
+          };
+
+        }
+      )
+
+  };
+
+}

@@ -134,6 +134,10 @@ function ActionRouter_routePost(data) {
                 data.entityId || ""
             ).trim(),
 
+            String(
+                data.entityType || ""
+            ).trim(),
+
             data.sessionId
         );
 

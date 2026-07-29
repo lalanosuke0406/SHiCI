@@ -77,7 +77,11 @@ function scrollToBottom() {
 function createCandidateCard(entity) {
 
     return `
-        <div class="candidate-card" data-entity-id="${entity.entityId}">
+        <div
+            class="candidate-card"
+            data-entity-id="${entity.entityId}"
+            data-entity-type="${entity.entityType}"
+        >
             <div class="candidate-drawing">
                 ${entity.drawingNo || ""}
             </div>
@@ -130,7 +134,16 @@ document.addEventListener(
                 card.dataset.entityId || ""
             ).trim();
 
-        if (!entityId) {
+        const entityType =
+            String(
+                card.dataset.entityType || ""
+            ).trim();
+
+
+        if (
+            !entityId ||
+            !entityType
+        ) {
 
             addMessage(
                 "候補情報を取得できませんでした。",
@@ -158,7 +171,8 @@ document.addEventListener(
 
             const result =
                 await selectCandidate(
-                    entityId
+                    entityId,
+                    entityType
                 );
 
             if (

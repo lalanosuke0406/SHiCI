@@ -14,14 +14,20 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw34Qs-g5IqPLwluES7
 
 
 async function selectCandidate(
-    entityId
+    entityId,
+    entityType
 ) {
 
     return await callApi(
         "selectCandidate",
         {
+
             entityId:
-                entityId
+                entityId,
+
+            entityType:
+                entityType
+
         }
     );
 

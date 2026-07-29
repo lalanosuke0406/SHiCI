@@ -123,6 +123,9 @@ async function handleGoogleCredential(
 
     }
 
+    clearLoginError();
+    showLoginLoadingView();
+
     try {
 
         const result =
@@ -163,11 +166,52 @@ async function handleGoogleCredential(
     }
     catch (error) {
 
+        showLoginView();
+
         showLoginError(
-            error.message
+            error.message ||
+            "ログインに失敗しました。"
         );
 
     }
+
+}
+
+
+function showLoginLoadingView() {
+
+    const loginView =
+        document.getElementById(
+            "loginView"
+        );
+
+    const loginLoadingView =
+        document.getElementById(
+            "loginLoadingView"
+        );
+
+    const appView =
+        document.getElementById(
+            "appView"
+        );
+
+    if (
+        !loginView ||
+        !loginLoadingView ||
+        !appView
+    ) {
+
+        showLoginError(
+            "待機画面の表示に失敗しました。"
+        );
+
+        return;
+
+    }
+
+    loginView.hidden = true;
+    loginLoadingView.hidden = false;
+    appView.hidden = true;
 
 }
 
@@ -179,6 +223,11 @@ function showApplicationView() {
             "loginView"
         );
 
+    const loginLoadingView =
+        document.getElementById(
+            "loginLoadingView"
+        );
+
     const appView =
         document.getElementById(
             "appView"
@@ -186,8 +235,11 @@ function showApplicationView() {
 
     if (
         !loginView ||
+        !loginLoadingView ||
         !appView
     ) {
+
+        showLoginView();
 
         showLoginError(
             "画面の切り替えに失敗しました。"
@@ -198,7 +250,40 @@ function showApplicationView() {
     }
 
     loginView.hidden = true;
+    loginLoadingView.hidden = true;
     appView.hidden = false;
+
+}
+
+
+function showLoginView() {
+
+    const loginView =
+        document.getElementById(
+            "loginView"
+        );
+
+    const loginLoadingView =
+        document.getElementById(
+            "loginLoadingView"
+        );
+
+    const appView =
+        document.getElementById(
+            "appView"
+        );
+
+    if (
+        !loginView ||
+        !loginLoadingView ||
+        !appView
+    ) {
+        return;
+    }
+
+    loginView.hidden = false;
+    loginLoadingView.hidden = true;
+    appView.hidden = true;
 
 }
 
@@ -218,5 +303,12 @@ function showLoginError(
 
     loginError.textContent =
         String(message || "");
+
+}
+
+
+function clearLoginError() {
+
+    showLoginError("");
 
 }

@@ -116,6 +116,155 @@ function addCandidateCards(candidates) {
 }
 
 
+
+/**
+ * 候補カードを回答待ち状態にする
+ *
+ * @param {HTMLElement} selectedCard
+ * @returns {NodeListOf<Element>}
+ */
+function startCandidateSelection(
+    selectedCard
+) {
+
+    /*
+     * 過去の候補一覧まで変更しないよう、
+     * 選択されたカードを含むメッセージ内だけを対象にする。
+     */
+    const candidateContainer =
+        selectedCard.closest(
+            ".message"
+        );
+
+    const candidateCards =
+        candidateContainer
+            ? candidateContainer.querySelectorAll(
+                ".candidate-card"
+            )
+            : document.querySelectorAll(
+                ".candidate-card"
+            );
+
+    candidateCards.forEach(
+        function(candidateCard) {
+
+            candidateCard.classList.add(
+                "candidate-card-disabled"
+            );
+
+            candidateCard.setAttribute(
+                "aria-disabled",
+                "true"
+            );
+
+        }
+    );
+
+    /*
+     * 選択したカードだけを回答待ち状態にする。
+     */
+    selectedCard.classList.remove(
+        "candidate-card-disabled"
+    );
+
+    selectedCard.classList.add(
+        "candidate-card-selected",
+        "candidate-card-processing"
+    );
+
+    selectedCard.setAttribute(
+        "aria-selected",
+        "true"
+    );
+
+    selectedCard.setAttribute(
+        "aria-busy",
+        "true"
+    );
+
+    scrollToBottom();
+
+    return candidateCards;
+
+}
+
+
+/**
+ * 候補選択が完了した状態にする
+ *
+ * @param {HTMLElement} selectedCard
+ */
+function completeCandidateSelection(
+    selectedCard
+) {
+
+    selectedCard.classList.remove(
+        "candidate-card-processing"
+    );
+
+    selectedCard.classList.add(
+        "candidate-card-completed"
+    );
+
+    selectedCard.removeAttribute(
+        "aria-busy"
+    );
+
+}
+
+
+/**
+ * 候補選択に失敗した場合、
+ * 再び選択できる状態へ戻す
+ *
+ * @param {NodeListOf<Element>} candidateCards
+ * @param {HTMLElement} selectedCard
+ */
+function resetCandidateSelection(
+    candidateCards,
+    selectedCard
+) {
+
+    candidateCards.forEach(
+        function(candidateCard) {
+
+            candidateCard.classList.remove(
+                "candidate-card-disabled",
+                "candidate-card-selected",
+                "candidate-card-processing",
+                "candidate-card-completed"
+            );
+
+            candidateCard.removeAttribute(
+                "aria-disabled"
+            );
+
+            candidateCard.removeAttribute(
+                "aria-selected"
+            );
+
+            candidateCard.removeAttribute(
+                "aria-busy"
+            );
+
+        }
+    );
+
+    if (selectedCard) {
+
+        selectedCard.classList.remove(
+            "candidate-card-selected",
+            "candidate-card-processing",
+            "candidate-card-completed"
+        );
+
+    }
+
+}
+
+
+
+
 document.addEventListener(
     "click",
     async function(event) {
@@ -129,6 +278,26 @@ document.addEventListener(
             return;
         }
 
+        /*
+         * すでに回答待ち、または選択済みなら
+         * 再度処理しない。
+         */
+        if (
+            card.classList.contains(
+                "candidate-card-processing"
+            ) ||
+            card.classList.contains(
+                "candidate-card-completed"
+            ) ||
+            card.classList.contains(
+                "candidate-card-disabled"
+            )
+        ) {
+
+            return;
+
+        }
+
         const entityId =
             String(
                 card.dataset.entityId || ""
@@ -138,7 +307,6 @@ document.addEventListener(
             String(
                 card.dataset.entityType || ""
             ).trim();
-
 
         if (
             !entityId ||
@@ -151,21 +319,16 @@ document.addEventListener(
             );
 
             return;
+
         }
 
+        /*
+         * API通信開始前に視覚状態を変更する。
+         */
         const candidateCards =
-            document.querySelectorAll(
-                ".candidate-card"
+            startCandidateSelection(
+                card
             );
-
-        candidateCards.forEach(
-            function(candidateCard) {
-
-                candidateCard.style.pointerEvents =
-                    "none";
-
-            }
-        );
 
         try {
 
@@ -180,18 +343,35 @@ document.addEventListener(
                 "text"
             ) {
 
+                /*
+                 * 回答が返ったら拍動を停止し、
+                 * 選択済み表示へ変える。
+                 */
+                completeCandidateSelection(
+                    card
+                );
+
                 addMessage(
                     result.answer || "",
                     "shici"
                 );
 
                 return;
+
             }
 
             if (
                 result.messageType ===
                 "error"
             ) {
+
+                /*
+                 * エラー時は再選択できる状態へ戻す。
+                 */
+                resetCandidateSelection(
+                    candidateCards,
+                    card
+                );
 
                 addMessage(
                     "エラーが発生しました。\n\n" +
@@ -202,34 +382,27 @@ document.addEventListener(
                     "shici"
                 );
 
-                candidateCards.forEach(
-                    function(candidateCard) {
-
-                        candidateCard.style.pointerEvents =
-                            "";
-
-                    }
-                );
-
                 return;
+
             }
+
+            resetCandidateSelection(
+                candidateCards,
+                card
+            );
 
             addMessage(
                 "候補選択後の応答を処理できませんでした。",
                 "shici"
             );
 
-            candidateCards.forEach(
-                function(candidateCard) {
-
-                    candidateCard.style.pointerEvents =
-                        "";
-
-                }
-            );
-
         }
         catch (error) {
+
+            resetCandidateSelection(
+                candidateCards,
+                card
+            );
 
             addMessage(
                 "通信エラーが発生しました。\n\n" +
@@ -238,15 +411,6 @@ document.addEventListener(
                     "候補を選択できませんでした。"
                 ),
                 "shici"
-            );
-
-            candidateCards.forEach(
-                function(candidateCard) {
-
-                    candidateCard.style.pointerEvents =
-                        "";
-
-                }
             );
 
         }

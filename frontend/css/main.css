@@ -137,6 +137,11 @@ textarea {
   appearance: none;
 }
 
+[hidden] {
+    display: none !important;
+}
+
+
 
 /* =========================================================
    Application Layout

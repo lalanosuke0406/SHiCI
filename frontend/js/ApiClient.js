@@ -13,21 +13,18 @@ const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw34Qs-g5IqPLwluES7
 
 
 
-async function selectCandidate(entityId) {
+async function selectCandidate(
+    entityId
+) {
 
-    const url =
-        GAS_API_URL +
-        "?action=selectCandidate" +
-        "&entityId=" + encodeURIComponent(entityId) +
-        "&sessionId=" + encodeURIComponent(getSessionId());
+    return await callApi(
+        "selectCandidate",
+        {
+            entityId:
+                entityId
+        }
+    );
 
-    const response = await fetch(url);
-
-    if (!response.ok) {
-        throw new Error("通信に失敗しました。");
-    }
-
-    return await response.json();
 }
 
 

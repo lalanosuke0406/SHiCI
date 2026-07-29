@@ -108,6 +108,37 @@ function ActionRouter_routePost(data) {
 
     }
 
+    if (
+        data.action ===
+        "selectCandidate"
+    ) {
+
+        if (
+            !SessionEngine_isSessionValid(
+                data.sessionId
+            )
+        ) {
+
+            return {
+                status: "error",
+                messageType: "error",
+                code: "SESSION_INVALID",
+                message:
+                    "セッションが無効です。再度ログインしてください。"
+            };
+
+        }
+
+        return ConversationStateEngine_selectCandidate(
+            String(
+                data.entityId || ""
+            ).trim(),
+
+            data.sessionId
+        );
+
+    }
+
     if (data.action === "updateProduct") return updateProduct(sheet, data);
 
     if (data.action === "addTrouble") return addTrouble(data);

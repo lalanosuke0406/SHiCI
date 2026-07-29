@@ -161,6 +161,10 @@ async function handleGoogleCredential(
             result.sessionId
         );
 
+        setWelcomeGreeting(
+            result.user
+        );
+
         showApplicationView();
 
     }
@@ -310,5 +314,44 @@ function showLoginError(
 function clearLoginError() {
 
     showLoginError("");
+
+}
+
+
+
+function setWelcomeGreeting(
+    user
+) {
+
+    const welcomeGreeting =
+        document.getElementById(
+            "welcomeGreeting"
+        );
+
+    if (!welcomeGreeting) {
+        return;
+    }
+
+    const nickName =
+        String(
+            user &&
+            user.nickName
+                ? user.nickName
+                : ""
+        ).trim();
+
+    if (!nickName) {
+
+        welcomeGreeting.textContent =
+            "こんにちは。";
+
+        return;
+
+    }
+
+    welcomeGreeting.textContent =
+        "こんにちは、" +
+        nickName +
+        "さん。";
 
 }

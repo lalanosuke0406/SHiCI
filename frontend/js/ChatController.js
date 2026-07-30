@@ -89,6 +89,31 @@ async function handleSubmit(event) {
             );
         
         }
+
+
+        else if (
+            result.messageType ===
+                "update_target_resolved"
+        ) {
+
+            /*
+            * 更新対象と変更値が確定したため、
+            * 書き込み権限を確認する専用APIを通して
+            * 更新案を作成する。
+            */
+            await handleResolvedUpdateTarget(
+                result
+            );
+
+            /*
+            * 更新確認カードの表示が完了したため、
+            * 「確認しています...」を削除する。
+            */
+            loading.remove();
+
+        }
+
+
         else if (result.messageType === "candidate") {
 
         // 「確認しています...」を消す
@@ -139,3 +164,221 @@ async function handleSubmit(event) {
     }
 
 }
+
+
+
+/*
+=========================================
+更新対象確定後の処理
+=========================================
+*/
+
+/**
+ * update_target_resolvedを受け取り、
+ * 金型温度の更新案を生成して
+ * 確認カードを表示する。
+ *
+ * この関数を実行した時点では、
+ * マスターデータはまだ更新されない。
+ *
+ * @param {Object} result
+ * @returns {Promise<Object>}
+ */
+async function handleResolvedUpdateTarget(
+    result
+) {
+
+    /*
+    =========================================
+    応答形式の確認
+    =========================================
+    */
+
+    if (
+        !result ||
+        result.messageType !==
+            "update_target_resolved"
+    ) {
+
+        throw new Error(
+            "更新対象の確定情報がありません。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    更新種別の確認
+    =========================================
+    */
+
+    const updateType =
+        String(
+            result.updateType || ""
+        ).trim();
+
+    if (
+        updateType !==
+            "mold_temperature"
+    ) {
+
+        throw new Error(
+            "この更新内容には、まだ対応していません。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    更新対象情報の取得
+    =========================================
+    */
+
+    const target =
+        result.target &&
+        typeof result.target ===
+            "object"
+            ? result.target
+            : {};
+
+    const productId =
+        String(
+            target.productId ||
+            target.entityId ||
+            ""
+        ).trim();
+
+    if (!productId) {
+
+        throw new Error(
+            "更新対象の製品IDを取得できませんでした。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    期待状態の取得
+    =========================================
+    */
+
+    const expectedState =
+        result.expectedState &&
+        typeof result.expectedState ===
+            "object"
+            ? result.expectedState
+            : {};
+
+    const expectedCurrentConditionId =
+        String(
+            expectedState.currentConditionId ||
+            ""
+        ).trim();
+
+    if (
+        !expectedCurrentConditionId
+    ) {
+
+        throw new Error(
+            "現在標準条件IDを取得できませんでした。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    変更予定値の取得
+    =========================================
+    */
+
+    const proposedValue =
+        result.proposedValue &&
+        typeof result.proposedValue ===
+            "object"
+            ? result.proposedValue
+            : {};
+
+    const newMoldTemperature =
+        Number(
+            proposedValue.value
+        );
+
+    if (
+        !Number.isFinite(
+            newMoldTemperature
+        )
+    ) {
+
+        throw new Error(
+            "変更後の金型温度を取得できませんでした。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    更新案を生成
+    =========================================
+    */
+
+    const proposal =
+        await createMoldTemperatureUpdateProposal(
+            productId,
+            expectedCurrentConditionId,
+            newMoldTemperature
+        );
+
+
+    /*
+    =========================================
+    更新案生成結果の確認
+    =========================================
+    */
+
+    if (
+        !proposal ||
+        proposal.status !==
+            "success"
+    ) {
+
+        throw new Error(
+            proposal &&
+            proposal.message
+                ? proposal.message
+                : "更新案を作成できませんでした。"
+        );
+
+    }
+
+    if (
+        !proposal.requiresConfirmation ||
+        !proposal.requestId
+    ) {
+
+        throw new Error(
+            "更新確認に必要な情報を取得できませんでした。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    更新確認カードを表示
+    =========================================
+    */
+
+    addUpdateConfirmationCard(
+        proposal
+    );
+
+    return proposal;
+
+}
+
+

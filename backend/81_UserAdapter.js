@@ -99,6 +99,101 @@ function UserAdapter_findByEmail(
 }
 
 
+
+/**
+ * userIdからユーザーを取得する
+ */
+function UserAdapter_findById(
+  userId
+) {
+
+  const normalizedUserId =
+    String(
+      userId || ""
+    ).trim();
+
+  if (!normalizedUserId) {
+
+    return null;
+
+  }
+
+  const sheet =
+    SpreadsheetApp
+      .openById(
+        SPREADSHEET_ID
+      )
+      .getSheetByName(
+        "Users"
+      );
+
+  if (!sheet) {
+
+    throw new Error(
+      "Usersシートがありません。"
+    );
+
+  }
+
+  const values =
+    sheet
+      .getDataRange()
+      .getValues();
+
+  for (
+    let i = 1;
+    i < values.length;
+    i++
+  ) {
+
+    const storedUserId =
+      String(
+        values[i][0] || ""
+      ).trim();
+
+    if (
+      storedUserId ===
+      normalizedUserId
+    ) {
+
+      return {
+
+        userId:
+          values[i][0],
+
+        email:
+          values[i][1],
+
+        name:
+          values[i][2],
+
+        nickName:
+          values[i][3],
+
+        role:
+          values[i][4],
+
+        status:
+          values[i][5],
+
+        createdAt:
+          values[i][6],
+
+        lastLoginAt:
+          values[i][7]
+
+      };
+
+    }
+
+  }
+
+  return null;
+
+}
+
+
+
 function UserAdapter_insert(
   user
 ) {

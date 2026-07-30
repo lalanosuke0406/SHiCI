@@ -20,6 +20,21 @@ function UserEngine_findByEmail(
 }
 
 
+/**
+ * userIdからユーザーを取得する
+ */
+function UserEngine_findById(
+  userId
+) {
+
+  return UserAdapter_findById(
+    userId
+  );
+
+}
+
+
+
 function UserEngine_createUser(
   email,
   name,

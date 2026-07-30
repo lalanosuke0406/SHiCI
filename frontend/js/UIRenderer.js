@@ -879,6 +879,35 @@ document.addEventListener(
 
             }
 
+
+            if (
+                result.messageType ===
+                    "update_target_resolved"
+            ) {
+
+                /*
+                * 更新案を生成し、
+                * 確認カードを表示する。
+                */
+                await handleResolvedUpdateTarget(
+                    result
+                );
+
+
+                /*
+                * 候補選択が完了したため、
+                * 選択済み表示へ変える。
+                */
+                completeCandidateSelection(
+                    card
+                );
+
+                return;
+
+            }
+
+
+
             if (
                 result.messageType ===
                 "error"

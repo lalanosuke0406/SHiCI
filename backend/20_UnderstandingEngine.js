@@ -427,8 +427,13 @@ function UnderstandingEngine_handleUpdateIntent(
 /**
  * 更新対象と変更値を構造化して返す
  *
+ * 製品Snapshotから、
+ * 更新案生成時に必要となる
+ * 現在標準条件IDも取得する。
+ *
  * この関数では、
- * UpdateRequestはまだ作成しない。
+ * UpdateRequestの生成や
+ * マスターデータの更新は行わない。
  *
  * @param {Object} entity
  * @param {Object} updateIntent
@@ -438,6 +443,12 @@ function UnderstandingEngine_buildUpdateTargetResult(
   entity,
   updateIntent
 ) {
+
+  /*
+  =========================================
+  Entityの確認
+  =========================================
+  */
 
   if (
     !entity ||
@@ -450,41 +461,258 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
   }
 
+  const entityType =
+    String(
+      entity.entityType || ""
+    ).trim();
+
+  const entityId =
+    String(
+      entity.entityId || ""
+    ).trim();
+
+  if (
+    entityType !==
+      "product"
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "金型温度を変更できる対象は製品です。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  更新意図の確認
+  =========================================
+  */
+
+  if (
+    !updateIntent ||
+    updateIntent.updateType !==
+      "mold_temperature"
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "この変更指示には、まだ対応していません。"
+
+    };
+
+  }
+
+  const newMoldTemperature =
+    Number(
+      updateIntent.newValue
+    );
+
+  if (
+    !Number.isFinite(
+      newMoldTemperature
+    )
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "変更後の金型温度を正しく取得できませんでした。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  製品Snapshotの取得
+  =========================================
+  */
+
+  const snapshot =
+    SnapshotEngine_getProductSnapshot(
+      entityId
+    );
+
+  if (
+    !snapshot ||
+    snapshot.status !==
+      "success" ||
+    !snapshot.product
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "変更対象の製品情報を取得できませんでした。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  現在標準条件IDの取得
+  =========================================
+  */
+
+  const currentConditionId =
+    String(
+      snapshot.product[
+        "現在標準条件ID"
+      ] || ""
+    ).trim();
+
+  if (!currentConditionId) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "この製品には現在標準条件が設定されていないため、金型温度を変更できません。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  現在標準条件の存在確認
+  =========================================
+  */
+
+  if (
+    !snapshot.condition
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "現在標準条件IDに対応する成形条件が見つかりませんでした。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  製品表示情報
+  =========================================
+  */
+
+  const productName =
+    String(
+      snapshot.product[
+        "製品名"
+      ] || ""
+    ).trim();
+
+  const drawingNumber =
+    String(
+      snapshot.product[
+        "図番"
+      ] || ""
+    ).trim();
+
+  const alias =
+    String(
+      entity.alias ||
+      entity.keyword ||
+      productName ||
+      ""
+    ).trim();
+
+
+  /*
+  =========================================
+  更新対象確定結果
+  =========================================
+  */
+
   return {
+
     messageType:
       "update_target_resolved",
 
     updateType:
-      updateIntent.updateType,
+      "mold_temperature",
 
     target: {
+
       entityType:
-        entity.entityType,
+        entityType,
 
       entityId:
-        entity.entityId,
+        entityId,
+
+      productId:
+        entityId,
+
+      productName:
+        productName,
+
+      drawingNumber:
+        drawingNumber,
 
       alias:
-        String(
-          entity.alias ||
-          entity.keyword ||
-          ""
-        ).trim()
+        alias
+
+    },
+
+    expectedState: {
+
+      currentConditionId:
+        currentConditionId
+
     },
 
     proposedValue: {
+
       field:
-        updateIntent.targetField,
+        String(
+          updateIntent.targetField ||
+          "金型温度(℃)"
+        ).trim(),
 
       value:
-        updateIntent.newValue,
+        newMoldTemperature,
 
       unit:
-        updateIntent.unit
+        String(
+          updateIntent.unit ||
+          "℃"
+        ).trim()
+
     },
 
     message:
       "変更対象と変更内容を確認しました。"
+
   };
 
 }

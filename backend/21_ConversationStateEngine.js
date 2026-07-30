@@ -5,16 +5,55 @@ function getConversationState(sessionId) {
 
   if (!saved) {
     return {
-      currentEntity: null,
-      currentView: null,
-      candidateEntities: []
+      currentEntity:
+        null,
+
+      currentView:
+        null,
+
+      candidateEntities:
+        [],
+
+      pendingUpdateIntent:
+        null
     };
   }
 
-  const state = JSON.parse(saved);
+  const state =
+    JSON.parse(
+      saved
+    );
 
-  if (!state.currentView) state.currentView = null;
-  if (!state.candidateEntities) state.candidateEntities = [];
+  if (
+    !state.currentView
+  ) {
+
+    state.currentView =
+      null;
+
+  }
+
+  if (
+    !Array.isArray(
+      state.candidateEntities
+    )
+  ) {
+
+    state.candidateEntities =
+      [];
+
+  }
+
+  if (
+    !state.pendingUpdateIntent ||
+    typeof state.pendingUpdateIntent !==
+      "object"
+  ) {
+
+    state.pendingUpdateIntent =
+      null;
+
+  }
 
   return state;
 }
@@ -174,6 +213,18 @@ function ConversationStateEngine_selectCandidate(
       sessionId
     );
 
+  /*
+  * 更新指示に伴う候補選択だった場合に備え、
+  * Entityを確定する前に保留中の更新意図を保持する。
+  */
+  const pendingUpdateIntent =
+    state &&
+    state.pendingUpdateIntent &&
+    typeof state.pendingUpdateIntent ===
+      "object"
+      ? state.pendingUpdateIntent
+      : null;
+
   let entity =
     null;
 
@@ -236,10 +287,157 @@ function ConversationStateEngine_selectCandidate(
   state.candidateEntities =
     [];
 
+  state.pendingUpdateIntent =
+    null;
+
   saveConversationState(
     sessionId,
     state
   );
+
+    /*
+  =========================================
+  更新指示に伴う候補選択
+  =========================================
+  */
+
+  if (
+    pendingUpdateIntent
+  ) {
+
+    /*
+    * 現在対応している更新対象は、
+    * 製品の金型温度のみ。
+    */
+    if (
+      String(
+        entity.entityType || ""
+      ).trim() !==
+        "product"
+    ) {
+
+      return {
+
+        status:
+          "error",
+
+        messageType:
+          "text",
+
+        answer:
+          "金型温度を変更できる対象は製品です。"
+
+      };
+
+    }
+
+
+    /*
+    * 保存されていた更新意図を取得する。
+    */
+    const updateType =
+      String(
+        pendingUpdateIntent.updateType ||
+        ""
+      ).trim();
+
+    const targetField =
+      String(
+        pendingUpdateIntent.targetField ||
+        ""
+      ).trim();
+
+    const unit =
+      String(
+        pendingUpdateIntent.unit ||
+        ""
+      ).trim();
+
+    const newValue =
+      Number(
+        pendingUpdateIntent.newValue
+      );
+
+
+    /*
+    * 保存内容が正しいか確認する。
+    */
+    if (
+      updateType !==
+        "mold_temperature" ||
+      !Number.isFinite(
+        newValue
+      )
+    ) {
+
+      return {
+
+        status:
+          "error",
+
+        messageType:
+          "text",
+
+        answer:
+          "保存されていた変更内容を復元できませんでした。もう一度変更内容を指定してください。"
+
+      };
+
+    }
+
+
+    /*
+    * UnderstandingEngineで使用する形式へ
+    * 更新意図を復元する。
+    */
+    const restoredUpdateIntent = {
+
+      status:
+        "ready",
+
+      intentType:
+        "update",
+
+      updateType:
+        updateType,
+
+      targetField:
+        targetField ||
+        "金型温度(℃)",
+
+      newValue:
+        newValue,
+
+      unit:
+        unit ||
+        "℃"
+
+    };
+
+
+    /*
+    * 候補選択前と同じ形式で返す。
+    */
+    return {
+
+      status:
+        "success",
+
+      ...UnderstandingEngine_buildUpdateTargetResult(
+        entity,
+        restoredUpdateIntent
+      )
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  通常の候補選択
+  =========================================
+  */
 
   const answer =
     EntityHandler_dispatch(

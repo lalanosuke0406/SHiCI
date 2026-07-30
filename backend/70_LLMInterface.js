@@ -173,7 +173,173 @@ function LLMInterface_validateSemanticContract(
 
 
 
+/*
+=========================================
+Natural Language Understanding
+=========================================
+*/
 
+
+/**
+ * 自然言語理解をLLMへ依頼する。
+ *
+ * このInterfaceは、
+ * 特定のLLM Providerを知らない形で、
+ *
+ * Understanding Request Contract
+ * ↓
+ * LLM Adapter
+ * ↓
+ * Understanding Result
+ *
+ * を接続する。
+ *
+ * 返された結果は、
+ * Understanding Result Contractによって
+ * 構造検証を行う。
+ *
+ * @param {Object} understandingRequest
+ * @returns {Object}
+ */
+function LLMInterface_understand(
+  understandingRequest
+) {
+
+  const startTime =
+    Date.now();
+
+  try {
+
+    /*
+     * 入力側Contractを検証する。
+     */
+    LLMInterface_validateUnderstandingRequest(
+      understandingRequest
+    );
+
+    const validatedRequest =
+      UnderstandingRequestContract_validate(
+        understandingRequest
+      );
+
+
+    const provider =
+      Config_getLLMProvider();
+
+
+    let understandingResult;
+
+
+    switch (provider) {
+
+      case "openai":
+
+        understandingResult =
+          OpenAIAdapter_understand(
+            validatedRequest
+          );
+
+        break;
+
+
+      case "mock":
+
+        /*
+         * MockによるUnderstandingは、
+         * 後続の段階で専用Adapterとして実装する。
+         *
+         * 不完全な理解結果を仮に生成すると、
+         * 正規表現による推測処理を再導入することに
+         * つながるため、現段階では明示的に停止する。
+         */
+        throw new Error(
+          "Mock ProviderのNatural Language Understandingは、まだ実装されていません。"
+        );
+
+
+      default:
+
+        throw new Error(
+          "Natural Language Understandingに未対応のLLM Providerです: " +
+          provider
+        );
+
+    }
+
+
+    /*
+     * LLM Adapterから返された値を、
+     * Understanding Result Contractとして検証する。
+     *
+     * Adapterの出力を、
+     * 無検証のまま後続Engineへ渡してはならない。
+     */
+    return UnderstandingResultContract_validate(
+      understandingResult
+    );
+
+  } finally {
+
+    Logger.log(
+      "[TIME] LLMInterface_understand: " +
+      (Date.now() - startTime) +
+      " ms"
+    );
+
+  }
+
+}
+
+
+/**
+ * Natural Language Understanding用Requestの
+ * 最低限の構造を確認する。
+ *
+ * 正式な構造検証は、
+ * UnderstandingRequestContract_validate()
+ * が担当する。
+ *
+ * この関数は、
+ * LLM Interfaceの入口として
+ * Contract Typeを明示的に確認する。
+ *
+ * @param {Object} understandingRequest
+ */
+function LLMInterface_validateUnderstandingRequest(
+  understandingRequest
+) {
+
+  if (
+    !understandingRequest ||
+    typeof understandingRequest !==
+      "object" ||
+    Array.isArray(
+      understandingRequest
+    )
+  ) {
+
+    throw new Error(
+      "Understanding Request Contractが指定されていません。"
+    );
+
+  }
+
+  if (
+    understandingRequest.contractType !==
+      "understanding_request"
+  ) {
+
+    throw new Error(
+      "Contract Typeがunderstanding_requestではありません。"
+    );
+
+  }
+
+  UnderstandingRequestContract_validate(
+    understandingRequest
+  );
+
+}
 
 
 

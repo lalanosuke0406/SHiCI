@@ -1091,4 +1091,933 @@ function OpenAIAdapter_parseSemanticResolutionResult(
 
 
 
+/*
+=========================================
+Natural Language Understanding
+=========================================
+*/
+
+
+/**
+ * Understanding Request ContractをOpenAIへ送り、
+ * Understanding Resultを構造化データとして取得する。
+ *
+ * この処理が行うのは、
+ * 自然言語の意味を言語非依存の構造へ
+ * 変換することだけである。
+ *
+ * 禁止：
+ * ・Knowledgeを検索しない
+ * ・Entityを確定しない
+ * ・Snapshotを生成しない
+ * ・現在値を推測しない
+ * ・業務上の妥当性を判断しない
+ * ・権限を判断しない
+ * ・データを更新しない
+ *
+ * @param {Object} understandingRequest
+ * @returns {Object}
+ */
+function OpenAIAdapter_understand(
+  understandingRequest
+) {
+
+  const startTime =
+    Date.now();
+
+  try {
+
+    OpenAIAdapter_validateUnderstandingRequest(
+      understandingRequest
+    );
+
+
+    const requestBody =
+      OpenAIAdapter_buildUnderstandingRequest(
+        understandingRequest
+      );
+
+
+    const apiKey =
+      Config_getOpenAIApiKey();
+
+
+    let response;
+
+    try {
+
+      response =
+        UrlFetchApp.fetch(
+          OPENAI_RESPONSES_ENDPOINT,
+          {
+            method:
+              "post",
+
+            contentType:
+              "application/json",
+
+            headers: {
+              Authorization:
+                "Bearer " + apiKey
+            },
+
+            payload:
+              JSON.stringify(
+                requestBody
+              ),
+
+            muteHttpExceptions:
+              true
+          }
+        );
+
+    } catch (error) {
+
+      throw new Error(
+        "Natural Language Understandingの通信に失敗しました: " +
+        OpenAIAdapter_getErrorText(
+          error
+        )
+      );
+
+    }
+
+
+    const statusCode =
+      response.getResponseCode();
+
+    const responseText =
+      response.getContentText();
+
+    const responseData =
+      OpenAIAdapter_parseResponse(
+        responseText,
+        statusCode
+      );
+
+
+    if (
+      statusCode < 200 ||
+      statusCode >= 300
+    ) {
+
+      throw new Error(
+        OpenAIAdapter_extractErrorMessage(
+          responseData,
+          statusCode
+        )
+      );
+
+    }
+
+
+    const outputText =
+      OpenAIAdapter_extractOutputText(
+        responseData
+      );
+
+
+    if (
+      !outputText ||
+      !String(outputText).trim()
+    ) {
+
+      throw new Error(
+        "Natural Language Understandingの応答にUnderstanding Resultが含まれていません。"
+      );
+
+    }
+
+
+    const understandingResult =
+      OpenAIAdapter_parseUnderstandingResult(
+        outputText
+      );
+
+
+    /*
+     * Adapter内でも構造検証する。
+     *
+     * さらにLLMInterface_understand()でも
+     * 同じContract検証を行う。
+     *
+     * Provider境界とInterface境界の
+     * 両方で不正な結果を停止する。
+     */
+    return UnderstandingResultContract_validate(
+      understandingResult
+    );
+
+  } finally {
+
+    Logger.log(
+      "[TIME] OpenAIAdapter_understand: " +
+      (Date.now() - startTime) +
+      " ms"
+    );
+
+  }
+
+}
+
+
+/**
+ * Natural Language Understanding用の
+ * OpenAI Responses API Requestを構築する。
+ *
+ * @param {Object} understandingRequest
+ * @returns {Object}
+ */
+function OpenAIAdapter_buildUnderstandingRequest(
+  understandingRequest
+) {
+
+  OpenAIAdapter_validateUnderstandingRequest(
+    understandingRequest
+  );
+
+
+  return {
+
+    model:
+      Config_getOpenAIModel(),
+
+    instructions:
+      OpenAIAdapter_buildUnderstandingInstructions(
+        understandingRequest
+      ),
+
+    input:
+      OpenAIAdapter_buildUnderstandingInput(
+        understandingRequest
+      ),
+
+    text: {
+
+      format: {
+
+        type:
+          "json_schema",
+
+        name:
+          "shici_understanding_result",
+
+        description:
+          "ユーザーの自然言語入力を、SHiCI Understanding Result Ver.1.1へ変換した結果。",
+
+        strict:
+          true,
+
+        schema:
+          OpenAIAdapter_buildUnderstandingSchema(
+            understandingRequest
+          )
+
+      }
+
+    },
+
+    max_output_tokens:
+      Config_getOpenAIMaxOutputTokens(),
+
+    store:
+      false
+
+  };
+
+}
+
+
+/**
+ * Understanding Result用JSON Schemaを構築する。
+ *
+ * Enum値は、
+ * Understanding Request ContractのPolicyから取得する。
+ *
+ * これにより、
+ * Adapterが独自にIntentやFieldを定義することを防ぐ。
+ *
+ * @param {Object} understandingRequest
+ * @returns {Object}
+ */
+function OpenAIAdapter_buildUnderstandingSchema(
+  understandingRequest
+) {
+
+  const policy =
+    understandingRequest.policy;
+
+
+  return {
+
+    type:
+      "object",
+
+    properties: {
+
+      schemaVersion: {
+
+        type:
+          "string",
+
+        enum: [
+          "1.1"
+        ]
+
+      },
+
+      resultType: {
+
+        type:
+          "string",
+
+        enum: [
+          "understanding_result"
+        ]
+
+      },
+
+      input: {
+
+        type:
+          "object",
+
+        properties: {
+
+          originalText: {
+
+            type:
+              "string"
+
+          },
+
+          language: {
+
+            type:
+              "string",
+
+            description:
+              "入力言語を表す短い言語コード。例: ja、en、vi、th。"
+
+          }
+
+        },
+
+        required: [
+          "originalText",
+          "language"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      communication: {
+
+        type:
+          "object",
+
+        properties: {
+
+          type: {
+
+            type:
+              "string",
+
+            enum: [
+              "none",
+              "greeting",
+              "thanks",
+              "farewell",
+              "acknowledgement",
+              "other"
+            ]
+
+          }
+
+        },
+
+        required: [
+          "type"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      intent: {
+
+        type:
+          "object",
+
+        properties: {
+
+          type: {
+
+            type:
+              "string",
+
+            enum:
+              policy.allowedIntentTypes
+
+          }
+
+        },
+
+        required: [
+          "type"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      conversation: {
+
+        type:
+          "object",
+
+        properties: {
+
+          action: {
+
+            type:
+              "string",
+
+            enum: [
+              "continue",
+              "change",
+              "new"
+            ]
+
+          }
+
+        },
+
+        required: [
+          "action"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      entity: {
+
+        type:
+          "object",
+
+        properties: {
+
+          query: {
+
+            type: [
+              "string",
+              "null"
+            ],
+
+            description:
+              "ユーザーがEntityを表すために使用した自然言語上の表現。Canonical Entity IDではない。"
+
+          },
+
+          entityTypeHint: {
+
+            type:
+              "string",
+
+            enum:
+              policy.allowedEntityTypeHints
+
+          }
+
+        },
+
+        required: [
+          "query",
+          "entityTypeHint"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      view: {
+
+        type:
+          "object",
+
+        properties: {
+
+          name: {
+
+            type: [
+              "string",
+              "null"
+            ]
+
+          }
+
+        },
+
+        required: [
+          "name"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      change: {
+
+        type:
+          "object",
+
+        properties: {
+
+          field: {
+
+            anyOf: [
+
+              {
+                type:
+                  "string",
+
+                enum:
+                  policy.allowedChangeFields
+              },
+
+              {
+                type:
+                  "null"
+              }
+
+            ]
+
+          },
+
+          operation: {
+
+            anyOf: [
+
+              {
+                type:
+                  "string",
+
+                enum:
+                  policy.allowedChangeOperations
+              },
+
+              {
+                type:
+                  "null"
+              }
+
+            ]
+
+          },
+
+          /*
+           * 現在の正式対象は
+           * mold_temperatureであるため、
+           * primitive valueだけを許可する。
+           *
+           * Create Contractを追加するときに、
+           * 複合値を別構造として正式に設計する。
+           */
+          value: {
+
+            type: [
+              "string",
+              "number",
+              "boolean",
+              "null"
+            ]
+
+          },
+
+          unit: {
+
+            type: [
+              "string",
+              "null"
+            ]
+
+          }
+
+        },
+
+        required: [
+          "field",
+          "operation",
+          "value",
+          "unit"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      missingFields: {
+
+        type:
+          "array",
+
+        items: {
+
+          type:
+            "string"
+
+        }
+
+      },
+
+      memory: {
+
+        type:
+          "object",
+
+        properties: {
+
+          /*
+           * 単独発話のUnderstanding段階では、
+           * Memoryへの保存判断を行わせない。
+           */
+          decision: {
+
+            type:
+              "string",
+
+            enum: [
+              "none"
+            ]
+
+          }
+
+        },
+
+        required: [
+          "decision"
+        ],
+
+        additionalProperties:
+          false
+
+      }
+
+    },
+
+    required: [
+      "schemaVersion",
+      "resultType",
+      "input",
+      "communication",
+      "intent",
+      "conversation",
+      "entity",
+      "view",
+      "change",
+      "missingFields",
+      "memory"
+    ],
+
+    additionalProperties:
+      false
+
+  };
+
+}
+
+
+/**
+ * Natural Language Understanding用の
+ * instructionsを構築する。
+ *
+ * @param {Object} understandingRequest
+ * @returns {string}
+ */
+function OpenAIAdapter_buildUnderstandingInstructions(
+  understandingRequest
+) {
+
+  const policy =
+    understandingRequest.policy || {};
+
+  const rules =
+    Array.isArray(
+      policy.rules
+    )
+      ? policy.rules
+      : [];
+
+
+  const lines = [
+
+    "あなたはSHiCIのNatural Language Understandingを担当します。",
+
+    "",
+
+    "役割は、ユーザーの自然言語入力をUnderstanding Result Ver.1.1へ構造化することだけです。",
+
+    "",
+
+    "あなたはKnowledge Sourceではありません。",
+
+    "社内データ、登録済みEntity、現在状態、過去の条件、業務上の事実を知っているものとして扱ってはいけません。",
+
+    "",
+
+    "以下の規則を必ず守ってください。"
+
+  ];
+
+
+  rules.forEach(
+    function(rule, index) {
+
+      const normalizedRule =
+        String(
+          rule || ""
+        ).trim();
+
+      if (
+        !normalizedRule
+      ) {
+
+        return;
+
+      }
+
+      lines.push(
+        String(index + 1) +
+        ". " +
+        normalizedRule
+      );
+
+    }
+  );
+
+
+  lines.push(
+
+    "",
+
+    "Understanding Result生成規則:",
+
+    "- schemaVersionは必ず1.1としてください。",
+
+    "- resultTypeは必ずunderstanding_resultとしてください。",
+
+    "- input.originalTextには、入力された文章を変更せずそのまま設定してください。",
+
+    "- input.languageには、入力の主言語を短い言語コードで設定してください。",
+
+    "- entity.queryには、ユーザーがEntityを表すために使用した語句だけを設定してください。",
+
+    "- entity.queryを登録済み名称やCanonical Entity IDへ補正してはいけません。",
+
+    "- Entityが明示されていない場合はentity.queryをnullとしてください。",
+
+    "- Entity Typeを確定できない場合はentityTypeHintをunknownとしてください。",
+
+    "- Updateの対象項目が理解できた場合は、change.fieldをCanonical Fieldへ変換してください。",
+
+    "- 温度記号や単位表記に揺れがあっても、値と単位を意味に基づいて分離してください。",
+
+    "- ユーザーが設定値を伝えていない場合は、change.valueをnullとしてください。",
+
+    "- ユーザーが単位を明示していない場合は、change.unitをnullとしてください。",
+
+    "- 不足している値は創作せず、missingFieldsへCanonical Field名を設定してください。",
+
+    "- IntentがUpdateではない場合は、原則としてchange.field、change.operation、change.value、change.unitをnullにしてください。",
+
+    "- Memoryへの保存判断は行わず、memory.decisionは必ずnoneとしてください。",
+
+    "",
+
+    "Update理解の例:",
+
+    "入力: ワンワンの型温を61℃に変更して",
+
+    "意味:",
+
+    "- intent.type = update",
+
+    "- entity.query = ワンワン",
+
+    "- entity.entityTypeHint = product",
+
+    "- change.field = mold_temperature",
+
+    "- change.operation = set",
+
+    "- change.value = 61",
+
+    "- change.unit = celsius",
+
+    "- missingFields = []",
+
+    "",
+
+    "不足情報の例:",
+
+    "入力: ワンワンの型温を変更して",
+
+    "意味:",
+
+    "- intent.type = update",
+
+    "- entity.query = ワンワン",
+
+    "- change.field = mold_temperature",
+
+    "- change.operation = set",
+
+    "- change.value = null",
+
+    "- missingFields = [change.value]",
+
+    "",
+
+    "出力には説明文を含めず、指定されたStructured Outputだけを返してください。"
+
+  );
+
+
+  return lines.join(
+    "\n"
+  );
+
+}
+
+
+/**
+ * Understanding Request Contractを
+ * OpenAI Responses APIのinputへ変換する。
+ *
+ * Policyはinstructions側で使用するため、
+ * inputへはユーザー発話だけを渡す。
+ *
+ * @param {Object} understandingRequest
+ * @returns {string}
+ */
+function OpenAIAdapter_buildUnderstandingInput(
+  understandingRequest
+) {
+
+  return String(
+    understandingRequest
+      .payload
+      .input
+      .originalText
+  );
+
+}
+
+
+/**
+ * Understanding Request Contractを検証する。
+ *
+ * @param {Object} understandingRequest
+ */
+function OpenAIAdapter_validateUnderstandingRequest(
+  understandingRequest
+) {
+
+  if (
+    !understandingRequest ||
+    typeof understandingRequest !==
+      "object" ||
+    Array.isArray(
+      understandingRequest
+    )
+  ) {
+
+    throw new Error(
+      "Understanding Request Contractが指定されていません。"
+    );
+
+  }
+
+
+  if (
+    understandingRequest.contractType !==
+      "understanding_request"
+  ) {
+
+    throw new Error(
+      "Contract Typeがunderstanding_requestではありません。"
+    );
+
+  }
+
+
+  UnderstandingRequestContract_validate(
+    understandingRequest
+  );
+
+}
+
+
+/**
+ * OpenAI Structured Outputの文字列を
+ * Understanding Result Objectへ変換する。
+ *
+ * @param {string} outputText
+ * @returns {Object}
+ */
+function OpenAIAdapter_parseUnderstandingResult(
+  outputText
+) {
+
+  try {
+
+    const result =
+      JSON.parse(
+        String(
+          outputText || ""
+        )
+      );
+
+
+    if (
+      !result ||
+      typeof result !==
+        "object" ||
+      Array.isArray(
+        result
+      )
+    ) {
+
+      throw new Error(
+        "Understanding ResultがObjectではありません。"
+      );
+
+    }
+
+
+    return result;
+
+  } catch (error) {
+
+    throw new Error(
+      "OpenAIのUnderstanding ResultをJSONとして解析できませんでした: " +
+      OpenAIAdapter_getErrorText(
+        error
+      )
+    );
+
+  }
+
+}
+
+
 

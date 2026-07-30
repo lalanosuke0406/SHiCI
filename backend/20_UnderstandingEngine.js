@@ -1,3 +1,121 @@
+/*
+=========================================
+Natural Language Understanding
+=========================================
+*/
+
+
+/**
+ * ユーザーの自然言語入力を理解し、
+ * Understanding Resultを返す。
+ *
+ * この関数は、
+ * Understanding Model Ver.1.1における
+ * Understand段階だけを担当する。
+ *
+ * 処理：
+ *
+ * Natural Language
+ * ↓
+ * Understanding Request Contract
+ * ↓
+ * LLM Interface
+ * ↓
+ * Understanding Result
+ *
+ * 禁止：
+ * ・Knowledgeを検索しない
+ * ・Entityを解決しない
+ * ・Canonical Entityを確定しない
+ * ・Snapshotを生成しない
+ * ・Conversation Stateを更新しない
+ * ・業務上の妥当性を判断しない
+ * ・権限を判断しない
+ * ・Update Proposalを生成しない
+ * ・Create / Update / Deleteを実行しない
+ *
+ * @param {string} text
+ * @returns {Object}
+ */
+function UnderstandingEngine_understand(
+  text
+) {
+
+  const startTime =
+    Date.now();
+
+  try {
+
+    /*
+    =========================================
+    入力の確認
+    =========================================
+    */
+
+    const originalText =
+      String(
+        text || ""
+      ).trim();
+
+    if (!originalText) {
+
+      throw new Error(
+        "Understanding Engineにユーザー入力がありません。"
+      );
+
+    }
+
+
+    /*
+    =========================================
+    Understanding Request Contract生成
+    =========================================
+    */
+
+    const understandingRequest =
+      UnderstandingRequestContract_create(
+        originalText
+      );
+
+
+    /*
+    =========================================
+    Natural Language Understanding
+    =========================================
+    */
+
+    const understandingResult =
+      LLMInterface_understand(
+        understandingRequest
+      );
+
+
+    /*
+    =========================================
+    Result Contract確認
+    =========================================
+    */
+
+    return UnderstandingResultContract_validate(
+      understandingResult
+    );
+
+  } finally {
+
+    Logger.log(
+      "[TIME] UnderstandingEngine_understand: " +
+      (Date.now() - startTime) +
+      " ms"
+    );
+
+  }
+
+}
+
+
+
+
+
 function UnderstandingEngine_handle(
   text,
   sessionId
@@ -9,24 +127,45 @@ function UnderstandingEngine_handle(
     );
 
 
-  /*
+    /*
   =========================================
-  更新指示の判定
+  Natural Language Understanding
   =========================================
   */
 
-  const updateIntent =
-    UpdateIntentEngine_analyze(
+  const understandingResult =
+    UnderstandingEngine_understand(
       text
     );
 
-  if (updateIntent) {
+
+  /*
+  =========================================
+  Update Intentの処理
+  =========================================
+  */
+
+  if (
+    understandingResult.intent.type ===
+      "update"
+  ) {
+
+    const updateIntent =
+      UpdateUnderstandingAdapter_convert(
+        understandingResult
+      );
+
+    const targetQuery =
+      UpdateUnderstandingAdapter_getEntityQuery(
+        understandingResult
+      );
 
     return UnderstandingEngine_handleUpdateIntent(
       text,
       sessionId,
       state,
-      updateIntent
+      updateIntent,
+      targetQuery
     );
 
   }
@@ -155,13 +294,15 @@ function UnderstandingEngine_handle(
  * @param {string} sessionId
  * @param {Object} state
  * @param {Object} updateIntent
+ * @param {string|null} targetQuery
  * @returns {Object|string}
  */
 function UnderstandingEngine_handleUpdateIntent(
   text,
   sessionId,
   state,
-  updateIntent
+  updateIntent,
+  targetQuery
 ) {
 
   if (
@@ -226,16 +367,18 @@ function UnderstandingEngine_handleUpdateIntent(
   }
 
 
-  /*
+
+    /*
   =========================================
-  対象製品の検索語を抽出
+  対象Entity Queryの確認
   =========================================
   */
 
-  const targetQuery =
-    UpdateIntentEngine_extractTargetEntityQuery(
-      text
-    );
+  const normalizedTargetQuery =
+    String(
+      targetQuery || ""
+    ).trim();
+
 
 
   /*
@@ -244,12 +387,12 @@ function UnderstandingEngine_handleUpdateIntent(
   =========================================
   */
 
-  if (targetQuery) {
+  if (normalizedTargetQuery) {
 
-    const candidates =
-      resolveEntityCandidates(
-        targetQuery
-      );
+      const candidates =
+        resolveEntityCandidates(
+          normalizedTargetQuery
+        );
 
     /*
      * 候補がない

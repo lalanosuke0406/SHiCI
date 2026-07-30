@@ -8,31 +8,101 @@ function checkApiKey(e) {
 }
 
 
+/**
+ * JSONレスポンスを生成する
+ */
+function createJsonResponse(
+  result
+) {
+
+  return ContentService
+    .createTextOutput(
+      JSON.stringify(
+        result
+      )
+    )
+    .setMimeType(
+      ContentService.MimeType.JSON
+    );
+
+}
+
+
+
+
 /*==========================
   POST
 ==========================*/
 
 function doPost(e) {
 
-  const data =
-    JSON.parse(e.postData.contents);
+  try {
 
-  /*
-  if (data.apiKey !== API_KEY) {
-      ...
-  }
-  */
+    if (
+      !e ||
+      !e.postData ||
+      !e.postData.contents
+    ) {
 
-  const result =
-    ActionRouter_routePost(data);
+      return createJsonResponse({
+        status: "error",
+        messageType: "error",
+        code: "INVALID_REQUEST",
+        message:
+          "リクエストデータがありません。"
+      });
 
-  return ContentService
-    .createTextOutput(
-      JSON.stringify(result)
-    )
-    .setMimeType(
-      ContentService.MimeType.JSON
+    }
+
+    let data;
+
+    try {
+
+      data =
+        JSON.parse(
+          e.postData.contents
+        );
+
+    } catch (parseError) {
+
+      return createJsonResponse({
+        status: "error",
+        messageType: "error",
+        code: "INVALID_JSON",
+        message:
+          "リクエストの形式が正しくありません。"
+      });
+
+    }
+
+    const result =
+      ActionRouter_routePost(
+        data
+      );
+
+    return createJsonResponse(
+      result
     );
+
+  } catch (error) {
+
+    console.error(
+      "doPost error:",
+      error
+    );
+
+    return createJsonResponse({
+      status: "error",
+      messageType: "error",
+      code: "REQUEST_FAILED",
+      message:
+        error &&
+        error.message
+          ? error.message
+          : "処理中にエラーが発生しました。"
+    });
+
+  }
 
 }
 

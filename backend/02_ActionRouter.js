@@ -71,10 +71,6 @@ function ActionRouter_routeGet(e) {
  */
 function ActionRouter_routePost(data) {
 
-    const sheet =
-        SpreadsheetApp
-            .openById(SPREADSHEET_ID)
-            .getSheetByName("製品マスター");
 
     if (data.action === "login") {
 
@@ -143,6 +139,110 @@ function ActionRouter_routePost(data) {
 
     }
 
+
+
+        /*
+    =========================================
+    書き込み操作の認証・権限確認
+    =========================================
+    */
+
+
+    let authenticatedUser =
+    null;
+
+    const writeActions = [
+
+        "updateProduct",
+
+        "addTrouble",
+        "updateTrouble",
+
+        "addMold",
+        "updateMold",
+
+        "addMoldHistory",
+        "updateMoldHistory",
+
+        "addMaterial",
+        "updateMaterial",
+
+        "addMachine",
+        "updateMachine",
+
+        "addProduct",
+
+        "addPart",
+        "updatePart",
+
+        "addUsedPart",
+        "updateUsedPart",
+
+        "addCondition",
+        "addConditionDetail",
+
+        "addProcess",
+        "updateProcess",
+
+        "addUsedProcess",
+        "updateUsedProcess",
+
+        "createMoldTemperatureUpdateProposal",
+        "confirmUpdateRequest",
+        "cancelUpdateRequest"
+
+    ];
+
+    if (
+        writeActions.includes(
+            data.action
+        )
+    ) {
+
+        authenticatedUser =
+            AuthorizationEngine_requireWritePermission(
+                data.sessionId
+            );
+
+    }
+
+   
+
+    /*
+    =========================================
+    製品マスター取得
+    =========================================
+    */
+
+    let sheet = null;
+
+    if (
+        data.action === "updateProduct" ||
+        data.action === "addProduct"
+    ) {
+
+        sheet =
+            SpreadsheetApp
+                .openById(
+                    SPREADSHEET_ID
+                )
+                .getSheetByName(
+                    "製品マスター"
+                );
+
+        if (!sheet) {
+
+            throw new Error(
+                "製品マスターがありません。"
+            );
+
+        }
+
+    }
+
+
+
+
     if (data.action === "updateProduct") return updateProduct(sheet, data);
 
     if (data.action === "addTrouble") return addTrouble(data);
@@ -170,6 +270,82 @@ function ActionRouter_routePost(data) {
 
     if (data.action === "addCondition") return addCondition(data);
     if (data.action === "addConditionDetail") return addConditionDetail(data);
+
+
+    /*
+    =========================================
+    金型温度の更新案生成
+    =========================================
+    */
+
+    if (
+        data.action ===
+        "createMoldTemperatureUpdateProposal"
+    ) {
+
+        return UpdateRequestEngine_createMoldTemperatureProposal(
+            String(
+                data.productId || ""
+            ).trim(),
+
+            String(
+                data.expectedCurrentConditionId || ""
+            ).trim(),
+
+            data.newMoldTemperature,
+
+            authenticatedUser
+        );
+
+    }
+
+
+    /*
+    =========================================
+    更新案の確定
+    =========================================
+    */
+
+    if (
+        data.action ===
+        "confirmUpdateRequest"
+    ) {
+
+        return UpdateRequestEngine_confirm(
+            String(
+                data.requestId || ""
+            ).trim(),
+
+            authenticatedUser
+        );
+
+    }
+
+
+    /*
+    =========================================
+    更新案のキャンセル
+    =========================================
+    */
+
+    if (
+        data.action ===
+        "cancelUpdateRequest"
+    ) {
+
+        return UpdateRequestEngine_cancel(
+            String(
+                data.requestId || ""
+            ).trim(),
+
+            authenticatedUser
+        );
+
+    }
+
+
+
+
 
     if (data.action === "addProcess") return addProcess(data);
     if (data.action === "updateProcess") return updateProcess(data);

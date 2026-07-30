@@ -1154,6 +1154,7 @@ function addConditionDetail(data) {
     "条件ID": "conditionId",
     "成形条件ファイルID": "conditionFileId",
     "ファイル名": "fileName",
+    "金型温度(℃)": "moldTemperature",
     "樹脂温:Z0": "resinTempZ0",
     "樹脂温:Z1": "resinTempZ1",
     "樹脂温:Z2": "resinTempZ2",
@@ -1228,6 +1229,7 @@ function addConditionDetail(data) {
       conditionId: data.conditionId || "",
       conditionFileId: data.conditionFileId || "",
       fileName: data.fileName || "",
+      moldTemperature: data.moldTemperature ?? "",
       isActive: data.isActive || ""
     }))
     .setMimeType(ContentService.MimeType.JSON);

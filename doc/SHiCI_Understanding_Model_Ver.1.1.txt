@@ -1,0 +1,1112 @@
+SHiCI Understanding Model
+Version 1.1
+
+-----
+
+Philosophy
+What is Understanding?
+
+Understandingとは、
+
+ユーザーが何をしようとしているのかを理解するためのモデルである。
+
+Understandingは、
+
+Knowledgeを検索しない。
+
+Databaseへアクセスしない。
+
+Canonical Entityを確定しない。
+
+Snapshotを生成しない。
+
+業務上の判断を行わない。
+
+回答を生成しない。
+
+更新を実行しない。
+
+Understandingは、
+
+ユーザーの自然言語を理解し、
+
+後続処理が利用できるUnderstanding Resultへ構造化する。
+
+Understandingは、
+
+「理解」だけを担当する。
+
+-----
+
+Purpose
+
+SHiCIは、
+
+人間の思考を再現することを目的としない。
+
+一方で、
+
+人間が自然に会話できる理解順序
+
+を採用する。
+
+これはAIの能力を制限するためではない。
+
+AIが持つ高い処理能力を維持したまま、
+
+人間との自然な対話を実現するためである。
+
+SHiCIは、
+
+時間のない現場において、
+
+異なる言語、
+
+異なる表現、
+
+異なる経験を持つ人々が、
+
+それぞれの自然な言葉で利用できなければならない。
+
+Understandingは、
+
+ユーザーへ特定の命令形式、
+
+統一された言葉、
+
+統一された表記を要求しない。
+
+自然言語の多様性を受け入れ、
+
+その意味を一貫した構造へ変換する。
+
+-----
+
+Core Principles
+
+
+Principle 1
+Understanding First
+
+すべての処理は、
+
+Understandingから始まる。
+
+Knowledge取得は、
+
+Understandingの結果として実行される。
+
+登録、
+
+更新、
+
+削除、
+
+相談、
+
+確認も、
+
+Understandingの結果として後続処理へ引き渡される。
+
+
+Principle 2
+Separation of Responsibility
+
+Understandingは、
+
+Knowledgeを知らない。
+
+Understandingは、
+
+Entity Resolutionを行わない。
+
+Understandingは、
+
+Snapshotを生成しない。
+
+Understandingは、
+
+回答生成用のAI Contractを生成しない。
+
+Understandingは、
+
+業務上の妥当性を判断しない。
+
+Understandingは、
+
+権限を判定しない。
+
+Understandingは、
+
+処理を実行しない。
+
+Understandingは、
+
+理解結果のみを返す。
+
+
+Principle 3
+Human Conversation
+
+SHiCIは、
+
+人間の能力を模倣しない。
+
+しかし、
+
+人間が自然に感じる会話の流れを理解する。
+
+人間らしく考えることではなく、
+
+人間が違和感なく会話できること
+
+を目的とする。
+
+ユーザーは、
+
+完全な文章を入力する必要はない。
+
+主語を省略してもよい。
+
+言い直してもよい。
+
+略称を使用してもよい。
+
+前の発話を受けて短く答えてもよい。
+
+Understandingは、
+
+自然な会話としてその関係を理解する。
+
+
+Principle 4
+AI Native
+
+SHiCIは、
+
+AIの能力を前提として設計される。
+
+Understandingは、
+
+AIを制限するためではない。
+
+AIが一貫した理解を行うための基盤である。
+
+Understandingは、
+
+自然言語理解のためにLLM Interfaceを利用してよい。
+
+LLMは、
+
+自然言語の多様性を理解し、
+
+Understanding Resultへ構造化するために利用する。
+
+ただし、
+
+LLMをKnowledge Sourceとして利用してはならない。
+
+LLMへ、
+
+Knowledgeの検索、
+
+Canonical Entityの確定、
+
+現在状態の推測、
+
+不足情報の創作、
+
+業務判断、
+
+権限判断、
+
+回答生成、
+
+更新実行を委ねてはならない。
+
+AI Nativeとは、
+
+AIへすべてを任せることではない。
+
+自然言語の理解はAIの強みを活かし、
+
+事実の確定と処理の安全性はSHiCIの構造によって保証することである。
+
+
+Principle 5
+Context Before Intelligence
+
+Understandingは、
+
+LLMの能力だけに依存しない。
+
+LLMが一貫した理解を行うために、
+
+必要なContextとSchemaを与える。
+
+Contextには、
+
+Understandingの責務、
+
+利用できるIntent、
+
+利用できるField、
+
+利用できるOperation、
+
+出力すべき構造、
+
+推測してはならない事項
+
+を含める。
+
+LLMの自由な文章を、
+
+そのままUnderstanding Resultとして扱ってはならない。
+
+LLMの出力は、
+
+定義されたSchemaに従う構造として取得し、
+
+コードによる構造検証を通過しなければならない。
+
+
+Principle 6
+Language Independent
+
+Understandingは、
+
+入力言語に依存しない。
+
+ユーザーは、
+
+自分が自然に使用できる言語でSHiCIを利用する。
+
+日本語、
+
+英語、
+
+ベトナム語、
+
+タイ語、
+
+その他の言語であっても、
+
+同じ意味は同じUnderstanding Resultとして表現される。
+
+Understanding Resultは、
+
+言語非依存の内部構造として生成する。
+
+ただし、
+
+ユーザーの原文と入力言語は保持する。
+
+後続の応答は、
+
+原則としてユーザーが使用した言語で行う。
+
+
+Principle 7
+No Guessing
+
+Understandingは、
+
+ユーザーが伝えていない事実を補完しない。
+
+文脈から明確に継続できる情報と、
+
+推測しなければ決められない情報を区別する。
+
+必要な情報が不足している場合、
+
+不足したままUnderstanding Resultへ表現する。
+
+不足情報を隠して、
+
+完全な理解であるかのように扱ってはならない。
+
+-----
+
+Understanding Flow
+
+Understandingは、
+
+以下の順序で発話を理解する。
+
+User Input
+      │
+      ▼
+Communication
+      │
+      ▼
+Intent
+      │
+      ▼
+Conversation
+      │
+      ▼
+Entity
+      │
+      ▼
+View / Change
+      │
+      ▼
+Memory
+      │
+      ▼
+Missing Information
+      │
+      ▼
+Understanding Result
+
+この順序は、
+
+すべての発話で必ず全Stepを処理することを意味しない。
+
+Communicationのみで完結する発話は、
+
+Communicationで終了してよい。
+
+必要のない項目は、
+
+空の値または定義された未指定状態として返す。
+
+-----
+
+Step 1
+Communication
+
+Communicationは、
+
+Knowledge取得のための処理ではない。
+
+Communicationは、
+
+ユーザーとの自然な対話を維持するための理解である。
+
+例
+
+・おはよう
+
+・こんにちは
+
+・ありがとう
+
+・よろしくお願いします
+
+・お疲れさまでした
+
+これらはKnowledgeを必要としない。
+
+しかし、
+
+SHiCIはパートナーとして自然に応答する。
+
+Communicationのみで会話が完結する場合、
+
+Understandingはここで終了してよい。
+
+-----
+
+Step 2
+Intent
+
+ユーザーは、
+
+何をしたいのか。
+
+Intentは、
+
+Knowledgeの取得方法ではなく、
+
+ユーザーの目的を理解する。
+
+例
+
+・質問
+
+・登録
+
+・更新
+
+・削除
+
+・相談
+
+・確認
+
+Intentは、
+
+後続処理の入口を示す。
+
+Intentは、
+
+その処理を実行してよいことを意味しない。
+
+-----
+
+Step 3
+Conversation
+
+現在の会話との関係を理解する。
+
+Conversationは、
+
+Entityを解決しない。
+
+Conversationは、
+
+話題の流れだけを理解する。
+
+例
+
+Continue
+
+現在の話題を継続する。
+
+Change
+
+別の話題へ移る。
+
+New
+
+新しい会話を開始する。
+
+Conversationは、
+
+会話の状態を理解するだけであり、
+
+Knowledge操作は行わない。
+
+直前の発話に対する短い応答であっても、
+
+現在の会話との関係が明確であれば、
+
+Continueとして理解できる。
+
+ただし、
+
+Conversationは、
+
+不足した業務上の事実を推測しない。
+
+-----
+
+Step 4
+Entity
+
+ユーザーが、
+
+何について話しているのかを理解する。
+
+ここでは、
+
+Entity IDへの変換を行わない。
+
+Entity Resolutionが、
+
+後続処理として実施される。
+
+例
+
+ワンワン
+
+MC163
+
+Cover Tail
+
+BNO-74
+
+Understanding Resultに含まれるEntityは、
+
+Canonical Entityではない。
+
+ユーザーが発話の中で使用した、
+
+Entityを表す自然言語上の表現である。
+
+Understandingは、
+
+Entityの種類を推定できる場合、
+
+Entity Type Hintを返してよい。
+
+ただし、
+
+Entity Type Hintは確定結果ではない。
+
+Canonical Entityの確定は、
+
+必ずEntity Resolutionが行う。
+
+-----
+
+Step 5
+View
+
+ユーザーが、
+
+何を見たいのかを理解する。
+
+例
+
+材料
+
+乾燥
+
+型温
+
+ショット重量
+
+トラブル履歴
+
+Viewは、
+
+Knowledgeの構造ではなく、
+
+ユーザーが知りたい情報を表す。
+
+Viewは、
+
+主として質問、相談、確認における視点を表す。
+
+Viewの正式な解決と表示項目の決定は、
+
+後続のView ResolutionおよびView Specificationが行う。
+
+-----
+
+Step 6
+Change
+
+Changeは、
+
+登録、更新、削除など、
+
+ユーザーがSHiCI内の状態へ働きかけようとする意図を構造化する。
+
+Changeは、
+
+少なくとも次の要素によって表現される。
+
+Field
+
+何を変更しようとしているのか。
+
+Operation
+
+どのような変更を行おうとしているのか。
+
+Value
+
+ユーザーが指定した値は何か。
+
+Unit
+
+値に単位がある場合、その意味は何か。
+
+例
+
+「ワンワンの型温を61℃に変更して」
+
+Field
+
+mold_temperature
+
+Operation
+
+set
+
+Value
+
+61
+
+Unit
+
+celsius
+
+Changeは、
+
+ユーザーが伝えた変更意図を理解する。
+
+Changeは、
+
+その変更が可能かを判断しない。
+
+Changeは、
+
+現在値を取得しない。
+
+Changeは、
+
+変更後の状態を確定しない。
+
+Changeは、
+
+更新を実行しない。
+
+変更可能性、
+
+現在状態、
+
+整合性、
+
+権限、
+
+確定、
+
+実行は、
+
+後続Engineの責務である。
+
+同じ意味を持つ自然言語表現は、
+
+同じChangeとして構造化する。
+
+例
+
+「型温を61℃にして」
+
+「型温61で」
+
+「Set the mold temperature to 61 degrees.」
+
+「Đổi nhiệt độ khuôn thành 61 độ.」
+
+これらは、
+
+言語や表現が異なっても、
+
+同じChangeとして理解される。
+
+-----
+
+Step 7
+Memory
+
+Memoryは、
+
+Knowledgeそのものではない。
+
+Memoryは、
+
+今回の会話において、どの範囲のKnowledgeを前面へ展開するべきか
+
+を理解する。
+
+現時点ではMemoryの実装は定義しない。
+
+しかし、
+
+Understandingは、
+
+Memory Decisionを返す。
+
+Memoryの階層構造については、
+
+今後の設計に委ねる。
+
+Memory Decisionは、
+
+Knowledgeを保存または変更する指示ではない。
+
+-----
+
+Step 8
+Missing Information
+
+Understandingは、
+
+意図を後続処理へ引き渡すために必要な情報が不足している場合、
+
+その不足を明示する。
+
+例
+
+「型温を変更して」
+
+この発話では、
+
+変更後の値が指定されていない。
+
+Understandingは、
+
+値を推測しない。
+
+例
+
+「61℃に変更して」
+
+会話上の対象Entityが明確でない場合、
+
+対象Entityが不足している。
+
+Understandingは、
+
+対象を推測して確定しない。
+
+不足情報は、
+
+missingFieldsとして返す。
+
+missingFieldsは、
+
+後続処理がユーザーへ確認するための根拠となる。
+
+Understandingは、
+
+確認質問そのものを生成しない。
+
+どのように確認するかは、
+
+後続のResponse処理が決定する。
+
+-----
+
+Understanding Result
+
+Understandingは、
+
+Knowledgeを返さない。
+
+理解結果のみを返す。
+
+Understanding Resultは、
+
+後続Engineとの間で受け渡されるContractである。
+
+Understanding Resultは、
+
+定義されたSchemaに従わなければならない。
+
+例
+
+{
+  schemaVersion: "1.1",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "ワンワンの型温を61℃に変更して",
+    language: "ja"
+  },
+
+  communication: {
+    type: "none"
+  },
+
+  intent: {
+    type: "update"
+  },
+
+  conversation: {
+    action: "new"
+  },
+
+  entity: {
+    query: "ワンワン",
+    entityTypeHint: "product"
+  },
+
+  view: {
+    name: null
+  },
+
+  change: {
+    field: "mold_temperature",
+    operation: "set",
+    value: 61,
+    unit: "celsius"
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+schemaVersionは、
+
+Understanding ResultのSchema Versionを表す。
+
+resultTypeは、
+
+このContractがUnderstanding Resultであることを表す。
+
+input.originalTextは、
+
+ユーザーが入力した原文を保持する。
+
+input.languageは、
+
+ユーザーが使用した言語を表す。
+
+communicationは、
+
+Communicationとしての理解結果を表す。
+
+intentは、
+
+ユーザーの目的を表す。
+
+conversationは、
+
+現在の会話との関係を表す。
+
+entity.queryは、
+
+ユーザーが使用したEntity表現を保持する。
+
+entity.entityTypeHintは、
+
+Entity Resolutionを補助するための種類の候補であり、
+
+Canonical Entityの確定ではない。
+
+viewは、
+
+ユーザーが見ようとしている視点を表す。
+
+changeは、
+
+ユーザーが伝えた変更意図を表す。
+
+missingFieldsは、
+
+後続処理に必要であるにもかかわらず、
+
+理解結果に不足している項目を表す。
+
+memoryは、
+
+今回の会話におけるMemory Decisionを表す。
+
+利用しない項目は、
+
+Schemaで定義されたnull、none、空配列などの明示的な値で表現する。
+
+項目そのものを無秩序に省略してはならない。
+
+-----
+
+LLM and Validation
+
+UnderstandingにおけるLLMは、
+
+自然言語をUnderstanding Resultへ変換するための実装手段である。
+
+LLMの出力は、
+
+Knowledgeではない。
+
+LLMの出力は、
+
+事実の確定結果ではない。
+
+LLMの出力は、
+
+処理の実行許可ではない。
+
+LLMの出力は、
+
+必ずSchema Validationを通過しなければならない。
+
+Validationは、
+
+少なくとも次を確認する。
+
+・必須項目が存在すること
+
+・定義された型であること
+
+・許可された値だけが使用されていること
+
+・数値項目が数値であること
+
+・未指定情報がmissingFieldsへ表現されていること
+
+・自由な文章が業務処理用の値として混入していないこと
+
+Validationは、
+
+業務上の事実を確認するものではない。
+
+Entityの実在確認、
+
+現在値の確認、
+
+関係性の確認、
+
+業務ルールの確認は、
+
+後続Engineが行う。
+
+Validationに失敗したUnderstanding Resultを、
+
+後続処理へ渡してはならない。
+
+-----
+
+Relationship with Other Models
+
+Understandingと他のModelは、
+
+次の責務境界を持つ。
+
+Understanding
+
+ユーザーの自然言語を理解し、
+
+Understanding Resultを返す。
+
+Conversation State
+
+現在の会話におけるEntity、View、候補など、
+
+必要最小限の認知状態を保持する。
+
+Understanding Resultそのものや、
+
+更新処理の進行状態を無制限に保持しない。
+
+Entity Resolution
+
+entity.queryをCanonical Entityへ解決する。
+
+Understandingは、
+
+その結果を先に決めない。
+
+View Resolution
+
+view.nameを正式なViewへ解決する。
+
+Knowledge Boundary
+
+発話がSHiCI内部Knowledgeを必要とするか、
+
+一般Knowledgeとして扱うかを決定する。
+
+Snapshot
+
+確定したEntityについて、
+
+その時点の状態を構成する。
+
+Understandingは、
+
+Snapshotを生成しない。
+
+Update Processing
+
+確定したEntity、
+
+現在のSnapshot、
+
+権限、
+
+業務ルールを用いて、
+
+変更案を検証し、
+
+人間の確認を経て、
+
+Eventと新しいSnapshotを生成する。
+
+Understandingは、
+
+更新を実行しない。
+
+Response Specification
+
+Understanding Resultおよび後続処理の結果から、
+
+どのように応答するかを決定する。
+
+Understandingは、
+
+最終回答を生成しない。
+
+AI Contract
+
+必要なContextをAIへ渡すためのContractを構成する。
+
+Understanding Resultと、
+
+回答生成用のAI Contractは同一ではない。
+
+-----
+
+Relationship
+
+SHiCIは、
+
+Knowledge Systemである。
+
+しかし、
+
+Knowledge Systemである前に、
+
+ユーザーの仕事を共に行うパートナー
+
+である。
+
+Communicationは、
+
+その関係を維持するために存在する。
+
+Communicationは、
+
+業務処理とは独立した、
+
+Understandingの最初の責務である。
+
+SHiCIは、
+
+ユーザーの言葉をSystemの都合へ合わせさせるのではない。
+
+ユーザーの自然な言葉を受け入れ、
+
+その意味をSHiCIの構造へ接続する。
+
+-----
+
+Final Definition
+
+SHiCI Understanding Modelとは、
+
+ユーザーの発話を、
+
+人間が自然に感じる理解順序で解釈し、
+
+言語や表現の違いを越えて、
+
+その意味を言語非依存のUnderstanding Resultへ構造化し、
+
+後続Engineへ引き渡すための認知モデルである。
+
+Understandingは、
+
+Knowledgeを検索しない。
+
+Canonical Entityを確定しない。
+
+業務上の事実を創作しない。
+
+判断を確定しない。
+
+処理を実行しない。
+
+Understandingは、
+
+AIの能力を制限するものではない。
+
+自然言語理解というAIの強みを活かしながら、
+
+その出力をSHiCIの構造とContractによって制御し、
+
+人間との自然な対話と、
+
+安全で一貫した後続処理を両立するための基盤として存在する。

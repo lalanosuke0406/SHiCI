@@ -35,6 +35,98 @@ async function selectCandidate(
 
 
 
+/**
+ * 金型温度の更新案を作成する
+ *
+ * この時点では、
+ * マスターデータの更新は行わない。
+ *
+ * @param {string} productId
+ * @param {string} expectedCurrentConditionId
+ * @param {number|string} newMoldTemperature
+ * @returns {Promise<Object>}
+ */
+async function createMoldTemperatureUpdateProposal(
+    productId,
+    expectedCurrentConditionId,
+    newMoldTemperature
+) {
+
+    return await callApi(
+        "createMoldTemperatureUpdateProposal",
+        {
+
+            productId:
+                String(
+                    productId || ""
+                ).trim(),
+
+            expectedCurrentConditionId:
+                String(
+                    expectedCurrentConditionId || ""
+                ).trim(),
+
+            newMoldTemperature:
+                newMoldTemperature
+
+        }
+    );
+
+}
+
+
+/**
+ * 保存済みの更新案を確定する
+ *
+ * @param {string} requestId
+ * @returns {Promise<Object>}
+ */
+async function confirmUpdateRequest(
+    requestId
+) {
+
+    return await callApi(
+        "confirmUpdateRequest",
+        {
+
+            requestId:
+                String(
+                    requestId || ""
+                ).trim()
+
+        }
+    );
+
+}
+
+
+/**
+ * 保存済みの更新案をキャンセルする
+ *
+ * @param {string} requestId
+ * @returns {Promise<Object>}
+ */
+async function cancelUpdateRequest(
+    requestId
+) {
+
+    return await callApi(
+        "cancelUpdateRequest",
+        {
+
+            requestId:
+                String(
+                    requestId || ""
+                ).trim()
+
+        }
+    );
+
+}
+
+
+
+
 async function callApi(
     action,
     body = {}

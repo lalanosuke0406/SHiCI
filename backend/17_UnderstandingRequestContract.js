@@ -33,7 +33,7 @@ LLMへ業務処理を依頼するものではない。
  * 現段階では、
  * 一つの独立したユーザー発話を理解する。
  *
- * 会話継続Contextは、
+ * Conversation Stateは、
  * 後の段階で正式なContractとして接続する。
  *
  * @param {string} originalText
@@ -62,7 +62,7 @@ function UnderstandingRequestContract_create(
   const contract = {
 
     schemaVersion:
-      "1.0",
+      "2.0",
 
     contractType:
       "understanding_request",
@@ -88,11 +88,33 @@ function UnderstandingRequestContract_create(
     policy: {
 
       /*
+       * Understandingが返してよい
+       * Communication Type。
+       *
+       * Communication Typeは、
+       * 回答文章そのものではない。
+       */
+      allowedCommunicationTypes: [
+
+        "greeting",
+        "thanks",
+        "acknowledgement",
+        "farewell",
+        "apology",
+        "none"
+
+      ],
+
+
+      /*
        * Understandingが返してよいIntent。
        *
        * これらは業務処理の実行命令ではなく、
        * ユーザーが何をしようとしているかを
        * 表す言語非依存の分類である。
+       *
+       * consultation / confirmationは、
+       * Ver.1.0からのCanonical値を維持する。
        */
       allowedIntentTypes: [
 
@@ -104,6 +126,38 @@ function UnderstandingRequestContract_create(
         "confirmation",
         "communication",
         "unknown"
+
+      ],
+
+
+      /*
+       * 発話が必要とするKnowledge経路。
+       *
+       * Knowledgeを取得した結果ではない。
+       * 登録情報の存在を保証するものでもない。
+       */
+      allowedKnowledgeBoundaryTypes: [
+
+        "communication",
+        "company_knowledge",
+        "general_knowledge",
+        "derived_knowledge",
+        "unknown"
+
+      ],
+
+
+      /*
+       * 現在の会話との関係。
+       *
+       * Conversation Stateそのものは、
+       * 現段階ではRequestへ接続していない。
+       */
+      allowedConversationActions: [
+
+        "continue",
+        "change",
+        "new"
 
       ],
 
@@ -125,6 +179,30 @@ function UnderstandingRequestContract_create(
         "part",
         "process",
         "unknown"
+
+      ],
+
+
+      /*
+       * ユーザーが求めるViewとして、
+       * Understandingが返してよいCanonical値。
+       *
+       * 正式なViewの確定および表示仕様の決定は、
+       * View ResolutionとView Specificationが行う。
+       */
+      allowedViewNames: [
+
+        "material",
+        "drying_condition",
+        "mold_temperature",
+        "cavity_count",
+        "gate",
+        "machine",
+        "product_weight",
+        "shot_weight",
+        "cycle_time",
+        "drawing_number",
+        "trouble_history"
 
       ],
 
@@ -162,6 +240,20 @@ function UnderstandingRequestContract_create(
 
 
       /*
+       * Changeとして返してよい単位。
+       *
+       * 現段階では、
+       * 正式なUpdate対象である金型温度に
+       * 必要な単位だけを定義する。
+       */
+      allowedChangeUnits: [
+
+        "celsius"
+
+      ],
+
+
+      /*
        * 自然言語理解における責務境界。
        */
       rules: [
@@ -174,11 +266,43 @@ function UnderstandingRequestContract_create(
 
         "表記ゆれ、略語、省略、自然な語順を理解してよい。",
 
-        "entity.queryには、ユーザーがEntityを表すために使用した自然言語上の表現を設定する。",
+        "communication.typeは、Communicationとしての分類だけを表し、回答文章を生成してはならない。",
+
+        "intent.typeは、ユーザーの目的を表し、処理の実行許可を意味しない。",
+
+        "knowledgeBoundary.typeは、後続処理が必要とするKnowledge経路だけを表す。",
+
+        "knowledgeBoundary.typeによって、Knowledgeの存在や回答内容を断定してはならない。",
+
+        "company_knowledgeと判断しても、対象Entityや登録情報が実在すると断定してはならない。",
+
+        "general_knowledgeと判断しても、一般知識を社内仕様として扱ってはならない。",
+
+        "derived_knowledgeと判断しても、計算や導出を実行してはならない。",
+
+        "conversation.actionは、現在の発話と会話の関係だけを表す。",
+
+        "Conversation Stateが与えられていない場合、存在しない会話Contextを推測してはならない。",
+
+        "entity.queryには、ユーザーがEntityを表すために使用した自然言語上の表現だけを設定する。",
+
+        "entity.queryへViewを表す語句を混入させてはならない。",
 
         "entity.queryをCanonical Entity IDへ変換してはならない。",
 
+        "entity.entityTypeHintは候補であり、Entity Typeの確定結果ではない。",
+
+        "view.nameは、ユーザーが見たい情報のCanonicalな候補を表す。",
+
+        "view.nameは、正式なView Specificationの確定結果ではない。",
+
+        "resolution.requiredは、後続処理でEntity Resolutionが必要かだけを表す。",
+
+        "resolution.requiredがtrueでも、Entityが存在することや解決できることを保証してはならない。",
+
         "Knowledgeを検索してはならない。",
+
+        "Databaseへアクセスしてはならない。",
 
         "登録済みの事実を推測してはならない。",
 
@@ -190,13 +314,17 @@ function UnderstandingRequestContract_create(
 
         "権限を判断してはならない。",
 
+        "更新案を生成してはならない。",
+
         "回答文を生成してはならない。",
 
         "Create、Update、Deleteを実行してはならない。",
 
         "必要な情報が不足している場合は、missingFieldsへ不足項目を設定する。",
 
-        "必ず定義されたUnderstanding Result Schemaに従って出力する。"
+        "使用しない項目も、Schemaで定義されたnull、none、unknown、false、空配列などの明示的な値で返す。",
+
+        "必ず定義されたUnderstanding Result Schema Version 2.0に従って出力する。"
 
       ]
 
@@ -251,7 +379,7 @@ function UnderstandingRequestContract_validate(
 
   if (
     contract.schemaVersion !==
-      "1.0"
+      "2.0"
   ) {
 
     throw new Error(
@@ -344,13 +472,33 @@ function UnderstandingRequestContract_validate(
   */
 
   UnderstandingRequestContract_requireStringArray(
+    contract.policy.allowedCommunicationTypes,
+    "policy.allowedCommunicationTypes"
+  );
+
+  UnderstandingRequestContract_requireStringArray(
     contract.policy.allowedIntentTypes,
     "policy.allowedIntentTypes"
   );
 
   UnderstandingRequestContract_requireStringArray(
+    contract.policy.allowedKnowledgeBoundaryTypes,
+    "policy.allowedKnowledgeBoundaryTypes"
+  );
+
+  UnderstandingRequestContract_requireStringArray(
+    contract.policy.allowedConversationActions,
+    "policy.allowedConversationActions"
+  );
+
+  UnderstandingRequestContract_requireStringArray(
     contract.policy.allowedEntityTypeHints,
     "policy.allowedEntityTypeHints"
+  );
+
+  UnderstandingRequestContract_requireStringArray(
+    contract.policy.allowedViewNames,
+    "policy.allowedViewNames"
   );
 
   UnderstandingRequestContract_requireStringArray(
@@ -361,6 +509,11 @@ function UnderstandingRequestContract_validate(
   UnderstandingRequestContract_requireStringArray(
     contract.policy.allowedChangeOperations,
     "policy.allowedChangeOperations"
+  );
+
+  UnderstandingRequestContract_requireStringArray(
+    contract.policy.allowedChangeUnits,
+    "policy.allowedChangeUnits"
   );
 
   UnderstandingRequestContract_requireStringArray(
@@ -446,6 +599,5 @@ function UnderstandingRequestContract_requireStringArray(
   );
 
 }
-
 
 

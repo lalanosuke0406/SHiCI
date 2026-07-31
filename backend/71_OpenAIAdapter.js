@@ -1303,7 +1303,7 @@ function OpenAIAdapter_buildUnderstandingRequest(
           "shici_understanding_result",
 
         description:
-          "ユーザーの自然言語入力を、SHiCI Understanding Result Ver.1.1へ変換した結果。",
+          "ユーザーの自然言語入力を、SHiCI Understanding Result Ver.2.0へ変換した結果。",
 
         strict:
           true,
@@ -1361,7 +1361,7 @@ function OpenAIAdapter_buildUnderstandingSchema(
           "string",
 
         enum: [
-          "1.1"
+          "2.0"
         ]
 
       },
@@ -1425,14 +1425,8 @@ function OpenAIAdapter_buildUnderstandingSchema(
             type:
               "string",
 
-            enum: [
-              "none",
-              "greeting",
-              "thanks",
-              "farewell",
-              "acknowledgement",
-              "other"
-            ]
+            enum:
+              policy.allowedCommunicationTypes
 
           }
 
@@ -1475,6 +1469,34 @@ function OpenAIAdapter_buildUnderstandingSchema(
 
       },
 
+      knowledgeBoundary: {
+
+        type:
+          "object",
+
+        properties: {
+
+          type: {
+
+            type:
+              "string",
+
+            enum:
+              policy.allowedKnowledgeBoundaryTypes
+
+          }
+
+        },
+
+        required: [
+          "type"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
       conversation: {
 
         type:
@@ -1487,11 +1509,8 @@ function OpenAIAdapter_buildUnderstandingSchema(
             type:
               "string",
 
-            enum: [
-              "continue",
-              "change",
-              "new"
-            ]
+            enum:
+              policy.allowedConversationActions
 
           }
 
@@ -1556,9 +1575,21 @@ function OpenAIAdapter_buildUnderstandingSchema(
 
           name: {
 
-            type: [
-              "string",
-              "null"
+            anyOf: [
+
+              {
+                type:
+                  "string",
+
+                enum:
+                  policy.allowedViewNames
+              },
+
+              {
+                type:
+                  "null"
+              }
+
             ]
 
           }
@@ -1567,6 +1598,34 @@ function OpenAIAdapter_buildUnderstandingSchema(
 
         required: [
           "name"
+        ],
+
+        additionalProperties:
+          false
+
+      },
+
+      resolution: {
+
+        type:
+          "object",
+
+        properties: {
+
+          required: {
+
+            type:
+              "boolean",
+
+            description:
+              "後続処理でCanonical Entityの特定が必要かを表す。Entityの存在や解決成功を保証するものではない。"
+
+          }
+
+        },
+
+        required: [
+          "required"
         ],
 
         additionalProperties:
@@ -1644,9 +1703,21 @@ function OpenAIAdapter_buildUnderstandingSchema(
 
           unit: {
 
-            type: [
-              "string",
-              "null"
+            anyOf: [
+
+              {
+                type:
+                  "string",
+
+                enum:
+                  policy.allowedChangeUnits
+              },
+
+              {
+                type:
+                  "null"
+              }
+
             ]
 
           }
@@ -1720,9 +1791,11 @@ function OpenAIAdapter_buildUnderstandingSchema(
       "input",
       "communication",
       "intent",
+      "knowledgeBoundary",
       "conversation",
       "entity",
       "view",
+      "resolution",
       "change",
       "missingFields",
       "memory"
@@ -1764,13 +1837,21 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "",
 
-    "役割は、ユーザーの自然言語入力をUnderstanding Result Ver.1.1へ構造化することだけです。",
+    "役割は、ユーザーの自然言語入力をUnderstanding Result Ver.2.0へ構造化することだけです。",
 
     "",
 
     "あなたはKnowledge Sourceではありません。",
 
     "社内データ、登録済みEntity、現在状態、過去の条件、業務上の事実を知っているものとして扱ってはいけません。",
+
+    "",
+
+    "Knowledge Boundaryを分類してよいですが、Knowledgeを検索したり、回答内容を生成したりしてはいけません。",
+
+    "",
+
+    "Entity Resolutionが必要かを判断してよいですが、Canonical Entityを確定してはいけません。",
 
     "",
 
@@ -1811,7 +1892,7 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "Understanding Result生成規則:",
 
-    "- schemaVersionは必ず1.1としてください。",
+    "- schemaVersionは必ず2.0としてください。",
 
     "- resultTypeは必ずunderstanding_resultとしてください。",
 
@@ -1819,13 +1900,55 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- input.languageには、入力の主言語を短い言語コードで設定してください。",
 
+    "- communication.typeは、Communicationとしての分類だけを表します。",
+
+    "- Communicationではない発話ではcommunication.typeをnoneとしてください。",
+
+    "- intent.typeには、ユーザーが何をしようとしているかを設定してください。",
+
+    "- knowledgeBoundary.typeには、後続処理が必要とするKnowledge経路を設定してください。",
+
+    "- knowledgeBoundary.typeはKnowledgeの検索結果ではありません。",
+
+    "- 社内に登録された特定対象の情報を必要とする発話はcompany_knowledgeとしてください。",
+
+    "- 一般的な知識だけで扱う発話はgeneral_knowledgeとしてください。",
+
+    "- SHiCIに登録されたKnowledgeを根拠として計算または導出を必要とする発話はderived_knowledgeとしてください。",
+
+    "- 挨拶、感謝、相づちなど、Knowledge取得を必要としない発話はcommunicationとしてください。",
+
+    "- Knowledge経路を安全に特定できない場合はunknownとしてください。",
+
+    "- company_knowledgeと分類しても、Entityや登録情報が実在すると断定してはいけません。",
+
+    "- conversation.actionには、現在の発話と会話の関係を設定してください。",
+
+    "- Conversation Stateは与えられていないため、存在しない会話Contextを推測してはいけません。",
+
+    "- 独立した発話として安全に扱える場合はconversation.actionをnewとしてください。",
+
     "- entity.queryには、ユーザーがEntityを表すために使用した語句だけを設定してください。",
+
+    "- entity.queryへ、型温、材料、サイクルなどのViewを表す語句を含めてはいけません。",
 
     "- entity.queryを登録済み名称やCanonical Entity IDへ補正してはいけません。",
 
     "- Entityが明示されていない場合はentity.queryをnullとしてください。",
 
-    "- Entity Typeを確定できない場合はentityTypeHintをunknownとしてください。",
+    "- Entity Typeを確定できない場合はentity.entityTypeHintをunknownとしてください。",
+
+    "- view.nameには、ユーザーが知りたい情報のCanonicalな候補を設定してください。",
+
+    "- Viewが特定できない場合、またはViewを必要としない場合はview.nameをnullとしてください。",
+
+    "- resolution.requiredには、後続処理でCanonical Entityの特定が必要かをbooleanで設定してください。",
+
+    "- 特定の社内Entityに関する質問または更新では、原則としてresolution.requiredをtrueとしてください。",
+
+    "- Communicationまたは社内Entityを必要としない一般知識では、原則としてresolution.requiredをfalseとしてください。",
+
+    "- resolution.requiredがtrueでも、Entityの存在や解決成功を保証してはいけません。",
 
     "- Updateの対象項目が理解できた場合は、change.fieldをCanonical Fieldへ変換してください。",
 
@@ -1835,11 +1958,41 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- ユーザーが単位を明示していない場合は、change.unitをnullとしてください。",
 
-    "- 不足している値は創作せず、missingFieldsへCanonical Field名を設定してください。",
+    "- 不足している値は創作せず、missingFieldsへCanonicalな項目パスを設定してください。",
 
-    "- IntentがUpdateではない場合は、原則としてchange.field、change.operation、change.value、change.unitをnullにしてください。",
+    "- Intentがupdateではない場合は、change.field、change.operation、change.value、change.unitをすべてnullにしてください。",
 
     "- Memoryへの保存判断は行わず、memory.decisionは必ずnoneとしてください。",
+
+    "",
+
+    "社内Knowledge質問の例:",
+
+    "入力: ワンワンの型温は？",
+
+    "意味:",
+
+    "- intent.type = question",
+
+    "- knowledgeBoundary.type = company_knowledge",
+
+    "- entity.query = ワンワン",
+
+    "- entity.entityTypeHint = product",
+
+    "- view.name = mold_temperature",
+
+    "- resolution.required = true",
+
+    "- change.field = null",
+
+    "- change.operation = null",
+
+    "- change.value = null",
+
+    "- change.unit = null",
+
+    "- missingFields = []",
 
     "",
 
@@ -1851,9 +2004,15 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- intent.type = update",
 
+    "- knowledgeBoundary.type = company_knowledge",
+
     "- entity.query = ワンワン",
 
     "- entity.entityTypeHint = product",
+
+    "- view.name = mold_temperature",
+
+    "- resolution.required = true",
 
     "- change.field = mold_temperature",
 
@@ -1867,6 +2026,68 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "",
 
+    "一般知識の例:",
+
+    "入力: 六角形は化学構造として安定していますか？",
+
+    "意味:",
+
+    "- intent.type = question",
+
+    "- knowledgeBoundary.type = general_knowledge",
+
+    "- entity.query = null",
+
+    "- entity.entityTypeHint = unknown",
+
+    "- view.name = null",
+
+    "- resolution.required = false",
+
+    "- change.field = null",
+
+    "- change.operation = null",
+
+    "- change.value = null",
+
+    "- change.unit = null",
+
+    "- missingFields = []",
+
+    "",
+
+    "Communicationの例:",
+
+    "入力: ありがとう",
+
+    "意味:",
+
+    "- communication.type = thanks",
+
+    "- intent.type = communication",
+
+    "- knowledgeBoundary.type = communication",
+
+    "- entity.query = null",
+
+    "- entity.entityTypeHint = unknown",
+
+    "- view.name = null",
+
+    "- resolution.required = false",
+
+    "- change.field = null",
+
+    "- change.operation = null",
+
+    "- change.value = null",
+
+    "- change.unit = null",
+
+    "- missingFields = []",
+
+    "",
+
     "不足情報の例:",
 
     "入力: ワンワンの型温を変更して",
@@ -1875,13 +2096,23 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- intent.type = update",
 
+    "- knowledgeBoundary.type = company_knowledge",
+
     "- entity.query = ワンワン",
+
+    "- entity.entityTypeHint = product",
+
+    "- view.name = mold_temperature",
+
+    "- resolution.required = true",
 
     "- change.field = mold_temperature",
 
     "- change.operation = set",
 
     "- change.value = null",
+
+    "- change.unit = null",
 
     "- missingFields = [change.value]",
 

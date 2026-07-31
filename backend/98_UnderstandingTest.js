@@ -355,3 +355,2547 @@ function UnderstandingTest_runUpdateAdapter() {
 }
 
 
+
+/*
+=========================================
+Non-Update Entity Query Test
+=========================================
+*/
+
+
+/**
+ * 質問形式の入力から、
+ * Entity Queryを正しく取得できるか確認する。
+ *
+ * このテストでは、
+ * Entity Resolution、
+ * Snapshot、
+ * Response生成は行わない。
+ */
+function UnderstandingTest_runQuestionEntityQuery() {
+
+  const inputText =
+    "ワンワンの型温は？";
+
+
+  Logger.log(
+    "========================================="
+  );
+
+  Logger.log(
+    "[Question Entity Query Test Start]"
+  );
+
+  Logger.log(
+    "Input: " +
+    inputText
+  );
+
+
+  const understandingResult =
+    UnderstandingEngine_understand(
+      inputText
+    );
+
+
+  Logger.log(
+    "Understanding Result:"
+  );
+
+  Logger.log(
+    JSON.stringify(
+      understandingResult,
+      null,
+      2
+    )
+  );
+
+
+  /*
+  =========================================
+  Contract確認
+  =========================================
+  */
+
+  UnderstandingResultContract_validate(
+    understandingResult
+  );
+
+
+  /*
+  =========================================
+  Intent確認
+  =========================================
+  */
+
+  UnderstandingTest_assertEqual(
+    understandingResult.intent.type,
+    "question",
+    "intent.type"
+  );
+
+
+  /*
+  =========================================
+  Entity Query確認
+  =========================================
+  */
+
+  UnderstandingTest_assertEqual(
+    understandingResult.entity.query,
+    "ワンワン",
+    "entity.query"
+  );
+
+
+  /*
+  =========================================
+  Entity Type Hint確認
+  =========================================
+  */
+
+  UnderstandingTest_assertEqual(
+    understandingResult
+      .entity
+      .entityTypeHint,
+    "product",
+    "entity.entityTypeHint"
+  );
+
+
+  /*
+  =========================================
+  Update情報が混入していないことを確認
+  =========================================
+  */
+
+  UnderstandingTest_assertEqual(
+    understandingResult.change.field,
+    null,
+    "change.field"
+  );
+
+  UnderstandingTest_assertEqual(
+    understandingResult.change.operation,
+    null,
+    "change.operation"
+  );
+
+  UnderstandingTest_assertEqual(
+    understandingResult.change.value,
+    null,
+    "change.value"
+  );
+
+  UnderstandingTest_assertEqual(
+    understandingResult.change.unit,
+    null,
+    "change.unit"
+  );
+
+
+  Logger.log(
+    "[Question Entity Query Test Passed]"
+  );
+
+  Logger.log(
+    "========================================="
+  );
+
+}
+
+
+
+/*
+=========================================
+Understanding Result Ver.2.0
+Contract / Schema Structure Test
+
+外部APIは呼び出さない。
+
+確認対象：
+・Understanding Request Contract Ver.2.0
+・Understanding Result Contract Ver.2.0
+・OpenAI Structured Output Schema Ver.2.0
+・代表的なUnderstanding Result
+・不正な構造の拒否
+=========================================
+*/
+
+
+/**
+ * Understanding Ver.2.0の構造テストをまとめて実行する。
+ *
+ * 外部APIは呼び出さない。
+ */
+function UnderstandingTest_runVersion2Structure() {
+
+  Logger.log(
+    "[Understanding Ver.2.0 Structure Test Start]"
+  );
+
+
+  UnderstandingTest_validateVersion2RequestContract();
+
+  UnderstandingTest_validateVersion2OpenAISchema();
+
+  UnderstandingTest_validateVersion2CompanyKnowledgeQuestion();
+
+  UnderstandingTest_validateVersion2Update();
+
+  UnderstandingTest_validateVersion2GeneralKnowledge();
+
+  UnderstandingTest_validateVersion2Communication();
+
+  UnderstandingTest_rejectVersion1Result();
+
+  UnderstandingTest_rejectInvalidCommunicationConsistency();
+
+  UnderstandingTest_rejectInvalidResolutionConsistency();
+
+
+  Logger.log(
+    "[Understanding Ver.2.0 Structure Test Passed]"
+  );
+
+}
+
+
+/**
+ * Understanding Request Contract Ver.2.0を確認する。
+ */
+function UnderstandingTest_validateVersion2RequestContract() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの型温は？"
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    request.schemaVersion,
+    "2.0",
+    "Request schemaVersion"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    request.contractType,
+    "understanding_request",
+    "Request contractType"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    request.payload.input.originalText,
+    "ワンワンの型温は？",
+    "Request originalText"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedCommunicationTypes,
+    "thanks",
+    "allowedCommunicationTypes"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedIntentTypes,
+    "question",
+    "allowedIntentTypes"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedIntentTypes,
+    "update",
+    "allowedIntentTypes"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedKnowledgeBoundaryTypes,
+    "company_knowledge",
+    "allowedKnowledgeBoundaryTypes"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedKnowledgeBoundaryTypes,
+    "general_knowledge",
+    "allowedKnowledgeBoundaryTypes"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedKnowledgeBoundaryTypes,
+    "derived_knowledge",
+    "allowedKnowledgeBoundaryTypes"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedConversationActions,
+    "new",
+    "allowedConversationActions"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedEntityTypeHints,
+    "product",
+    "allowedEntityTypeHints"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedViewNames,
+    "mold_temperature",
+    "allowedViewNames"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "mold_temperature",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeOperations,
+    "set",
+    "allowedChangeOperations"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeUnits,
+    "celsius",
+    "allowedChangeUnits"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Request Contract"
+  );
+
+}
+
+
+/**
+ * OpenAI用Structured Output Schemaを確認する。
+ *
+ * OpenAI APIは呼ばない。
+ */
+function UnderstandingTest_validateVersion2OpenAISchema() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの型温は？"
+    );
+
+  const schema =
+    OpenAIAdapter_buildUnderstandingSchema(
+      request
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    schema.type,
+    "object",
+    "Schema root type"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    schema.additionalProperties,
+    false,
+    "Schema root additionalProperties"
+  );
+
+
+  UnderstandingTest_assertTrueV2(
+    !!schema.properties.knowledgeBoundary,
+    "SchemaにknowledgeBoundaryがありません。"
+  );
+
+  UnderstandingTest_assertTrueV2(
+    !!schema.properties.resolution,
+    "Schemaにresolutionがありません。"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.required,
+    "knowledgeBoundary",
+    "Schema required"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.required,
+    "resolution",
+    "Schema required"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties.schemaVersion.enum,
+    "2.0",
+    "Schema schemaVersion enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+      .knowledgeBoundary
+      .properties
+      .type
+      .enum,
+    "company_knowledge",
+    "Schema Knowledge Boundary enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+      .knowledgeBoundary
+      .properties
+      .type
+      .enum,
+    "general_knowledge",
+    "Schema Knowledge Boundary enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+      .knowledgeBoundary
+      .properties
+      .type
+      .enum,
+    "derived_knowledge",
+    "Schema Knowledge Boundary enum"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    schema.properties
+      .resolution
+      .properties
+      .required
+      .type,
+    "boolean",
+    "Schema resolution.required type"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Schema"
+  );
+
+}
+
+
+/**
+ * 社内Knowledge質問のResultを検証する。
+ */
+function UnderstandingTest_validateVersion2CompanyKnowledgeQuestion() {
+
+  const result = {
+
+    schemaVersion:
+      "2.0",
+
+    resultType:
+      "understanding_result",
+
+    input: {
+
+      originalText:
+        "ワンワンの型温は？",
+
+      language:
+        "ja"
+
+    },
+
+    communication: {
+
+      type:
+        "none"
+
+    },
+
+    intent: {
+
+      type:
+        "question"
+
+    },
+
+    knowledgeBoundary: {
+
+      type:
+        "company_knowledge"
+
+    },
+
+    conversation: {
+
+      action:
+        "new"
+
+    },
+
+    entity: {
+
+      query:
+        "ワンワン",
+
+      entityTypeHint:
+        "product"
+
+    },
+
+    view: {
+
+      name:
+        "mold_temperature"
+
+    },
+
+    resolution: {
+
+      required:
+        true
+
+    },
+
+    change: {
+
+      field:
+        null,
+
+      operation:
+        null,
+
+      value:
+        null,
+
+      unit:
+        null
+
+    },
+
+    missingFields: [],
+
+    memory: {
+
+      decision:
+        "none"
+
+    }
+
+  };
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.knowledgeBoundary.type,
+    "company_knowledge",
+    "Company Knowledge Boundary"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.entity.query,
+    "ワンワン",
+    "Company Knowledge Entity Query"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.view.name,
+    "mold_temperature",
+    "Company Knowledge View"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.resolution.required,
+    true,
+    "Company Knowledge Resolution"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Company Knowledge Question"
+  );
+
+}
+
+
+/**
+ * UpdateのResultを検証する。
+ */
+function UnderstandingTest_validateVersion2Update() {
+
+  const result = {
+
+    schemaVersion:
+      "2.0",
+
+    resultType:
+      "understanding_result",
+
+    input: {
+
+      originalText:
+        "ワンワンの型温を61℃にして",
+
+      language:
+        "ja"
+
+    },
+
+    communication: {
+
+      type:
+        "none"
+
+    },
+
+    intent: {
+
+      type:
+        "update"
+
+    },
+
+    knowledgeBoundary: {
+
+      type:
+        "company_knowledge"
+
+    },
+
+    conversation: {
+
+      action:
+        "new"
+
+    },
+
+    entity: {
+
+      query:
+        "ワンワン",
+
+      entityTypeHint:
+        "product"
+
+    },
+
+    view: {
+
+      name:
+        "mold_temperature"
+
+    },
+
+    resolution: {
+
+      required:
+        true
+
+    },
+
+    change: {
+
+      field:
+        "mold_temperature",
+
+      operation:
+        "set",
+
+      value:
+        61,
+
+      unit:
+        "celsius"
+
+    },
+
+    missingFields: [],
+
+    memory: {
+
+      decision:
+        "none"
+
+    }
+
+  };
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.intent.type,
+    "update",
+    "Update Intent"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.knowledgeBoundary.type,
+    "company_knowledge",
+    "Update Knowledge Boundary"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.resolution.required,
+    true,
+    "Update Resolution"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.field,
+    "mold_temperature",
+    "Update Change Field"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.operation,
+    "set",
+    "Update Change Operation"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.value,
+    61,
+    "Update Change Value"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.unit,
+    "celsius",
+    "Update Change Unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update"
+  );
+
+}
+
+
+/**
+ * General KnowledgeのResultを検証する。
+ */
+function UnderstandingTest_validateVersion2GeneralKnowledge() {
+
+  const result = {
+
+    schemaVersion:
+      "2.0",
+
+    resultType:
+      "understanding_result",
+
+    input: {
+
+      originalText:
+        "六角形は化学構造として安定していますか？",
+
+      language:
+        "ja"
+
+    },
+
+    communication: {
+
+      type:
+        "none"
+
+    },
+
+    intent: {
+
+      type:
+        "question"
+
+    },
+
+    knowledgeBoundary: {
+
+      type:
+        "general_knowledge"
+
+    },
+
+    conversation: {
+
+      action:
+        "new"
+
+    },
+
+    entity: {
+
+      query:
+        null,
+
+      entityTypeHint:
+        "unknown"
+
+    },
+
+    view: {
+
+      name:
+        null
+
+    },
+
+    resolution: {
+
+      required:
+        false
+
+    },
+
+    change: {
+
+      field:
+        null,
+
+      operation:
+        null,
+
+      value:
+        null,
+
+      unit:
+        null
+
+    },
+
+    missingFields: [],
+
+    memory: {
+
+      decision:
+        "none"
+
+    }
+
+  };
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.knowledgeBoundary.type,
+    "general_knowledge",
+    "General Knowledge Boundary"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.entity.query,
+    null,
+    "General Knowledge Entity Query"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.resolution.required,
+    false,
+    "General Knowledge Resolution"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 General Knowledge"
+  );
+
+}
+
+
+/**
+ * CommunicationのResultを検証する。
+ */
+function UnderstandingTest_validateVersion2Communication() {
+
+  const result = {
+
+    schemaVersion:
+      "2.0",
+
+    resultType:
+      "understanding_result",
+
+    input: {
+
+      originalText:
+        "ありがとう",
+
+      language:
+        "ja"
+
+    },
+
+    communication: {
+
+      type:
+        "thanks"
+
+    },
+
+    intent: {
+
+      type:
+        "communication"
+
+    },
+
+    knowledgeBoundary: {
+
+      type:
+        "communication"
+
+    },
+
+    conversation: {
+
+      action:
+        "continue"
+
+    },
+
+    entity: {
+
+      query:
+        null,
+
+      entityTypeHint:
+        "unknown"
+
+    },
+
+    view: {
+
+      name:
+        null
+
+    },
+
+    resolution: {
+
+      required:
+        false
+
+    },
+
+    change: {
+
+      field:
+        null,
+
+      operation:
+        null,
+
+      value:
+        null,
+
+      unit:
+        null
+
+    },
+
+    missingFields: [],
+
+    memory: {
+
+      decision:
+        "none"
+
+    }
+
+  };
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.communication.type,
+    "thanks",
+    "Communication Type"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.intent.type,
+    "communication",
+    "Communication Intent"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.knowledgeBoundary.type,
+    "communication",
+    "Communication Boundary"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.resolution.required,
+    false,
+    "Communication Resolution"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Communication"
+  );
+
+}
+
+
+/**
+ * Ver.1.1 Resultが拒否されることを確認する。
+ */
+function UnderstandingTest_rejectVersion1Result() {
+
+  const result =
+    UnderstandingResultContract_create(
+      "ワンワンの型温は？"
+    );
+
+  result.schemaVersion =
+    "1.1";
+
+
+  UnderstandingTest_assertThrowsV2(
+    function() {
+
+      UnderstandingResultContract_validate(
+        result
+      );
+
+    },
+    "Version 1.1 Resultを拒否できませんでした。"
+  );
+
+
+  Logger.log(
+    "[Passed] Reject Version 1.1 Result"
+  );
+
+}
+
+
+/**
+ * Communicationの不整合が拒否されることを確認する。
+ */
+function UnderstandingTest_rejectInvalidCommunicationConsistency() {
+
+  const result =
+    UnderstandingResultContract_create(
+      "ありがとう"
+    );
+
+  result.communication.type =
+    "thanks";
+
+  result.intent.type =
+    "communication";
+
+  result.knowledgeBoundary.type =
+    "company_knowledge";
+
+
+  UnderstandingTest_assertThrowsV2(
+    function() {
+
+      UnderstandingResultContract_validate(
+        result
+      );
+
+    },
+    "CommunicationとKnowledge Boundaryの不整合を拒否できませんでした。"
+  );
+
+
+  Logger.log(
+    "[Passed] Reject Invalid Communication Consistency"
+  );
+
+}
+
+
+/**
+ * Communicationでresolution.required=trueが
+ * 拒否されることを確認する。
+ */
+function UnderstandingTest_rejectInvalidResolutionConsistency() {
+
+  const result =
+    UnderstandingResultContract_create(
+      "ありがとう"
+    );
+
+  result.communication.type =
+    "thanks";
+
+  result.intent.type =
+    "communication";
+
+  result.knowledgeBoundary.type =
+    "communication";
+
+  result.resolution.required =
+    true;
+
+
+  UnderstandingTest_assertThrowsV2(
+    function() {
+
+      UnderstandingResultContract_validate(
+        result
+      );
+
+    },
+    "Communicationの不正なResolutionを拒否できませんでした。"
+  );
+
+
+  Logger.log(
+    "[Passed] Reject Invalid Resolution Consistency"
+  );
+
+}
+
+
+/*
+=========================================
+Test Helper
+既存Helperとの名前衝突を避けるため、
+末尾にV2を付ける。
+=========================================
+*/
+
+
+function UnderstandingTest_assertEqualV2(
+  actual,
+  expected,
+  fieldName
+) {
+
+  if (
+    actual !==
+      expected
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      fieldName +
+      " / expected: " +
+      String(expected) +
+      " / actual: " +
+      String(actual)
+    );
+
+  }
+
+}
+
+
+function UnderstandingTest_assertTrueV2(
+  condition,
+  message
+) {
+
+  if (
+    condition !==
+      true
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      message
+    );
+
+  }
+
+}
+
+
+function UnderstandingTest_assertArrayIncludesV2(
+  array,
+  expectedValue,
+  fieldName
+) {
+
+  if (
+    !Array.isArray(array)
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      fieldName +
+      "がArrayではありません。"
+    );
+
+  }
+
+
+  if (
+    array.indexOf(
+      expectedValue
+    ) ===
+      -1
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      fieldName +
+      "に必要な値がありません: " +
+      expectedValue
+    );
+
+  }
+
+}
+
+
+function UnderstandingTest_assertThrowsV2(
+  callback,
+  message
+) {
+
+  let errorWasThrown =
+    false;
+
+
+  try {
+
+    callback();
+
+  } catch (error) {
+
+    errorWasThrown =
+      true;
+
+  }
+
+
+  if (
+    !errorWasThrown
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      message
+    );
+
+  }
+
+}
+
+
+
+/*
+=========================================
+Understanding Ver.2.0
+OpenAI Live Test
+
+実際にOpenAI APIを呼び出す。
+
+確認対象：
+・Structured Output Ver.2.0
+・Understanding Result Contract通過
+・代表的な自然言語理解
+=========================================
+*/
+
+
+/**
+ * Understanding Ver.2.0の
+ * OpenAI実通信テストをまとめて実行する。
+ *
+ * 注意：
+ * 実際にOpenAI APIを5回呼び出す。
+ */
+function UnderstandingTest_runVersion2OpenAILive() {
+
+  Logger.log(
+    "[Understanding Ver.2.0 OpenAI Live Test Start]"
+  );
+
+
+  UnderstandingTest_runVersion2OpenAICase(
+    "Company Knowledge Question",
+    "ワンワンの型温は？",
+    {
+      communicationType:
+        "none",
+
+      intentType:
+        "question",
+
+      knowledgeBoundaryType:
+        "company_knowledge",
+
+      entityQuery:
+        "ワンワン",
+
+      entityTypeHint:
+        "product",
+
+      viewName:
+        "mold_temperature",
+
+      resolutionRequired:
+        true,
+
+      changeField:
+        null,
+
+      changeOperation:
+        null,
+
+      changeValue:
+        null,
+
+      changeUnit:
+        null,
+
+      requiredMissingFields: []
+    }
+  );
+
+
+  UnderstandingTest_runVersion2OpenAICase(
+    "Update",
+    "ワンワンの型温を61℃にして",
+    {
+      communicationType:
+        "none",
+
+      intentType:
+        "update",
+
+      knowledgeBoundaryType:
+        "company_knowledge",
+
+      entityQuery:
+        "ワンワン",
+
+      entityTypeHint:
+        "product",
+
+      viewName:
+        "mold_temperature",
+
+      resolutionRequired:
+        true,
+
+      changeField:
+        "mold_temperature",
+
+      changeOperation:
+        "set",
+
+      changeValue:
+        61,
+
+      changeUnit:
+        "celsius",
+
+      requiredMissingFields: []
+    }
+  );
+
+
+  UnderstandingTest_runVersion2OpenAICase(
+    "General Knowledge",
+    "六角形は化学構造として安定していますか？",
+    {
+      communicationType:
+        "none",
+
+      intentType:
+        "question",
+
+      knowledgeBoundaryType:
+        "general_knowledge",
+
+      entityQuery:
+        null,
+
+      entityTypeHint:
+        "unknown",
+
+      viewName:
+        null,
+
+      resolutionRequired:
+        false,
+
+      changeField:
+        null,
+
+      changeOperation:
+        null,
+
+      changeValue:
+        null,
+
+      changeUnit:
+        null,
+
+      requiredMissingFields: []
+    }
+  );
+
+
+  UnderstandingTest_runVersion2OpenAICase(
+    "Communication",
+    "ありがとう",
+    {
+      communicationType:
+        "thanks",
+
+      intentType:
+        "communication",
+
+      knowledgeBoundaryType:
+        "communication",
+
+      entityQuery:
+        null,
+
+      entityTypeHint:
+        "unknown",
+
+      viewName:
+        null,
+
+      resolutionRequired:
+        false,
+
+      changeField:
+        null,
+
+      changeOperation:
+        null,
+
+      changeValue:
+        null,
+
+      changeUnit:
+        null,
+
+      requiredMissingFields: []
+    }
+  );
+
+
+  UnderstandingTest_runVersion2OpenAICase(
+    "Missing Change Value",
+    "ワンワンの型温を変更して",
+    {
+      communicationType:
+        "none",
+
+      intentType:
+        "update",
+
+      knowledgeBoundaryType:
+        "company_knowledge",
+
+      entityQuery:
+        "ワンワン",
+
+      entityTypeHint:
+        "product",
+
+      viewName:
+        "mold_temperature",
+
+      resolutionRequired:
+        true,
+
+      changeField:
+        "mold_temperature",
+
+      changeOperation:
+        "set",
+
+      changeValue:
+        null,
+
+      changeUnit:
+        null,
+
+      requiredMissingFields: [
+        "change.value"
+      ]
+    }
+  );
+
+
+  Logger.log(
+    "[Understanding Ver.2.0 OpenAI Live Test Passed]"
+  );
+
+}
+
+
+/**
+ * 1件のOpenAI Understanding実通信テストを行う。
+ *
+ * @param {string} testName
+ * @param {string} userText
+ * @param {Object} expected
+ */
+function UnderstandingTest_runVersion2OpenAICase(
+  testName,
+  userText,
+  expected
+) {
+
+  Logger.log(
+    "[OpenAI Test Start] " +
+    testName
+  );
+
+
+  const request =
+    UnderstandingRequestContract_create(
+      userText
+    );
+
+
+  const result =
+    OpenAIAdapter_understand(
+      request
+    );
+
+
+  Logger.log(
+    "[OpenAI Understanding Result] " +
+    testName +
+    "\n" +
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+
+  /*
+  =========================================
+  Contract Validation
+  =========================================
+  */
+
+  UnderstandingResultContract_validate(
+    result
+  );
+
+
+  /*
+  =========================================
+  共通項目
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.schemaVersion,
+    "2.0",
+    testName +
+    " schemaVersion"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    result.resultType,
+    "understanding_result",
+    testName +
+    " resultType"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    result.input.originalText,
+    userText,
+    testName +
+    " input.originalText"
+  );
+
+
+  /*
+  =========================================
+  Communication
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.communication.type,
+    expected.communicationType,
+    testName +
+    " communication.type"
+  );
+
+
+  /*
+  =========================================
+  Intent
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.intent.type,
+    expected.intentType,
+    testName +
+    " intent.type"
+  );
+
+
+  /*
+  =========================================
+  Knowledge Boundary
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.knowledgeBoundary.type,
+    expected.knowledgeBoundaryType,
+    testName +
+    " knowledgeBoundary.type"
+  );
+
+
+  /*
+  =========================================
+  Entity
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.entity.query,
+    expected.entityQuery,
+    testName +
+    " entity.query"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    result.entity.entityTypeHint,
+    expected.entityTypeHint,
+    testName +
+    " entity.entityTypeHint"
+  );
+
+
+  /*
+  =========================================
+  View
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.view.name,
+    expected.viewName,
+    testName +
+    " view.name"
+  );
+
+
+  /*
+  =========================================
+  Resolution
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.resolution.required,
+    expected.resolutionRequired,
+    testName +
+    " resolution.required"
+  );
+
+
+  /*
+  =========================================
+  Change
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.change.field,
+    expected.changeField,
+    testName +
+    " change.field"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    result.change.operation,
+    expected.changeOperation,
+    testName +
+    " change.operation"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    result.change.value,
+    expected.changeValue,
+    testName +
+    " change.value"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    result.change.unit,
+    expected.changeUnit,
+    testName +
+    " change.unit"
+  );
+
+
+  /*
+  =========================================
+  Missing Fields
+  =========================================
+  */
+
+  UnderstandingTest_assertArrayEqualV2(
+    result.missingFields,
+    expected.requiredMissingFields,
+    testName +
+    " missingFields"
+  );
+
+
+  /*
+  =========================================
+  Memory
+  =========================================
+  */
+
+  UnderstandingTest_assertEqualV2(
+    result.memory.decision,
+    "none",
+    testName +
+    " memory.decision"
+  );
+
+
+  Logger.log(
+    "[OpenAI Test Passed] " +
+    testName
+  );
+
+}
+
+
+/**
+ * Arrayの内容が一致することを確認する。
+ *
+ * 順序も含めて比較する。
+ *
+ * @param {*} actual
+ * @param {*} expected
+ * @param {string} fieldName
+ */
+function UnderstandingTest_assertArrayEqualV2(
+  actual,
+  expected,
+  fieldName
+) {
+
+  if (
+    !Array.isArray(actual)
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      fieldName +
+      "のactualがArrayではありません。"
+    );
+
+  }
+
+
+  if (
+    !Array.isArray(expected)
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      fieldName +
+      "のexpectedがArrayではありません。"
+    );
+
+  }
+
+
+  if (
+    actual.length !==
+      expected.length
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      fieldName +
+      "の要素数が一致しません。" +
+      " / expected: " +
+      JSON.stringify(expected) +
+      " / actual: " +
+      JSON.stringify(actual)
+    );
+
+  }
+
+
+  for (
+    let index = 0;
+    index < expected.length;
+    index++
+  ) {
+
+    if (
+      actual[index] !==
+        expected[index]
+    ) {
+
+      throw new Error(
+        "[Assertion Failed] " +
+        fieldName +
+        "が一致しません。" +
+        " / expected: " +
+        JSON.stringify(expected) +
+        " / actual: " +
+        JSON.stringify(actual)
+      );
+
+    }
+
+  }
+
+}
+
+
+
+/*
+=========================================
+Understanding Ver.2.0
+Update Adapter Compatibility Test
+
+確認対象：
+・Ver.2.0 Understanding Resultから
+  既存Update Intentへの変換
+・不足情報
+・未対応項目
+・Update以外
+・Entity Query
+・Entity Type Hint
+・Canonical Unit変換
+=========================================
+*/
+
+
+/**
+ * Understanding Ver.2.0と
+ * 既存Update Adapterの互換性をまとめて確認する。
+ *
+ * OpenAI APIは呼び出さない。
+ */
+function UnderstandingTest_runVersion2UpdateAdapterCompatibility() {
+
+  Logger.log(
+    "[Understanding Ver.2.0 Update Adapter Compatibility Test Start]"
+  );
+
+
+  UnderstandingTest_validateVersion2UpdateAdapterReady();
+
+  UnderstandingTest_validateVersion2UpdateAdapterIncomplete();
+
+  UnderstandingTest_validateVersion2UpdateAdapterNonUpdate();
+
+  UnderstandingTest_validateVersion2UpdateAdapterEntityQuery();
+
+  UnderstandingTest_validateVersion2UpdateAdapterEntityTypeHint();
+
+  UnderstandingTest_validateVersion2UpdateAdapterUnitConversion();
+
+
+  Logger.log(
+    "[Understanding Ver.2.0 Update Adapter Compatibility Test Passed]"
+  );
+
+}
+
+
+/**
+ * 完全なUpdate Resultが、
+ * 既存Update Intentへ正しく変換されることを確認する。
+ */
+function UnderstandingTest_validateVersion2UpdateAdapterReady() {
+
+  const result =
+    UnderstandingTest_createVersion2MoldTemperatureUpdateResult(
+      "ワンワンの型温を61℃にして",
+      "ワンワン",
+      61,
+      "celsius",
+      []
+    );
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.status,
+    "ready",
+    "Update Adapter Ready status"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.intentType,
+    "update",
+    "Update Adapter Ready intentType"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.updateType,
+    "mold_temperature",
+    "Update Adapter Ready updateType"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.targetField,
+    "金型温度(℃)",
+    "Update Adapter Ready targetField"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.newValue,
+    61,
+    "Update Adapter Ready newValue"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.unit,
+    "℃",
+    "Update Adapter Ready unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update Adapter Ready"
+  );
+
+}
+
+
+/**
+ * 変更値が不足しているUpdate Resultが、
+ * incompleteへ変換されることを確認する。
+ */
+function UnderstandingTest_validateVersion2UpdateAdapterIncomplete() {
+
+  const result =
+    UnderstandingTest_createVersion2MoldTemperatureUpdateResult(
+      "ワンワンの型温を変更して",
+      "ワンワン",
+      null,
+      null,
+      [
+        "change.value"
+      ]
+    );
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.status,
+    "incomplete",
+    "Update Adapter Incomplete status"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.updateType,
+    "mold_temperature",
+    "Update Adapter Incomplete updateType"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.targetField,
+    "金型温度(℃)",
+    "Update Adapter Incomplete targetField"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.newValue,
+    null,
+    "Update Adapter Incomplete newValue"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.unit,
+    "℃",
+    "Update Adapter Incomplete unit"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.message,
+    "変更後の金型温度を指定してください。",
+    "Update Adapter Incomplete message"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update Adapter Incomplete"
+  );
+
+}
+
+
+
+/**
+ * Update以外のUnderstanding Resultでは、
+ * nullが返ることを確認する。
+ */
+function UnderstandingTest_validateVersion2UpdateAdapterNonUpdate() {
+
+  const result =
+    UnderstandingResultContract_create(
+      "ワンワンの型温は？"
+    );
+
+
+  result.communication.type =
+    "none";
+
+  result.intent.type =
+    "question";
+
+  result.knowledgeBoundary.type =
+    "company_knowledge";
+
+  result.conversation.action =
+    "new";
+
+  result.entity.query =
+    "ワンワン";
+
+  result.entity.entityTypeHint =
+    "product";
+
+  result.view.name =
+    "mold_temperature";
+
+  result.resolution.required =
+    true;
+
+  result.change.field =
+    null;
+
+  result.change.operation =
+    null;
+
+  result.change.value =
+    null;
+
+  result.change.unit =
+    null;
+
+  result.missingFields =
+    [];
+
+  result.memory.decision =
+    "none";
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent,
+    null,
+    "Update Adapter Non Update"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update Adapter Non Update"
+  );
+
+}
+
+
+/**
+ * Entity Queryを正しく取得できることを確認する。
+ */
+function UnderstandingTest_validateVersion2UpdateAdapterEntityQuery() {
+
+  const result =
+    UnderstandingTest_createVersion2MoldTemperatureUpdateResult(
+      "ワンワンの型温を61℃にして",
+      "  ワンワン  ",
+      61,
+      "celsius",
+      []
+    );
+
+
+  const entityQuery =
+    UpdateUnderstandingAdapter_getEntityQuery(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    entityQuery,
+    "ワンワン",
+    "Update Adapter Entity Query"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update Adapter Entity Query"
+  );
+
+}
+
+
+/**
+ * Entity Type Hintを正しく取得できることを確認する。
+ */
+function UnderstandingTest_validateVersion2UpdateAdapterEntityTypeHint() {
+
+  const result =
+    UnderstandingTest_createVersion2MoldTemperatureUpdateResult(
+      "ワンワンの型温を61℃にして",
+      "ワンワン",
+      61,
+      "celsius",
+      []
+    );
+
+
+  const entityTypeHint =
+    UpdateUnderstandingAdapter_getEntityTypeHint(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    entityTypeHint,
+    "product",
+    "Update Adapter Entity Type Hint"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update Adapter Entity Type Hint"
+  );
+
+}
+
+
+/**
+ * Canonical Unitが既存内部単位へ
+ * 正しく変換されることを確認する。
+ */
+function UnderstandingTest_validateVersion2UpdateAdapterUnitConversion() {
+
+  UnderstandingTest_assertEqualV2(
+    UpdateUnderstandingAdapter_convertUnit(
+      "celsius"
+    ),
+    "℃",
+    "Update Adapter Celsius Unit"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    UpdateUnderstandingAdapter_convertUnit(
+      null
+    ),
+    "℃",
+    "Update Adapter Null Unit"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    UpdateUnderstandingAdapter_convertUnit(
+      "rpm"
+    ),
+    "rpm",
+    "Update Adapter Other Unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Update Adapter Unit Conversion"
+  );
+
+}
+
+
+/**
+ * 金型温度Update用の
+ * Understanding Result Ver.2.0を生成する。
+ *
+ * @param {string} originalText
+ * @param {string|null} entityQuery
+ * @param {number|null} value
+ * @param {string|null} unit
+ * @param {Array} missingFields
+ * @returns {Object}
+ */
+function UnderstandingTest_createVersion2MoldTemperatureUpdateResult(
+  originalText,
+  entityQuery,
+  value,
+  unit,
+  missingFields
+) {
+
+  const result =
+    UnderstandingResultContract_create(
+      originalText
+    );
+
+
+  result.communication.type =
+    "none";
+
+  result.intent.type =
+    "update";
+
+  result.knowledgeBoundary.type =
+    "company_knowledge";
+
+  result.conversation.action =
+    "new";
+
+  result.entity.query =
+    entityQuery;
+
+  result.entity.entityTypeHint =
+    "product";
+
+  result.view.name =
+    "mold_temperature";
+
+  result.resolution.required =
+    entityQuery !==
+      null;
+
+  result.change.field =
+    "mold_temperature";
+
+  result.change.operation =
+    "set";
+
+  result.change.value =
+    value;
+
+  result.change.unit =
+    unit;
+
+  result.missingFields =
+    Array.isArray(
+      missingFields
+    )
+      ? missingFields.slice()
+      : [];
+
+  result.memory.decision =
+    "none";
+
+
+  return result;
+
+}
+
+
+
+/*
+=========================================
+Understanding Ver.2.0
+Handle Routing Live Test
+
+確認対象：
+・knowledgeBoundary.typeによる経路選択
+・Communication
+・General Knowledge
+・Company Knowledge
+・Unknown
+・entity.query Fallback時に
+  currentView未定義エラーが起きないこと
+
+注意：
+・OpenAI APIを呼び出す
+・Company Knowledgeでは登録データを参照する
+=========================================
+*/
+
+
+/**
+ * UnderstandingEngine_handleの
+ * Ver.2.0経路をまとめて確認する。
+ */
+function UnderstandingTest_runVersion2HandleRoutingLive() {
+
+  Logger.log(
+    "[Understanding Ver.2.0 Handle Routing Live Test Start]"
+  );
+
+
+  /*
+  =========================================
+  Communication
+  =========================================
+  */
+
+  UnderstandingTest_runVersion2HandleRoutingCase(
+    "Communication",
+    "ありがとう",
+    "communication"
+  );
+
+
+  /*
+  =========================================
+  General Knowledge
+  =========================================
+  */
+
+  UnderstandingTest_runVersion2HandleRoutingCase(
+    "General Knowledge",
+    "POMとは何ですか？",
+    "general_knowledge"
+  );
+
+
+  /*
+  =========================================
+  Company Knowledge
+  =========================================
+  */
+
+  UnderstandingTest_runVersion2HandleRoutingCase(
+    "Company Knowledge",
+    "ワンワンの型温は？",
+    "company_knowledge"
+  );
+
+
+  /*
+  =========================================
+  Entity Query Fallback
+  =========================================
+  *
+  * entity.queryがnullになるかどうかは
+  * LLM判断によるため、このケースでは
+  * ReferenceErrorが発生しないことを確認する。
+  */
+
+  UnderstandingTest_runVersion2HandleRoutingCase(
+    "Entity Query Fallback Safety",
+    "型温は？",
+    "company_knowledge"
+  );
+
+
+  Logger.log(
+    "[Understanding Ver.2.0 Handle Routing Live Test Passed]"
+  );
+
+}
+
+
+/**
+ * 1件のHandle Routing実通信テストを行う。
+ *
+ * @param {string} testName
+ * @param {string} userText
+ * @param {string} expectedBoundary
+ */
+function UnderstandingTest_runVersion2HandleRoutingCase(
+  testName,
+  userText,
+  expectedBoundary
+) {
+
+  const sessionId =
+    "UNDERSTANDING_V2_ROUTING_TEST_" +
+    testName
+      .replace(
+        /[^a-zA-Z0-9]/g,
+        "_"
+      ) +
+    "_" +
+    new Date().getTime();
+
+
+  clearConversationState(
+    sessionId
+  );
+
+
+  Logger.log(
+    "[Handle Routing Test Start] " +
+    testName
+  );
+
+  Logger.log(
+    "Input: " +
+    userText
+  );
+
+
+  /*
+  =========================================
+  Understanding Resultを先に確認
+  =========================================
+  */
+
+  const understandingResult =
+    UnderstandingEngine_understand(
+      userText
+    );
+
+
+  UnderstandingResultContract_validate(
+    understandingResult
+  );
+
+
+  Logger.log(
+    "[Understanding Result] " +
+    testName +
+    "\n" +
+    JSON.stringify(
+      understandingResult,
+      null,
+      2
+    )
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    understandingResult
+      .knowledgeBoundary
+      .type,
+    expectedBoundary,
+    testName +
+    " knowledgeBoundary.type"
+  );
+
+
+  /*
+  =========================================
+  Handle実行
+  =========================================
+  */
+
+  const response =
+    UnderstandingEngine_handle(
+      userText,
+      sessionId
+    );
+
+
+  Logger.log(
+    "[Handle Response] " +
+    testName +
+    "\n" +
+    JSON.stringify(
+      response,
+      null,
+      2
+    )
+  );
+
+
+  /*
+  =========================================
+  応答存在確認
+  =========================================
+  */
+
+  if (
+    response ===
+      null ||
+    response ===
+      undefined
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      testName +
+      "の応答がありません。"
+    );
+
+  }
+
+
+  if (
+    typeof response ===
+      "string" &&
+    !String(
+      response
+    ).trim()
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      testName +
+      "の文字列応答が空です。"
+    );
+
+  }
+
+
+  if (
+    typeof response ===
+      "object" &&
+    !Array.isArray(
+      response
+    ) &&
+    Object.keys(
+      response
+    ).length ===
+      0
+  ) {
+
+    throw new Error(
+      "[Assertion Failed] " +
+      testName +
+      "のObject応答が空です。"
+    );
+
+  }
+
+
+  clearConversationState(
+    sessionId
+  );
+
+
+  Logger.log(
+    "[Handle Routing Test Passed] " +
+    testName
+  );
+
+}
+
+

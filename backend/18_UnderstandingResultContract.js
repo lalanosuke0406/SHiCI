@@ -4,28 +4,150 @@ SHiCI
 UnderstandingResultContract.js
 
 役割：
-・Understanding Resultの標準構造を定義する
-・Understanding ResultのSchemaを検証する
+・Understanding Resultの標準構造を生成する
+・Understanding Resultを検証する
+
+Understanding Resultは、
+自然言語の意味を後続処理へ渡すための
+Provider非依存Contractである。
 
 禁止：
-・自然言語を理解しない
-・LLMを呼び出さない
-・Knowledgeを検索しない
-・Entityを解決しない
-・Snapshotを生成しない
-・Conversation Stateを更新しない
-・業務上の妥当性を判断しない
-・Create / Update / Deleteを実行しない
+・Knowledgeを格納しない
+・Canonical Entityを確定しない
+・Snapshotを格納しない
+・業務上の判断結果を格納しない
+・権限判断を格納しない
+・回答文章を格納しない
+・処理実行結果を格納しない
 =========================================
 */
 
 
+/*
+=========================================
+許可値
+=========================================
+*/
+
+
+const UNDERSTANDING_RESULT_ALLOWED_COMMUNICATION_TYPES = [
+
+  "greeting",
+  "thanks",
+  "acknowledgement",
+  "farewell",
+  "apology",
+  "none"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_INTENT_TYPES = [
+
+  "question",
+  "create",
+  "update",
+  "delete",
+  "consultation",
+  "confirmation",
+  "communication",
+  "unknown"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_KNOWLEDGE_BOUNDARY_TYPES = [
+
+  "communication",
+  "company_knowledge",
+  "general_knowledge",
+  "derived_knowledge",
+  "unknown"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_CONVERSATION_ACTIONS = [
+
+  "continue",
+  "change",
+  "new"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_ENTITY_TYPE_HINTS = [
+
+  "product",
+  "mold",
+  "material",
+  "condition",
+  "machine",
+  "trouble",
+  "part",
+  "process",
+  "unknown"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_VIEW_NAMES = [
+
+  "material",
+  "drying_condition",
+  "mold_temperature",
+  "cavity_count",
+  "gate",
+  "machine",
+  "product_weight",
+  "shot_weight",
+  "cycle_time",
+  "drawing_number",
+  "trouble_history"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
+
+  "mold_temperature"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_CHANGE_OPERATIONS = [
+
+  "set",
+  "add",
+  "remove",
+  "increase",
+  "decrease",
+  "replace",
+  "create",
+  "delete"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_CHANGE_UNITS = [
+
+  "celsius"
+
+];
+
+
+const UNDERSTANDING_RESULT_ALLOWED_MEMORY_DECISIONS = [
+
+  "none"
+
+];
+
+
 /**
- * Understanding Resultの標準構造を生成する。
+ * 空のUnderstanding Resultを生成する。
  *
- * この関数が返す値は、
- * Understanding Model Ver.1.1に基づく
- * 言語非依存のContractである。
+ * LLMの出力を補完するためではなく、
+ * Contractの標準構造を提供するために使用する。
  *
  * @param {string} originalText
  * @returns {Object}
@@ -34,10 +156,27 @@ function UnderstandingResultContract_create(
   originalText
 ) {
 
+  const normalizedOriginalText =
+    String(
+      originalText || ""
+    ).trim();
+
+
+  if (
+    !normalizedOriginalText
+  ) {
+
+    throw new Error(
+      "Understanding Resultにユーザー入力がありません。"
+    );
+
+  }
+
+
   return {
 
     schemaVersion:
-      "1.1",
+      "2.0",
 
     resultType:
       "understanding_result",
@@ -45,9 +184,7 @@ function UnderstandingResultContract_create(
     input: {
 
       originalText:
-        String(
-          originalText || ""
-        ),
+        normalizedOriginalText,
 
       language:
         "unknown"
@@ -62,6 +199,13 @@ function UnderstandingResultContract_create(
     },
 
     intent: {
+
+      type:
+        "unknown"
+
+    },
+
+    knowledgeBoundary: {
 
       type:
         "unknown"
@@ -92,6 +236,13 @@ function UnderstandingResultContract_create(
 
     },
 
+    resolution: {
+
+      required:
+        false
+
+    },
+
     change: {
 
       field:
@@ -108,8 +259,7 @@ function UnderstandingResultContract_create(
 
     },
 
-    missingFields:
-      [],
+    missingFields: [],
 
     memory: {
 
@@ -124,16 +274,16 @@ function UnderstandingResultContract_create(
 
 
 /**
- * Understanding Resultの構造を検証する。
+ * Understanding Resultを検証する。
  *
- * このValidationは、
- * Contractの構造だけを確認する。
+ * ValidationはContract構造だけを確認する。
  *
- * Entityの実在、
- * 現在値、
- * 権限、
- * 業務ルール、
- * 変更可能性は確認しない。
+ * 次は確認しない。
+ * ・Entityが実在するか
+ * ・Knowledgeが存在するか
+ * ・現在値が正しいか
+ * ・業務上の変更が可能か
+ * ・権限があるか
  *
  * @param {Object} result
  * @returns {Object}
@@ -142,18 +292,10 @@ function UnderstandingResultContract_validate(
   result
 ) {
 
-  if (
-    !result ||
-    typeof result !==
-      "object" ||
-    Array.isArray(result)
-  ) {
-
-    throw new Error(
-      "Understanding ResultがObjectではありません。"
-    );
-
-  }
+  UnderstandingResultContract_requireObject(
+    result,
+    "Understanding Result"
+  );
 
 
   /*
@@ -164,7 +306,7 @@ function UnderstandingResultContract_validate(
 
   if (
     result.schemaVersion !==
-      "1.1"
+      "2.0"
   ) {
 
     throw new Error(
@@ -173,13 +315,14 @@ function UnderstandingResultContract_validate(
 
   }
 
+
   if (
     result.resultType !==
       "understanding_result"
   ) {
 
     throw new Error(
-      "Result Typeがunderstanding_resultではありません。"
+      "resultTypeがunderstanding_resultではありません。"
     );
 
   }
@@ -191,40 +334,54 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  const requiredObjects = [
+  UnderstandingResultContract_requireObject(
+    result.input,
+    "input"
+  );
 
-    "input",
-    "communication",
-    "intent",
-    "conversation",
-    "entity",
-    "view",
-    "change",
+  UnderstandingResultContract_requireObject(
+    result.communication,
+    "communication"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.intent,
+    "intent"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.knowledgeBoundary,
+    "knowledgeBoundary"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.conversation,
+    "conversation"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.entity,
+    "entity"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.view,
+    "view"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.resolution,
+    "resolution"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.change,
+    "change"
+  );
+
+  UnderstandingResultContract_requireObject(
+    result.memory,
     "memory"
-
-  ];
-
-  requiredObjects.forEach(
-    function(key) {
-
-      if (
-        !result[key] ||
-        typeof result[key] !==
-          "object" ||
-        Array.isArray(
-          result[key]
-        )
-      ) {
-
-        throw new Error(
-          "Understanding Resultの" +
-          key +
-          "がObjectではありません。"
-        );
-
-      }
-
-    }
   );
 
 
@@ -234,28 +391,15 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  if (
-    typeof result.input.originalText !==
-      "string"
-  ) {
+  UnderstandingResultContract_requireNonEmptyString(
+    result.input.originalText,
+    "input.originalText"
+  );
 
-    throw new Error(
-      "input.originalTextがStringではありません。"
-    );
-
-  }
-
-  if (
-    typeof result.input.language !==
-      "string" ||
-    !result.input.language.trim()
-  ) {
-
-    throw new Error(
-      "input.languageが正しくありません。"
-    );
-
-  }
+  UnderstandingResultContract_requireNonEmptyString(
+    result.input.language,
+    "input.language"
+  );
 
 
   /*
@@ -264,20 +408,9 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  const allowedCommunicationTypes = [
-
-    "none",
-    "greeting",
-    "thanks",
-    "farewell",
-    "acknowledgement",
-    "other"
-
-  ];
-
   UnderstandingResultContract_requireAllowedValue(
     result.communication.type,
-    allowedCommunicationTypes,
+    UNDERSTANDING_RESULT_ALLOWED_COMMUNICATION_TYPES,
     "communication.type"
   );
 
@@ -288,23 +421,23 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  const allowedIntentTypes = [
-
-    "question",
-    "create",
-    "update",
-    "delete",
-    "consultation",
-    "confirmation",
-    "communication",
-    "unknown"
-
-  ];
-
   UnderstandingResultContract_requireAllowedValue(
     result.intent.type,
-    allowedIntentTypes,
+    UNDERSTANDING_RESULT_ALLOWED_INTENT_TYPES,
     "intent.type"
+  );
+
+
+  /*
+  =========================================
+  Knowledge Boundary
+  =========================================
+  */
+
+  UnderstandingResultContract_requireAllowedValue(
+    result.knowledgeBoundary.type,
+    UNDERSTANDING_RESULT_ALLOWED_KNOWLEDGE_BOUNDARY_TYPES,
+    "knowledgeBoundary.type"
   );
 
 
@@ -314,17 +447,9 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  const allowedConversationActions = [
-
-    "continue",
-    "change",
-    "new"
-
-  ];
-
   UnderstandingResultContract_requireAllowedValue(
     result.conversation.action,
-    allowedConversationActions,
+    UNDERSTANDING_RESULT_ALLOWED_CONVERSATION_ACTIONS,
     "conversation.action"
   );
 
@@ -340,23 +465,9 @@ function UnderstandingResultContract_validate(
     "entity.query"
   );
 
-  const allowedEntityTypeHints = [
-
-    "product",
-    "mold",
-    "material",
-    "condition",
-    "machine",
-    "trouble",
-    "part",
-    "process",
-    "unknown"
-
-  ];
-
   UnderstandingResultContract_requireAllowedValue(
     result.entity.entityTypeHint,
-    allowedEntityTypeHints,
+    UNDERSTANDING_RESULT_ALLOWED_ENTITY_TYPE_HINTS,
     "entity.entityTypeHint"
   );
 
@@ -367,10 +478,29 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  UnderstandingResultContract_requireNullableString(
+  UnderstandingResultContract_requireNullableAllowedValue(
     result.view.name,
+    UNDERSTANDING_RESULT_ALLOWED_VIEW_NAMES,
     "view.name"
   );
+
+
+  /*
+  =========================================
+  Resolution
+  =========================================
+  */
+
+  if (
+    typeof result.resolution.required !==
+      "boolean"
+  ) {
+
+    throw new Error(
+      "resolution.requiredがbooleanではありません。"
+    );
+
+  }
 
 
   /*
@@ -379,43 +509,25 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  UnderstandingResultContract_requireNullableString(
+  UnderstandingResultContract_requireNullableAllowedValue(
     result.change.field,
+    UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS,
     "change.field"
   );
 
-  const allowedOperations = [
+  UnderstandingResultContract_requireNullableAllowedValue(
+    result.change.operation,
+    UNDERSTANDING_RESULT_ALLOWED_CHANGE_OPERATIONS,
+    "change.operation"
+  );
 
-    null,
-    "set",
-    "add",
-    "remove",
-    "increase",
-    "decrease",
-    "replace",
-    "create",
-    "delete"
-
-  ];
-
-  if (
-    allowedOperations.indexOf(
-      result.change.operation
-    ) === -1
-  ) {
-
-    throw new Error(
-      "change.operationに許可されていない値があります。"
-    );
-
-  }
-
-  UnderstandingResultContract_validateChangeValue(
+  UnderstandingResultContract_requireChangeValue(
     result.change.value
   );
 
-  UnderstandingResultContract_requireNullableString(
+  UnderstandingResultContract_requireNullableAllowedValue(
     result.change.unit,
+    UNDERSTANDING_RESULT_ALLOWED_CHANGE_UNITS,
     "change.unit"
   );
 
@@ -426,36 +538,9 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  if (
-    !Array.isArray(
-      result.missingFields
-    )
-  ) {
-
-    throw new Error(
-      "missingFieldsがArrayではありません。"
-    );
-
-  }
-
-  result.missingFields.forEach(
-    function(field, index) {
-
-      if (
-        typeof field !==
-          "string" ||
-        !field.trim()
-      ) {
-
-        throw new Error(
-          "missingFields[" +
-          index +
-          "]が正しいStringではありません。"
-        );
-
-      }
-
-    }
+  UnderstandingResultContract_requireStringArray(
+    result.missingFields,
+    "missingFields"
   );
 
 
@@ -465,17 +550,22 @@ function UnderstandingResultContract_validate(
   =========================================
   */
 
-  if (
-    typeof result.memory.decision !==
-      "string" ||
-    !result.memory.decision.trim()
-  ) {
+  UnderstandingResultContract_requireAllowedValue(
+    result.memory.decision,
+    UNDERSTANDING_RESULT_ALLOWED_MEMORY_DECISIONS,
+    "memory.decision"
+  );
 
-    throw new Error(
-      "memory.decisionが正しくありません。"
-    );
 
-  }
+  /*
+  =========================================
+  Cross-field整合性
+  =========================================
+  */
+
+  UnderstandingResultContract_validateConsistency(
+    result
+  );
 
 
   return result;
@@ -484,27 +574,158 @@ function UnderstandingResultContract_validate(
 
 
 /**
- * 値が許可リストに含まれることを確認する。
+ * 項目間の基本的な整合性を確認する。
  *
- * @param {*} value
- * @param {Array} allowedValues
- * @param {string} fieldName
+ * 業務上の正しさは判断しない。
+ *
+ * @param {Object} result
  */
-function UnderstandingResultContract_requireAllowedValue(
-  value,
-  allowedValues,
-  fieldName
+function UnderstandingResultContract_validateConsistency(
+  result
 ) {
 
+  /*
+   * Communication Intentでは、
+   * Knowledge BoundaryもCommunicationである。
+   */
   if (
-    allowedValues.indexOf(
-      value
-    ) === -1
+    result.intent.type ===
+      "communication" &&
+    result.knowledgeBoundary.type !==
+      "communication"
   ) {
 
     throw new Error(
-      fieldName +
-      "に許可されていない値があります。"
+      "intent.typeがcommunicationの場合、knowledgeBoundary.typeもcommunicationである必要があります。"
+    );
+
+  }
+
+
+  /*
+   * Communication Boundaryでは、
+   * Entity Resolutionを必要としない。
+   */
+  if (
+    result.knowledgeBoundary.type ===
+      "communication" &&
+    result.resolution.required !==
+      false
+  ) {
+
+    throw new Error(
+      "Communicationではresolution.requiredをfalseにしてください。"
+    );
+
+  }
+
+
+  /*
+   * Communicationとして分類されていない発話へ、
+   * Communication Typeを設定しない。
+   */
+  if (
+    result.intent.type !==
+      "communication" &&
+    result.communication.type !==
+      "none"
+  ) {
+
+    throw new Error(
+      "Communication以外のIntentではcommunication.typeをnoneにしてください。"
+    );
+
+  }
+
+
+  /*
+   * Change Fieldが存在しない場合、
+   * 他のChange項目も原則としてnullである。
+   *
+   * 不完全な更新指示では、
+   * fieldだけが存在し、
+   * valueなどがnullになることは許可する。
+   */
+  if (
+    result.change.field ===
+      null
+  ) {
+
+    if (
+      result.change.operation !==
+        null ||
+      result.change.value !==
+        null ||
+      result.change.unit !==
+        null
+    ) {
+
+      throw new Error(
+        "change.fieldがnullの場合、changeの他項目もnullである必要があります。"
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Update Intent以外では、
+   * 現段階のChangeを空にする。
+   *
+   * create / deleteは将来拡張対象だが、
+   * 現在正式に実装済みのChangeはUpdateだけである。
+   */
+  if (
+    result.intent.type !==
+      "update"
+  ) {
+
+    if (
+      result.change.field !==
+        null ||
+      result.change.operation !==
+        null ||
+      result.change.value !==
+        null ||
+      result.change.unit !==
+        null
+    ) {
+
+      throw new Error(
+        "Update以外のIntentではchangeをnullにしてください。"
+      );
+
+    }
+
+  }
+
+
+  /*
+   * Entity Queryがないことと、
+   * Resolution Requirementは別の概念である。
+   *
+   * 将来Conversation State上のcurrentEntityを
+   * Resolutionする場合があるため、
+   * queryがnullでもrequired=trueを禁止しない。
+   */
+
+
+  /*
+   * company_knowledgeで特定対象を持つ場合は、
+   * 原則としてEntity Resolutionを必要とする。
+   */
+  if (
+    result.knowledgeBoundary.type ===
+      "company_knowledge" &&
+    result.entity.query !==
+      null &&
+    result.resolution.required !==
+      true
+  ) {
+
+    throw new Error(
+      "company_knowledgeでentity.queryがある場合、resolution.requiredをtrueにしてください。"
     );
 
   }
@@ -513,7 +734,64 @@ function UnderstandingResultContract_requireAllowedValue(
 
 
 /**
- * nullまたはStringであることを確認する。
+ * Objectであることを確認する。
+ *
+ * @param {*} value
+ * @param {string} fieldName
+ */
+function UnderstandingResultContract_requireObject(
+  value,
+  fieldName
+) {
+
+  if (
+    !value ||
+    typeof value !==
+      "object" ||
+    Array.isArray(value)
+  ) {
+
+    throw new Error(
+      fieldName +
+      "がObjectではありません。"
+    );
+
+  }
+
+}
+
+
+/**
+ * 空ではないStringであることを確認する。
+ *
+ * @param {*} value
+ * @param {string} fieldName
+ */
+function UnderstandingResultContract_requireNonEmptyString(
+  value,
+  fieldName
+) {
+
+  if (
+    typeof value !==
+      "string" ||
+    !value.trim()
+  ) {
+
+    throw new Error(
+      fieldName +
+      "が正しいStringではありません。"
+    );
+
+  }
+
+}
+
+
+/**
+ * nullまたは空ではないStringであることを確認する。
+ *
+ * 空文字はnullへ正規化されるべきである。
  *
  * @param {*} value
  * @param {string} fieldName
@@ -524,14 +802,48 @@ function UnderstandingResultContract_requireNullableString(
 ) {
 
   if (
-    value !== null &&
+    value ===
+      null
+  ) {
+
+    return;
+
+  }
+
+  UnderstandingResultContract_requireNonEmptyString(
+    value,
+    fieldName
+  );
+
+}
+
+
+/**
+ * 許可値に含まれることを確認する。
+ *
+ * @param {*} value
+ * @param {string[]} allowedValues
+ * @param {string} fieldName
+ */
+function UnderstandingResultContract_requireAllowedValue(
+  value,
+  allowedValues,
+  fieldName
+) {
+
+  if (
     typeof value !==
-      "string"
+      "string" ||
+    allowedValues.indexOf(
+      value
+    ) ===
+      -1
   ) {
 
     throw new Error(
       fieldName +
-      "はnullまたはStringでなければなりません。"
+      "に許可されていない値が設定されています: " +
+      String(value)
     );
 
   }
@@ -540,19 +852,54 @@ function UnderstandingResultContract_requireNullableString(
 
 
 /**
- * Change Valueの構造を確認する。
+ * nullまたは許可値であることを確認する。
+ *
+ * @param {*} value
+ * @param {string[]} allowedValues
+ * @param {string} fieldName
+ */
+function UnderstandingResultContract_requireNullableAllowedValue(
+  value,
+  allowedValues,
+  fieldName
+) {
+
+  if (
+    value ===
+      null
+  ) {
+
+    return;
+
+  }
+
+  UnderstandingResultContract_requireAllowedValue(
+    value,
+    allowedValues,
+    fieldName
+  );
+
+}
+
+
+/**
+ * Change Valueを検証する。
  *
  * 現段階では、
- * JSONで安全に表現できる基本型を許可する。
+ * null、string、number、booleanを許可する。
+ *
+ * ObjectやArrayは、
+ * 未定義の構造を持ち込むため禁止する。
  *
  * @param {*} value
  */
-function UnderstandingResultContract_validateChangeValue(
+function UnderstandingResultContract_requireChangeValue(
   value
 ) {
 
   if (
-    value === null
+    value ===
+      null
   ) {
 
     return;
@@ -562,38 +909,93 @@ function UnderstandingResultContract_validateChangeValue(
   const valueType =
     typeof value;
 
+
   if (
-    valueType ===
-      "string" ||
-    valueType ===
-      "number" ||
-    valueType ===
+    valueType !==
+      "string" &&
+    valueType !==
+      "number" &&
+    valueType !==
       "boolean"
   ) {
 
-    return;
+    throw new Error(
+      "change.valueの型が不正です。"
+    );
 
   }
 
-  if (
-    Array.isArray(value)
-  ) {
-
-    return;
-
-  }
 
   if (
     valueType ===
-      "object"
+      "number" &&
+    !Number.isFinite(value)
   ) {
 
-    return;
+    throw new Error(
+      "change.valueに有限ではない数値が設定されています。"
+    );
 
   }
 
-  throw new Error(
-    "change.valueに使用できない型が含まれています。"
+
+  if (
+    valueType ===
+      "string" &&
+    !value.trim()
+  ) {
+
+    throw new Error(
+      "change.valueに空文字を設定してはなりません。"
+    );
+
+  }
+
+}
+
+
+/**
+ * 空ではないStringだけを持つArrayであることを確認する。
+ *
+ * @param {*} value
+ * @param {string} fieldName
+ */
+function UnderstandingResultContract_requireStringArray(
+  value,
+  fieldName
+) {
+
+  if (
+    !Array.isArray(value)
+  ) {
+
+    throw new Error(
+      fieldName +
+      "がArrayではありません。"
+    );
+
+  }
+
+
+  value.forEach(
+    function(item, index) {
+
+      if (
+        typeof item !==
+          "string" ||
+        !item.trim()
+      ) {
+
+        throw new Error(
+          fieldName +
+          "[" +
+          index +
+          "]が正しいStringではありません。"
+        );
+
+      }
+
+    }
   );
 
 }

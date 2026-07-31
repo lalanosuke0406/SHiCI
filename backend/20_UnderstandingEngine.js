@@ -10,7 +10,7 @@ Natural Language Understanding
  * Understanding Resultを返す。
  *
  * この関数は、
- * Understanding Model Ver.1.1における
+ * Understanding Model Ver.2.0における
  * Understand段階だけを担当する。
  *
  * 処理：
@@ -171,49 +171,193 @@ function UnderstandingEngine_handle(
   }
 
 
-  /*
+    /*
   =========================================
-  Knowledge Boundaryの判定
+  Knowledge Boundaryの取得
   =========================================
   */
 
   const knowledgeBoundary =
-    KnowledgeBoundaryEngine_select(
+    String(
+      understandingResult
+        .knowledgeBoundary
+        .type ||
+      "unknown"
+    ).trim();
+
+
+  /*
+  =========================================
+  Communication
+  =========================================
+  */
+
+  if (
+    knowledgeBoundary ===
+      "communication"
+  ) {
+
+    return CommunicationEngine_respond(
+      text
+    );
+
+  }
+
+
+  /*
+  =========================================
+  General Knowledge
+  =========================================
+  */
+
+  if (
+    knowledgeBoundary ===
+      "general_knowledge"
+  ) {
+
+    return GeneralKnowledgeEngine_respond(
+      text
+    );
+
+  }
+
+
+  /*
+  =========================================
+  Unknown
+  =========================================
+  */
+
+  if (
+    knowledgeBoundary ===
+      "unknown"
+  ) {
+
+    return {
+      messageType:
+        "text",
+
+      answer:
+        "質問の対象を安全に判断できませんでした。もう少し具体的に入力してください。"
+    };
+
+  }
+
+
+  /*
+  =========================================
+  Company Knowledge / Derived Knowledge
+  =========================================
+  *
+  * company_knowledgeは、
+  * 登録Knowledgeを使用する既存経路へ進める。
+  *
+  * derived_knowledgeも現段階では、
+  * 計算根拠となるEntityとSnapshotを取得する必要があるため、
+  * Company Knowledgeと同じ入口へ進める。
+  *
+  * 実際の計算・導出処理は、
+  * 後続フェーズで実装する。
+  */
+
+    /*
+  =========================================
+  View
+  =========================================
+  */
+
+  const understandingViewName =
+    understandingResult.view &&
+    understandingResult.view.name !==
+      null
+      ? String(
+          understandingResult.view.name
+        ).trim()
+      : "";
+
+
+  /*
+   * Understanding ResultのCanonical Viewを
+   * Conversation Stateへ保存する。
+   */
+  if (
+    understandingViewName
+  ) {
+
+    state.currentView = {
+      keyword:
+        "",
+      view:
+        understandingViewName,
+      priority:
+        0,
+      notes:
+        "Understanding Result Ver.2.0"
+    };
+
+    saveConversationState(
+      sessionId,
+      state
+    );
+
+  }
+
+
+  /*
+   * Entity QueryのFallbackで使用するため、
+   * View Resolution Knowledgeも取得する。
+   *
+   * これはKnowledge Boundaryの再判定ではなく、
+   * entity.queryが取得できなかった場合に、
+   * 質問文からView表現を除去するための
+   * 移行期間中のFallbackである。
+   */
+  const fallbackView =
+    resolveView(
       text
     );
 
   /*
-  * Communication
+  =========================================
+  Entity Query
+  =========================================
   */
-  if (knowledgeBoundary === "communication") {
-      return CommunicationEngine_respond(text);
-  }
+
+  let entityQuery =
+    understandingResult.entity.query;
+
+
+    if (
+      entityQuery !==
+        null
+    ) {
+
+      entityQuery =
+        String(
+          entityQuery
+        ).trim() ||
+        null;
+
+    }
 
   /*
-  * General Knowledge
-  */
-  if (knowledgeBoundary === "general") {
-      return GeneralKnowledgeEngine_respond(text);
-  }
-
-  /*
-  * Version 1.1
-  *
-  * それ以外はCompany Knowledgeとして処理する。
+  =========================================
+  Fallback
+  =========================================
   */
 
-  // 1. Viewを解決してStateに保存
-  const view = resolveView(text);
-  if (view) {
-    state.currentView = view;
-    saveConversationState(sessionId, state);
-  }
+    if (
+      !entityQuery ||
+      !String(entityQuery).trim()
+    ) {
 
-  const entityQuery =
-    UnderstandingEngine_extractEntityQuery(
-      text,
-      view
-    );
+      entityQuery =
+        UnderstandingEngine_extractEntityQuery(
+          text,
+          fallbackView
+        );
+
+    }
 
 
   // 2. 直前候補から選択できるか確認

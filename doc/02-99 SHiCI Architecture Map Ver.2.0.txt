@@ -1,5 +1,5 @@
 SHiCI Architecture Map
-Version 1.0
+Version 2.0
 
 
 ------
@@ -272,30 +272,75 @@ Input層は、Knowledgeを生成してはならない。
 --
 
 6.2 Understand
-責務
 
+責務
 ユーザーが何を伝えようとしているかを理解する。
 
 主実装
+17_UnderstandingRequestContract.js
+18_UnderstandingResultContract.js
 20_UnderstandingEngine.js
+70_LLMInterface.js
+71_OpenAIAdapter.js
+
 補助実装
 19_CommunicationEngine.js
+21_ConversationStateEngine.js
 23_ViewResolutionEngine.js
 25_KnowledgeBoundaryEngine.js
-21_ConversationStateEngine.js
+26_GeneralKnowledgeEngine.js
+28_UpdateUnderstandingAdapter.js
+
+28_UpdateUnderstandingAdapter.jsは、
+Understandingを行うEngineではない。
+
+Understanding Resultに含まれるCanonicalなUpdate情報を、
+現在のUpdate処理が利用できる内部形式へ変換する互換Adapterである。
+
+
+
 Understand内部の判断
 User Input
     ↓
+Understanding Request Contract
+    ↓
+LLM Interface
+    ↓
+Provider Adapter
+    ↓
+Understanding Result Contract
+    ↓
+Intent / Entity Query / Change / Missing Fields
+    ↓
 Knowledge Boundary Selection
     ├─ Communication
-    ├─ Knowledge
-    ├─ Derived Knowledge
+    ├─ Company Knowledge
     ├─ General Knowledge
+    ├─ Derived Knowledge
     └─ Unknown
 
-Version 1.0の実装では、まずCommunicationとKnowledgeを区別する。
+Version 2.0では、すべてのユーザー入力は、
+まずUnderstanding Request Contractとして構造化される。
 
-Knowledge以外のBoundaryは、段階的に実装する。
+LLMは自然言語の意味をUnderstanding Resultへ変換する。
+
+Understandingは、次を行わない。
+
+・Knowledge検索
+・Canonical Entity確定
+・Snapshot生成
+・業務上の妥当性判断
+・権限判断
+・更新案生成
+・データ更新
+
+現在、Understanding Resultを正式に利用している処理は、
+金型温度Update経路である。
+
+質問、Communication、General Knowledge等の非Update経路では、
+Understanding Result生成後も、一部の経路選択に既存Engineの判定を使用している。
+
+非Update経路も段階的にUnderstanding Result中心へ移行する。
 
 Understandが決定してよいこと
 発話がCommunicationか
@@ -303,6 +348,7 @@ Understandが決定してよいこと
 どのViewを求めているか
 既存のConversation Contextを利用するか
 Entity Resolutionが必要か
+
 Understandが決定してはならないこと
 Canonical Entityの最終確定
 Snapshotの構築
@@ -591,7 +637,11 @@ Adapter
 「一般的には」など、根拠の立場を明示する
 社内仕様として断定しない
 
-Version 1.0では未実装である。
+Version 2.0では、
+26_GeneralKnowledgeEngine.jsによる初期経路が実装されている。
+
+ただし、Knowledge Boundaryの判定は、
+まだUnderstanding Resultの構造化情報へ完全には統合されていない。
 
 --
 
@@ -607,17 +657,24 @@ Version 1.0では未実装である。
 内部用語を表示しない
 必要に応じて追加情報を求める
 
-Version 1.0では、Knowledge Resolution失敗時のユーザー向け表現を改善する必要がある。
+Version 2.0では、
+Knowledge Resolution失敗時のユーザー向け表現を改善する必要がある。
+
+将来的には、
+Unknown Response Contractに基づく自然な応答へ統一する。
 
 
 ------
 
 
 8. Code Responsibility Map
+
 ファイル	主責務	所属段階
 00_Main.js	HTTP Entry、API分岐	Input / Output
 10_RouteRequest.js	Chat統一入口、Response整形、Error整形	Input / Output
 11_CRUD.js	既存データ操作API	Application / Storage Access
+17_UnderstandingRequestContract.js	自然言語理解要求の生成・検証	Understand Contract
+18_UnderstandingResultContract.js	自然言語理解結果の生成・検証	Understand Contract
 19_CommunicationEngine.js	Communication判定、Communication用AI Contract構築	Understand / Express準備
 20_UnderstandingEngine.js	会話入力の統括、処理経路の選択	Understand
 21_ConversationStateEngine.js	会話状態の保持・更新	Cross-Cutting State
@@ -625,6 +682,12 @@ Version 1.0では、Knowledge Resolution失敗時のユーザー向け表現を�
 23_ViewResolutionEngine.js	ユーザーが求めるViewの解決	Understand
 24_SemanticEntityResolutionEngine.js	LLMによるSemantic候補生成の準備	Resolve
 25_KnowledgeBoundaryEngine.js	Knowledge Boundaryの選択	Understand
+26_GeneralKnowledgeEngine.js	一般知識Boundaryの判定とAI Contract構築		Understand / Express準備
+27_UpdateIntentEngine.js	旧正規表現Update判定	Legacy Understand
+28_UpdateUnderstandingAdapter.js	Understanding Resultを既存Update形式へ変換	Understand / Application互換境界
+33_AuthorizationEngine.js	書き込み権限の確認	Authorization
+34_ConditionUpdateEngine.js	成形条件の複製・変更・切替・Rollback	Application / Commit
+35_UpdateRequestEngine.js	更新案の生成・保存・確認・取消		Application / Proposal
 40_SnapshotEngine.js	EntityとRelationからSnapshotを構築	Compose
 50_AnswerBuilder.js	旧形式の固定回答生成	Legacy Express
 60_ResponseSpecification.js	SnapshotからAI Contractを構築	Express
@@ -632,6 +695,7 @@ Version 1.0では、Knowledge Resolution失敗時のユーザー向け表現を�
 71_OpenAIAdapter.js	OpenAI Responses APIへの変換と通信	Express Infrastructure
 72_MockAdapter.js	AI Contract確認・外部通信なしの試験	Express Infrastructure
 90_Config.js	Provider・Model・秘密情報等の設定取得	Infrastructure
+98_UnderstandingTest.js		UnderstandingおよびAdapterの単独試験	Test
 EntityEngine.js	Entityデータ取得・操作の既存機構	Resolve / Data Access
 EntityResolver.js	Entity照合の既存機構	Resolve
 EntityHandler.js	Entityの表示用変換・処理補助	Resolve / Express境界
@@ -732,16 +796,19 @@ SHiCIの各層は、曖昧な引数の受け渡しではなく、責務に応じ
 
 現在存在するContract：
 
+Understanding Request Contract
+Understanding Result Contract
 AI Contract
 Semantic Resolution Contract
 Snapshot
 Candidate Response
+Update Target Result
+Update Request
 API Response
 Conversation State
 
 将来正式化するContract：
 
-Understanding Result
 Resolution Result
 Knowledge Boundary Result
 View Specification
@@ -767,9 +834,12 @@ Result
 
 11. Current Implementation Flow（現在の実装経路）
 
+
 現在のChat処理は、概ね次のように実装されている。
 
-doGet()
+doPost()
+    ↓
+ActionRouter_routePost()
     ↓
 routeRequest()
     ↓
@@ -777,20 +847,74 @@ askShici()
     ↓
 UnderstandingEngine_handle()
     ↓
-KnowledgeBoundaryEngine_select()
-    ├─ communication
+UnderstandingEngine_understand()
+    ↓
+Understanding Request Contract
+    ↓
+LLMInterface_understand()
+    ↓
+OpenAIAdapter_understand()
+    ↓
+Understanding Result Contract
+
+
+
+Update Intentの場合
+
+Understanding Result
+    ↓
+UpdateUnderstandingAdapter
+    ↓
+Entity Resolution
+    ↓
+Snapshot Engine
+    ↓
+Update Target Result
+    ↓
+Frontend
+    ↓
+Update Proposal API
+    ↓
+Authorization Engine
+    ↓
+Update Request Engine
+    ↓
+Human Confirmation
+    ↓
+Condition Update Engine
+    ↓
+新しい成形条件を生成
+    ↓
+現在標準条件IDを切替
+
+
+
+非Updateの場合
+
+Understanding Result
+    ↓
+Knowledge Boundary Engine
+    ├─ Communication
     │      ↓
-    │  CommunicationEngine
+    │  Communication Engine
     │      ↓
     │  AI Contract
     │      ↓
-    │  LLMInterface_generate()
+    │  LLM Interface
     │
-    └─ knowledge
+    ├─ General Knowledge
+    │      ↓
+    │  General Knowledge Engine
+    │      ↓
+    │  AI Contract
+    │      ↓
+    │  LLM Interface
+    │
+    └─ Company Knowledge
            ↓
        View Resolution
            ↓
-       Conversation State確認
+       Conversation State
            ↓
        Entity Resolution
            ↓
@@ -798,23 +922,9 @@ KnowledgeBoundaryEngine_select()
            ↓
        Response Specification
            ↓
-       LLMInterface_generate()
+       AI Contract
            ↓
-       OpenAIAdapter / MockAdapter
-
-候補が複数存在する場合は、Composeへ進まず、Candidate ResponseをFrontendへ返す。
-
-Entity Resolution
-    ↓
-Multiple Candidates
-    ↓
-Conversation Stateへ保存
-    ↓
-Candidate Response
-    ↓
-Frontend
-    ↓
-User Selection
+       LLM Interface
 
 
 ------
@@ -824,7 +934,7 @@ User Selection
 
 12. Known Architectural Gaps（現在認識されている差異）
 
-Architecture Map Version 1.0作成時点で、次の差異が存在する。
+Architecture Map Version 2.0更新時点で、次の差異が存在する。
 
 --
 
@@ -844,7 +954,11 @@ Processing Model上では、Understandingは入力理解のみを担当すべき
 
 将来的には、Application OrchestratorまたはConversation Engineへ、処理全体の統括責務を分離する余地がある。
 
-ただし、Version 1.0では直ちに分割しない。
+ただし、Version 2.0でも直ちに分割しない。
+
+現在の優先事項は、
+非Update経路をUnderstanding Result中心へ段階的に移行することであり、
+Orchestratorの分離そのものではない。
 
 --
 
@@ -884,15 +998,23 @@ Component Output
 
 --
 
-12.4 General KnowledgeとUnknownが未実装
+12.4 UnknownおよびDerived Knowledgeが未正式化
 
-Knowledge Boundary Modelでは定義済みだが、実装はCommunicationとKnowledgeの初期判定に留まっている。
+General Knowledge経路は、
+26_GeneralKnowledgeEngine.jsによって実装されている。
 
-今後、次を追加する。
+ただし、現在のGeneral Knowledge判定は、
+自然言語の正規表現を中心とした初期実装であり、
+Understanding ResultのKnowledge SourceまたはBoundary情報とは
+まだ統合されていない。
 
-General Knowledge Route
-Derived Knowledge Route
-Unknown Route
+Unknownは、独立したContractおよびEngineとして未正式化である。
+
+現在は各処理経路が個別のエラー文または情報不足文を返している。
+
+Derived Knowledgeも、
+Knowledge Transformationとして設計上定義されているが、
+統一されたContractおよび実行経路は未正式化である。
 
 --
 
@@ -907,6 +1029,66 @@ OpenAIAdapter_* → 71_OpenAIAdapter.js
 MockAdapter_* → 72_MockAdapter.js
 
 へ整理する。
+
+
+--
+
+
+12.6 非Update経路がUnderstanding Resultを十分に利用していない
+
+Version 2.0では、
+すべての入力に対してUnderstanding Resultが生成される。
+
+しかし、Update以外の処理では、
+Knowledge Boundary、
+View、
+Entity Queryの一部を、
+従来の正規表現または文字列加工によって再判定している。
+
+そのため、
+
+自然言語
+    ↓
+Understanding Result
+    ↓
+後続処理
+
+というUnderstanding Modelの理想経路は、
+Update処理では成立しているが、
+質問系処理では完全には成立していない。
+
+今後は既存機能を壊さない単位で、
+
+・Knowledge Boundary
+・View
+・Entity Query
+・Conversation Context利用
+
+をUnderstanding Resultから後続処理へ引き渡す。
+
+ただし、
+一度に既存処理を全面置換してはならない。
+
+
+--
+
+
+12.7 旧UpdateIntentEngineが残存している
+
+27_UpdateIntentEngine.jsは、
+正規表現によって金型温度Updateを理解する旧実装である。
+
+現在の本番Update入口では使用されていない。
+
+ただし、新しいUnderstanding経路の安定確認と
+参照箇所の完全確認が終わるまでは削除しない。
+
+削除する場合は、
+Architecture Map、
+テスト、
+参照関係を同時に更新する。
+
+
 
 
 ------

@@ -1,0 +1,2850 @@
+SHiCI Understanding Model
+Version 2.0
+
+
+-----
+
+
+1. Philosophy
+What is Understanding?
+
+
+Understandingとは、
+
+ユーザーが何をしようとしているのかを理解するためのモデルである。
+
+
+Understandingは、
+
+Knowledgeを検索しない。
+
+Databaseへアクセスしない。
+
+Canonical Entityを確定しない。
+
+Snapshotを生成しない。
+
+業務上の判断を行わない。
+
+回答を生成しない。
+
+更新を実行しない。
+
+
+Understandingは、
+
+ユーザーの自然言語を理解し、
+
+後続処理が利用できるUnderstanding Resultへ構造化する。
+
+
+Understandingは、
+
+「理解」だけを担当する。
+
+
+Version 2.0では、
+
+Intent、
+
+Communication、
+
+Conversation、
+
+Entity Query、
+
+Entity Type Hint、
+
+View、
+
+Change、
+
+Knowledge Boundary、
+
+Entity Resolutionの要否、
+
+Memory Decision、
+
+Missing Information
+
+を、
+
+一つのUnderstanding Result Contractとして後続処理へ引き渡す。
+
+
+ただし、
+
+Knowledge Boundaryの分類はKnowledgeの取得ではない。
+
+Entity Resolutionの要否の判断はCanonical Entityの確定ではない。
+
+Viewの理解は正式なView Specificationの確定ではない。
+
+
+-----
+
+
+2. Purpose
+
+
+SHiCIは、
+
+人間の思考を再現することを目的としない。
+
+
+一方で、
+
+人間が自然に会話できる理解順序
+
+を採用する。
+
+
+これはAIの能力を制限するためではない。
+
+
+AIが持つ高い自然言語処理能力を活用しながら、
+
+事実の確定、
+
+Knowledgeの取得、
+
+業務判断、
+
+権限判断、
+
+更新実行を、
+
+SHiCIの構造によって制御するためである。
+
+
+SHiCIは、
+
+時間のない現場において、
+
+異なる言語、
+
+異なる表現、
+
+異なる経験を持つ人々が、
+
+それぞれの自然な言葉で利用できなければならない。
+
+
+Understandingは、
+
+ユーザーへ特定の命令形式、
+
+統一された言葉、
+
+統一された表記を要求しない。
+
+
+自然言語の多様性を受け入れ、
+
+その意味を一貫した内部構造へ変換する。
+
+
+-----
+
+
+3. Core Principles
+
+
+3.1 Understanding First
+
+
+すべての処理は、
+
+Understandingから始まる。
+
+
+Knowledge取得は、
+
+Understandingの結果として後続処理が実行する。
+
+
+登録、
+
+更新、
+
+削除、
+
+質問、
+
+相談、
+
+確認、
+
+Communicationも、
+
+Understandingの結果として後続処理へ引き渡される。
+
+
+自然言語を、
+
+後続Engineが個別に再解釈することを標準経路としてはならない。
+
+
+ただし、
+
+移行期間中は、
+
+既存機能を壊さないためのFallbackを許容する。
+
+
+Fallbackは、
+
+新しいUnderstanding Result経路が十分に検証された後、
+
+段階的に削減する。
+
+
+-----
+
+
+3.2 Separation of Responsibility
+
+
+Understandingは、
+
+Knowledgeを知らない。
+
+
+Understandingは、
+
+Entity Resolutionを行わない。
+
+
+Understandingは、
+
+Snapshotを生成しない。
+
+
+Understandingは、
+
+回答生成用のAI Contractを生成しない。
+
+
+Understandingは、
+
+業務上の妥当性を判断しない。
+
+
+Understandingは、
+
+権限を判定しない。
+
+
+Understandingは、
+
+更新案を生成しない。
+
+
+Understandingは、
+
+処理を実行しない。
+
+
+Understandingは、
+
+理解結果のみを返す。
+
+
+-----
+
+
+3.3 Human Conversation
+
+
+SHiCIは、
+
+人間の能力を模倣しない。
+
+
+しかし、
+
+人間が自然に感じる会話の流れを理解する。
+
+
+人間らしく考えることではなく、
+
+人間が違和感なく会話できること
+
+を目的とする。
+
+
+ユーザーは、
+
+完全な文章を入力する必要はない。
+
+
+主語を省略してもよい。
+
+言い直してもよい。
+
+略称を使用してもよい。
+
+前の発話を受けて短く答えてもよい。
+
+
+Understandingは、
+
+自然な会話としてその関係を理解する。
+
+
+ただし、
+
+Conversation ContextがUnderstanding Requestへ与えられていない場合、
+
+存在しない会話情報を推測してはならない。
+
+
+-----
+
+
+3.4 AI Native
+
+
+SHiCIは、
+
+AIの能力を前提として設計される。
+
+
+Understandingは、
+
+AIを制限するためではない。
+
+
+AIが一貫した理解を行うための基盤である。
+
+
+Understandingは、
+
+自然言語理解のためにLLM Interfaceを利用してよい。
+
+
+LLMは、
+
+自然言語の多様性を理解し、
+
+Understanding Resultへ構造化するために利用する。
+
+
+ただし、
+
+LLMをKnowledge Sourceとして利用してはならない。
+
+
+LLMへ、
+
+Knowledgeの検索、
+
+Canonical Entityの確定、
+
+登録情報の存在確認、
+
+現在状態の推測、
+
+不足情報の創作、
+
+業務判断、
+
+権限判断、
+
+回答生成、
+
+更新実行
+
+を委ねてはならない。
+
+
+AI Nativeとは、
+
+AIへすべてを任せることではない。
+
+
+自然言語理解はAIの強みを活かし、
+
+事実の確定と処理の安全性はSHiCIの構造によって保証することである。
+
+
+-----
+
+
+3.5 Context Before Intelligence
+
+
+Understandingは、
+
+LLMの能力だけに依存しない。
+
+
+LLMが一貫した理解を行うために、
+
+必要なContextとSchemaを与える。
+
+
+Contextには、
+
+Understandingの責務、
+
+利用できるCommunication Type、
+
+利用できるIntent、
+
+利用できるKnowledge Boundary、
+
+利用できるEntity Type Hint、
+
+利用できるView、
+
+利用できるField、
+
+利用できるOperation、
+
+出力すべき構造、
+
+推測してはならない事項
+
+を含める。
+
+
+LLMの自由な文章を、
+
+そのままUnderstanding Resultとして扱ってはならない。
+
+
+LLMの出力は、
+
+定義されたSchemaに従う構造として取得し、
+
+コードによる構造検証を通過しなければならない。
+
+
+-----
+
+
+3.6 Language Independent
+
+
+Understandingは、
+
+入力言語に依存しない。
+
+
+ユーザーは、
+
+自分が自然に使用できる言語でSHiCIを利用する。
+
+
+日本語、
+
+英語、
+
+ベトナム語、
+
+タイ語、
+
+その他の言語であっても、
+
+同じ意味は同じUnderstanding Resultとして表現される。
+
+
+Understanding Resultは、
+
+言語非依存の内部構造として生成する。
+
+
+ただし、
+
+ユーザーの原文と入力言語は保持する。
+
+
+後続の応答は、
+
+原則としてユーザーが使用した言語で行う。
+
+
+-----
+
+
+3.7 No Guessing
+
+
+Understandingは、
+
+ユーザーが伝えていない事実を補完しない。
+
+
+文脈から明確に継続できる情報と、
+
+推測しなければ決められない情報を区別する。
+
+
+必要な情報が不足している場合、
+
+不足したままUnderstanding Resultへ表現する。
+
+
+不足情報を隠して、
+
+完全な理解であるかのように扱ってはならない。
+
+
+Knowledge Boundaryを分類できない場合は、
+
+unknownを返す。
+
+
+Entity Resolutionが必要か判断できない場合は、
+
+安全側の明示的な状態として表現し、
+
+後続処理が確認可能な形にする。
+
+
+-----
+
+
+3.8 Canonical Meaning Before Execution
+
+
+Understanding Resultは、
+
+自然言語表現そのものではなく、
+
+後続処理が利用できるCanonical Meaningを表す。
+
+
+同じ意味を持つ異なる表現は、
+
+可能な限り同じ内部値へ正規化する。
+
+
+ただし、
+
+Canonical Meaningは、
+
+Canonical Entityではない。
+
+
+例えば、
+
+mold_temperature
+
+set
+
+celsius
+
+company_knowledge
+
+などは、
+
+意味を統一するための内部表現である。
+
+
+一方、
+
+特定のproductId、
+
+moldId、
+
+conditionIdなどの確定は、
+
+Entity Resolutionまたは後続Engineの責務である。
+
+
+-----
+
+
+4. Understanding Flow
+
+
+Understandingは、
+
+概念上、以下の順序で発話を理解する。
+
+
+User Input
+      │
+      ▼
+Communication
+      │
+      ▼
+Intent
+      │
+      ▼
+Conversation
+      │
+      ▼
+Knowledge Boundary
+      │
+      ▼
+Entity
+      │
+      ▼
+View / Change
+      │
+      ▼
+Resolution Requirement
+      │
+      ▼
+Memory
+      │
+      ▼
+Missing Information
+      │
+      ▼
+Understanding Result
+
+
+この順序は、
+
+実装上の関数実行順を固定するものではない。
+
+
+また、
+
+すべての発話で必ず全Stepを処理することを意味しない。
+
+
+Communicationのみで完結する発話は、
+
+Communicationとして必要な結果を返してよい。
+
+
+必要のない項目は、
+
+null、
+
+none、
+
+unknown、
+
+false、
+
+空配列
+
+など、
+
+Schemaで定義された明示的な値として返す。
+
+
+項目そのものを無秩序に省略してはならない。
+
+
+-----
+
+
+5. Step 1
+Communication
+
+
+Communicationは、
+
+Knowledge取得のための処理ではない。
+
+
+Communicationは、
+
+ユーザーとの自然な対話を維持するための理解である。
+
+
+例
+
+・おはよう
+
+・こんにちは
+
+・ありがとう
+
+・よろしくお願いします
+
+・お疲れさまでした
+
+
+これらはKnowledgeを必要としない。
+
+
+しかし、
+
+SHiCIはパートナーとして自然に応答する。
+
+
+Communicationとして完結する発話では、
+
+原則として次のように理解する。
+
+
+intent.type = communication
+
+knowledgeBoundary.type = communication
+
+resolution.required = false
+
+
+Communication Typeの例
+
+greeting
+
+thanks
+
+acknowledgement
+
+farewell
+
+apology
+
+none
+
+
+Communication Typeは、
+
+回答文章そのものではない。
+
+
+どのように応答するかは、
+
+後続のCommunication Engine、
+
+Response処理、
+
+AI Contractが決定する。
+
+
+-----
+
+
+6. Step 2
+Intent
+
+
+ユーザーは、
+
+何をしたいのか。
+
+
+Intentは、
+
+Knowledgeの取得方法ではなく、
+
+ユーザーの目的を理解する。
+
+
+Intentの例
+
+question
+
+create
+
+update
+
+delete
+
+consult
+
+confirm
+
+communication
+
+unknown
+
+
+Intentは、
+
+後続処理の入口を示す。
+
+
+Intentは、
+
+その処理を実行してよいことを意味しない。
+
+
+updateと理解しても、
+
+更新対象の存在、
+
+現在値、
+
+更新可能性、
+
+権限、
+
+妥当性、
+
+人間による確認
+
+は、
+
+後続処理が判断する。
+
+
+-----
+
+
+7. Step 3
+Conversation
+
+
+Conversationは、
+
+現在の会話との関係を理解する。
+
+
+Conversationは、
+
+Entityを解決しない。
+
+
+Conversationは、
+
+話題の関係だけを表す。
+
+
+Conversation Actionの例
+
+continue
+
+change
+
+new
+
+
+continue
+
+現在の話題を継続する。
+
+
+change
+
+別の話題へ移る。
+
+
+new
+
+新しい話題または独立した発話として扱う。
+
+
+Version 2.0では、
+
+Conversation StateそのものがUnderstanding Requestへ十分に与えられていない場合、
+
+conversation.actionを過度に推測してはならない。
+
+
+現時点の標準は、
+
+独立した発話として安全に扱える場合、
+
+newを返す。
+
+
+Conversation Stateとの正式な接続は、
+
+Conversation State ModelおよびUnderstanding Request Contractの拡張に従って段階的に行う。
+
+
+-----
+
+
+8. Step 4
+Knowledge Boundary
+
+
+Knowledge Boundaryは、
+
+この発話を後続処理がどの根拠経路で扱う必要があるかを表す。
+
+
+Knowledge Boundaryは、
+
+Knowledgeそのものではない。
+
+
+Knowledge Boundaryは、
+
+回答内容を生成しない。
+
+
+Knowledge Boundaryは、
+
+登録情報の存在を保証しない。
+
+
+knowledgeBoundary.typeの許可値は、
+
+次のとおりとする。
+
+
+communication
+
+company_knowledge
+
+general_knowledge
+
+derived_knowledge
+
+unknown
+
+
+communication
+
+挨拶、
+
+感謝、
+
+相づちなど、
+
+Knowledge取得を必要としない自然な会話。
+
+
+company_knowledge
+
+SHiCI内部に登録されたKnowledgeを必要とする発話。
+
+
+general_knowledge
+
+SHiCI内部の登録Knowledgeではなく、
+
+一般的な知識を必要とする発話。
+
+
+derived_knowledge
+
+登録されたKnowledgeを根拠として、
+
+再現可能な計算または導出を必要とする発話。
+
+
+unknown
+
+必要なKnowledge経路を安全に特定できない発話。
+
+
+例
+
+
+「ワンワンの型温は？」
+
+knowledgeBoundary.type = company_knowledge
+
+
+この分類は、
+
+ワンワンという製品が登録されていることを意味しない。
+
+
+「POMの一般的な特徴は？」
+
+knowledgeBoundary.type = general_knowledge
+
+
+ただし、
+
+会話Contextにより社内材料マスターのPOMを指していることが明確な場合は、
+
+company_knowledgeとなる可能性がある。
+
+
+「シムスプロケットを17000個作るために必要な材料量は？」
+
+登録された製品重量、
+
+ショット重量、
+
+取数等を根拠に計算する場合、
+
+knowledgeBoundary.type = derived_knowledge
+
+
+「ありがとう」
+
+knowledgeBoundary.type = communication
+
+
+Knowledge Boundaryの最終的な経路制御は、
+
+Understanding Resultを受け取る後続処理が行う。
+
+
+移行期間中は、
+
+KnowledgeBoundaryEngineによるFallback判定を許容する。
+
+
+-----
+
+
+9. Step 5
+Entity
+
+
+Entityは、
+
+ユーザーが何について話しているのかを表す。
+
+
+Understandingでは、
+
+Entity IDへの変換を行わない。
+
+
+Entity Resolutionが、
+
+後続処理として実施される。
+
+
+例
+
+ワンワン
+
+MC163
+
+Cover Tail
+
+BNO-74
+
+
+Understanding Resultに含まれるEntityは、
+
+Canonical Entityではない。
+
+
+ユーザーが発話の中で使用した、
+
+Entityを表す自然言語上の表現である。
+
+
+entity.queryは、
+
+対象Entityを検索するための自然言語表現を保持する。
+
+
+例
+
+
+入力
+
+「ワンワンの型温は？」
+
+
+entity.query
+
+「ワンワン」
+
+
+entity.queryへ、
+
+質問対象のViewを混入させない。
+
+
+不適切な例
+
+「ワンワンの型温」
+
+「ワンワンの型温は」
+
+
+Understandingは、
+
+Entityの種類を推定できる場合、
+
+Entity Type Hintを返してよい。
+
+
+Entity Type Hintの例
+
+product
+
+material
+
+mold
+
+machine
+
+condition
+
+trouble
+
+unknown
+
+
+ただし、
+
+Entity Type Hintは確定結果ではない。
+
+
+Canonical Entityの確定は、
+
+必ずEntity Resolutionが行う。
+
+
+-----
+
+
+10. Step 6
+View
+
+
+Viewは、
+
+ユーザーが何を見たいのかを表す。
+
+
+例
+
+material
+
+drying_condition
+
+mold_temperature
+
+cavity_count
+
+gate
+
+machine
+
+product_weight
+
+shot_weight
+
+cycle_time
+
+drawing_number
+
+trouble_history
+
+
+Viewは、
+
+Knowledgeの構造そのものではない。
+
+
+Viewは、
+
+ユーザーが知りたい情報または見たい切り口を表す。
+
+
+Viewは、
+
+主として質問、
+
+相談、
+
+確認における視点を表す。
+
+
+例
+
+
+「ワンワンの型温は？」
+
+view.name = mold_temperature
+
+
+「GX-F8の材料は？」
+
+view.name = material
+
+
+「TEST-001のトラブル履歴を教えて」
+
+view.name = trouble_history
+
+
+Viewの正式な解決、
+
+許可値の管理、
+
+表示項目の決定は、
+
+後続のView ResolutionおよびView Specificationが行う。
+
+
+Version 2.0では、
+
+Understanding Resultがview.nameを返す。
+
+
+ただし、
+
+既存のViewResolutionEngineは直ちに廃止しない。
+
+
+十分な単独テストと本番確認を行い、
+
+Fallback付きで段階的に接続する。
+
+
+-----
+
+
+11. Step 7
+Change
+
+
+Changeは、
+
+登録、
+
+更新、
+
+削除など、
+
+ユーザーがSHiCI内の状態へ働きかけようとする意図を構造化する。
+
+
+Changeは、
+
+少なくとも次の要素によって表現される。
+
+
+Field
+
+何を変更しようとしているのか。
+
+
+Operation
+
+どのような変更を行おうとしているのか。
+
+
+Value
+
+ユーザーが指定した値は何か。
+
+
+Unit
+
+値に単位がある場合、その意味は何か。
+
+
+例
+
+
+「ワンワンの型温を61℃に変更して」
+
+
+Field
+
+mold_temperature
+
+
+Operation
+
+set
+
+
+Value
+
+61
+
+
+Unit
+
+celsius
+
+
+Changeは、
+
+ユーザーが伝えた変更意図を理解する。
+
+
+Changeは、
+
+その変更が可能かを判断しない。
+
+
+Changeは、
+
+現在値を取得しない。
+
+
+Changeは、
+
+変更後の状態を確定しない。
+
+
+Changeは、
+
+更新案を生成しない。
+
+
+Changeは、
+
+更新を実行しない。
+
+
+変更可能性、
+
+現在状態、
+
+整合性、
+
+権限、
+
+確定、
+
+実行は、
+
+後続Engineの責務である。
+
+
+同じ意味を持つ自然言語表現は、
+
+同じChangeとして構造化する。
+
+
+例
+
+
+「型温を61℃にして」
+
+「型温61で」
+
+「Set the mold temperature to 61 degrees.」
+
+「Đổi nhiệt độ khuôn thành 61 độ.」
+
+
+これらは、
+
+言語や表現が異なっても、
+
+同じChangeとして理解される。
+
+
+質問やCommunicationなど、
+
+変更を伴わない発話では、
+
+changeの各項目をnullで返す。
+
+
+-----
+
+
+12. Step 8
+Resolution Requirement
+
+
+resolution.requiredは、
+
+この発話を処理するために、
+
+Canonical Entityの特定が必要かを表す。
+
+
+resolution.requiredは、
+
+Entityを確定しない。
+
+
+resolution.requiredは、
+
+Entityが登録されていることを保証しない。
+
+
+resolution.required = true
+
+後続処理がEntity Resolutionを必要とする。
+
+
+resolution.required = false
+
+発話を処理するためにEntity Resolutionを必要としない。
+
+
+例
+
+
+「ワンワンの型温は？」
+
+resolution.required = true
+
+
+「ワンワンの型温を61℃にして」
+
+resolution.required = true
+
+
+「六角形は化学構造として安定していますか？」
+
+resolution.required = false
+
+
+「ありがとう」
+
+resolution.required = false
+
+
+原則として、
+
+company_knowledgeで特定の対象を参照する場合は、
+
+resolution.required = trueとなる。
+
+
+general_knowledgeまたはcommunicationで、
+
+社内Entityの特定を必要としない場合は、
+
+resolution.required = falseとなる。
+
+
+derived_knowledgeでは、
+
+計算根拠となる登録Entityを必要とする場合、
+
+resolution.required = trueとなる。
+
+
+Entity Queryが存在しても、
+
+必ずしもEntity Resolutionが必要とは限らない。
+
+
+また、
+
+Entity Queryが省略されていても、
+
+Conversation State上のcurrentEntityを必要とする場合は、
+
+将来的にresolution.required = trueとなり得る。
+
+
+ただし、
+
+Version 2.0の初期実装では、
+
+Conversation StateがUnderstanding Requestへ与えられていない場合、
+
+currentEntityの存在を推測してはならない。
+
+
+-----
+
+
+13. Step 9
+Memory
+
+
+Memoryは、
+
+Knowledgeそのものではない。
+
+
+Memoryは、
+
+今回の会話において、
+
+どの範囲のKnowledgeを前面へ展開するべきかを表すための概念である。
+
+
+現時点では、
+
+Memoryの詳細実装は定義しない。
+
+
+Understandingは、
+
+Memory Decisionを返す。
+
+
+memory.decisionの初期許可値は、
+
+none
+
+とする。
+
+
+Memoryの階層構造、
+
+保存期間、
+
+取得規則、
+
+Conversation Stateとの関係は、
+
+今後の設計に委ねる。
+
+
+Memory Decisionは、
+
+Knowledgeを保存または変更する指示ではない。
+
+
+-----
+
+
+14. Step 10
+Missing Information
+
+
+Understandingは、
+
+意図を後続処理へ引き渡すために必要な情報が不足している場合、
+
+その不足を明示する。
+
+
+例
+
+
+「型温を変更して」
+
+
+この発話では、
+
+変更後の値が指定されていない。
+
+
+Understandingは、
+
+値を推測しない。
+
+
+missingFieldsには、
+
+change.value
+
+を含める。
+
+
+例
+
+
+「61℃に変更して」
+
+
+会話上の対象Entityが明確でなく、
+
+Conversation Stateも与えられていない場合、
+
+対象Entityが不足している。
+
+
+Understandingは、
+
+対象を推測して確定しない。
+
+
+missingFieldsには、
+
+entity.query
+
+を含める。
+
+
+不足情報は、
+
+missingFieldsとして返す。
+
+
+missingFieldsは、
+
+後続処理がユーザーへ確認するための根拠となる。
+
+
+Understandingは、
+
+確認質問そのものを生成しない。
+
+
+どのように確認するかは、
+
+後続のResponse処理が決定する。
+
+
+-----
+
+
+15. Understanding Result Contract
+
+
+Understandingは、
+
+Knowledgeを返さない。
+
+
+理解結果のみを返す。
+
+
+Understanding Resultは、
+
+後続Engineとの間で受け渡されるContractである。
+
+
+Understanding Resultは、
+
+定義されたSchemaに従わなければならない。
+
+
+Version 2.0の標準構造は、
+
+次のとおりとする。
+
+
+{
+  schemaVersion: "2.0",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "",
+    language: "unknown"
+  },
+
+  communication: {
+    type: "none"
+  },
+
+  intent: {
+    type: "unknown"
+  },
+
+  knowledgeBoundary: {
+    type: "unknown"
+  },
+
+  conversation: {
+    action: "new"
+  },
+
+  entity: {
+    query: null,
+    entityTypeHint: "unknown"
+  },
+
+  view: {
+    name: null
+  },
+
+  resolution: {
+    required: false
+  },
+
+  change: {
+    field: null,
+    operation: null,
+    value: null,
+    unit: null
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+
+schemaVersionは、
+
+Understanding ResultのSchema Versionを表す。
+
+
+resultTypeは、
+
+このContractがUnderstanding Resultであることを表す。
+
+
+input.originalTextは、
+
+ユーザーが入力した原文を保持する。
+
+
+input.languageは、
+
+ユーザーが使用した言語を表す。
+
+
+communicationは、
+
+Communicationとしての理解結果を表す。
+
+
+intentは、
+
+ユーザーの目的を表す。
+
+
+knowledgeBoundaryは、
+
+後続処理が利用すべきKnowledge経路の分類を表す。
+
+
+knowledgeBoundaryは、
+
+Knowledge取得結果ではない。
+
+
+conversationは、
+
+現在の会話との関係を表す。
+
+
+entity.queryは、
+
+ユーザーが使用したEntity表現を保持する。
+
+
+entity.entityTypeHintは、
+
+Entity Resolutionを補助するための種類の候補であり、
+
+Canonical Entityの確定ではない。
+
+
+viewは、
+
+ユーザーが見ようとしている視点を表す。
+
+
+resolution.requiredは、
+
+後続処理でEntity Resolutionが必要かを表す。
+
+
+resolution.requiredは、
+
+Entity Resolutionの結果ではない。
+
+
+changeは、
+
+ユーザーが伝えた変更意図を表す。
+
+
+missingFieldsは、
+
+後続処理に必要であるにもかかわらず、
+
+理解結果に不足している項目を表す。
+
+
+memoryは、
+
+今回の会話におけるMemory Decisionを表す。
+
+
+利用しない項目は、
+
+Schemaで定義されたnull、
+
+none、
+
+unknown、
+
+false、
+
+空配列などの明示的な値で表現する。
+
+
+項目そのものを無秩序に省略してはならない。
+
+
+-----
+
+
+16. Representative Results
+
+
+16.1 Company Knowledge Question
+
+
+入力
+
+
+ワンワンの型温は？
+
+
+期待されるUnderstanding Result
+
+
+{
+  schemaVersion: "2.0",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "ワンワンの型温は？",
+    language: "ja"
+  },
+
+  communication: {
+    type: "none"
+  },
+
+  intent: {
+    type: "question"
+  },
+
+  knowledgeBoundary: {
+    type: "company_knowledge"
+  },
+
+  conversation: {
+    action: "new"
+  },
+
+  entity: {
+    query: "ワンワン",
+    entityTypeHint: "product"
+  },
+
+  view: {
+    name: "mold_temperature"
+  },
+
+  resolution: {
+    required: true
+  },
+
+  change: {
+    field: null,
+    operation: null,
+    value: null,
+    unit: null
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+
+-----
+
+
+16.2 Update
+
+
+入力
+
+
+ワンワンの型温を61℃にして
+
+
+期待されるUnderstanding Result
+
+
+{
+  schemaVersion: "2.0",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "ワンワンの型温を61℃にして",
+    language: "ja"
+  },
+
+  communication: {
+    type: "none"
+  },
+
+  intent: {
+    type: "update"
+  },
+
+  knowledgeBoundary: {
+    type: "company_knowledge"
+  },
+
+  conversation: {
+    action: "new"
+  },
+
+  entity: {
+    query: "ワンワン",
+    entityTypeHint: "product"
+  },
+
+  view: {
+    name: "mold_temperature"
+  },
+
+  resolution: {
+    required: true
+  },
+
+  change: {
+    field: "mold_temperature",
+    operation: "set",
+    value: 61,
+    unit: "celsius"
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+
+-----
+
+
+16.3 General Knowledge
+
+
+入力
+
+
+六角形は化学構造として安定していますか？
+
+
+期待されるUnderstanding Result
+
+
+{
+  schemaVersion: "2.0",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "六角形は化学構造として安定していますか？",
+    language: "ja"
+  },
+
+  communication: {
+    type: "none"
+  },
+
+  intent: {
+    type: "question"
+  },
+
+  knowledgeBoundary: {
+    type: "general_knowledge"
+  },
+
+  conversation: {
+    action: "new"
+  },
+
+  entity: {
+    query: null,
+    entityTypeHint: "unknown"
+  },
+
+  view: {
+    name: null
+  },
+
+  resolution: {
+    required: false
+  },
+
+  change: {
+    field: null,
+    operation: null,
+    value: null,
+    unit: null
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+
+-----
+
+
+16.4 Communication
+
+
+入力
+
+
+ありがとう
+
+
+期待されるUnderstanding Result
+
+
+{
+  schemaVersion: "2.0",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "ありがとう",
+    language: "ja"
+  },
+
+  communication: {
+    type: "thanks"
+  },
+
+  intent: {
+    type: "communication"
+  },
+
+  knowledgeBoundary: {
+    type: "communication"
+  },
+
+  conversation: {
+    action: "continue"
+  },
+
+  entity: {
+    query: null,
+    entityTypeHint: "unknown"
+  },
+
+  view: {
+    name: null
+  },
+
+  resolution: {
+    required: false
+  },
+
+  change: {
+    field: null,
+    operation: null,
+    value: null,
+    unit: null
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+
+-----
+
+
+16.5 Derived Knowledge
+
+
+入力
+
+
+シムスプロケットを17000個作るのに材料は何kg必要？
+
+
+期待されるUnderstanding Result
+
+
+{
+  schemaVersion: "2.0",
+
+  resultType: "understanding_result",
+
+  input: {
+    originalText: "シムスプロケットを17000個作るのに材料は何kg必要？",
+    language: "ja"
+  },
+
+  communication: {
+    type: "none"
+  },
+
+  intent: {
+    type: "question"
+  },
+
+  knowledgeBoundary: {
+    type: "derived_knowledge"
+  },
+
+  conversation: {
+    action: "new"
+  },
+
+  entity: {
+    query: "シムスプロケット",
+    entityTypeHint: "product"
+  },
+
+  view: {
+    name: null
+  },
+
+  resolution: {
+    required: true
+  },
+
+  change: {
+    field: null,
+    operation: null,
+    value: null,
+    unit: null
+  },
+
+  missingFields: [],
+
+  memory: {
+    decision: "none"
+  }
+}
+
+
+Understandingは、
+
+必要数量17000個を理解結果へ保持するための正式な構造がまだ存在しない場合、
+
+その値を既存Fieldへ無理に格納してはならない。
+
+
+必要に応じて、
+
+将来のUnderstanding Result Contractで、
+
+parametersまたはconstraintsを正式化する。
+
+
+-----
+
+
+17. LLM and Validation
+
+
+UnderstandingにおけるLLMは、
+
+自然言語をUnderstanding Resultへ変換するための実装手段である。
+
+
+LLMの出力は、
+
+Knowledgeではない。
+
+
+LLMの出力は、
+
+事実の確定結果ではない。
+
+
+LLMの出力は、
+
+処理の実行許可ではない。
+
+
+LLMの出力は、
+
+必ずSchema Validationを通過しなければならない。
+
+
+Validationは、
+
+少なくとも次を確認する。
+
+
+・必須項目が存在すること
+
+・schemaVersionが2.0であること
+
+・resultTypeがunderstanding_resultであること
+
+・定義された型であること
+
+・許可された値だけが使用されていること
+
+・knowledgeBoundary.typeが許可値であること
+
+・resolution.requiredがbooleanであること
+
+・数値項目が数値であること
+
+・変更を伴わない発話ではchangeへ不正な値が混入していないこと
+
+・未指定情報がmissingFieldsへ表現されていること
+
+・自由な文章が業務処理用の値として混入していないこと
+
+
+Validationは、
+
+業務上の事実を確認するものではない。
+
+
+Entityの実在確認、
+
+現在値の確認、
+
+関係性の確認、
+
+業務ルールの確認、
+
+Knowledge Boundaryに対応する実データの有無
+
+は、
+
+後続Engineが行う。
+
+
+Validationに失敗したUnderstanding Resultを、
+
+後続処理へ渡してはならない。
+
+
+Version 1.1のUnderstanding Resultを、
+
+暗黙にVersion 2.0として扱ってはならない。
+
+
+互換処理が必要な場合は、
+
+明示的なAdapterまたはMigration Ruleを定義する。
+
+
+-----
+
+
+18. Consistency Rules
+
+
+18.1 Communication Consistency
+
+
+intent.type = communicationの場合、
+
+knowledgeBoundary.typeは原則としてcommunicationとする。
+
+
+resolution.requiredは原則としてfalseとする。
+
+
+entity.query、
+
+view.name、
+
+changeは、
+
+発話上必要でない限り空の明示値とする。
+
+
+-----
+
+
+18.2 Company Knowledge Consistency
+
+
+knowledgeBoundary.type = company_knowledgeで、
+
+特定のEntityについて質問または更新する場合、
+
+resolution.requiredは原則としてtrueとする。
+
+
+ただし、
+
+Canonical EntityをUnderstanding Resultへ格納してはならない。
+
+
+-----
+
+
+18.3 General Knowledge Consistency
+
+
+knowledgeBoundary.type = general_knowledgeで、
+
+社内Entityの特定が不要な場合、
+
+resolution.requiredはfalseとする。
+
+
+一般用語を、
+
+SHiCI内部Entityとして推測してはならない。
+
+
+-----
+
+
+18.4 Derived Knowledge Consistency
+
+
+knowledgeBoundary.type = derived_knowledgeで、
+
+登録Knowledgeを起点とする場合、
+
+resolution.requiredは原則としてtrueとする。
+
+
+計算そのものをUnderstandingで実行してはならない。
+
+
+計算式、
+
+元データ、
+
+丸め規則、
+
+単位変換は、
+
+後続のDerived Knowledge処理が担当する。
+
+
+-----
+
+
+18.5 Update Consistency
+
+
+intent.type = updateの場合、
+
+対象Entity、
+
+変更Field、
+
+Operation、
+
+Value、
+
+Unitについて、
+
+ユーザーが伝えた内容を構造化する。
+
+
+必要な値が不足する場合は、
+
+missingFieldsへ明示する。
+
+
+Understandingは、
+
+既存値と比較しない。
+
+
+同じ値かどうかを判断しない。
+
+
+更新可能性を判断しない。
+
+
+-----
+
+
+19. Relationship with Other Models
+
+
+Understandingと他のModelは、
+
+次の責務境界を持つ。
+
+
+Understanding
+
+
+ユーザーの自然言語を理解し、
+
+Understanding Resultを返す。
+
+
+Understanding Request Contract
+
+
+自然言語、
+
+利用可能なSchema、
+
+許可値、
+
+必要なContext、
+
+Policyを、
+
+Provider非依存の形式でUnderstandingへ渡す。
+
+
+Conversation State
+
+
+現在の会話におけるEntity、
+
+View、
+
+候補など、
+
+必要最小限の認知状態を保持する。
+
+
+Version 2.0初期段階では、
+
+Conversation StateがUnderstanding Requestへ完全には接続されていない。
+
+
+そのため、
+
+Understandingは存在しない会話状態を推測しない。
+
+
+Knowledge Boundary Model
+
+
+Knowledge Sourceの区別と、
+
+各Boundaryの意味を定義する。
+
+
+Understandingは、
+
+どのBoundaryが必要かを分類する。
+
+
+Knowledge Boundary Engineまたは後続Orchestratorは、
+
+Understanding Resultに基づき処理経路を選択する。
+
+
+Entity Resolution
+
+
+entity.queryをCanonical Entityへ解決する。
+
+
+Understandingは、
+
+その結果を先に決めない。
+
+
+resolution.requiredは、
+
+Entity Resolutionが必要かを示すだけである。
+
+
+View Resolution
+
+
+view.nameを正式なViewへ解決する。
+
+
+Understandingは、
+
+ユーザーが求めるViewの候補を返す。
+
+
+View Resolutionは、
+
+正式なView名、
+
+許可値、
+
+表示仕様との対応を確認する。
+
+
+Snapshot
+
+
+確定したEntityについて、
+
+その時点の状態と必要なRelationを構成する。
+
+
+Understandingは、
+
+Snapshotを生成しない。
+
+
+Update Processing
+
+
+確定したEntity、
+
+現在のSnapshot、
+
+権限、
+
+業務ルールを用いて、
+
+変更案を検証し、
+
+人間の確認を経て、
+
+Eventと新しいSnapshotを生成する。
+
+
+Understandingは、
+
+更新を実行しない。
+
+
+Response Specification
+
+
+Understanding Resultおよび後続処理の結果から、
+
+どのように応答するかを決定する。
+
+
+Understandingは、
+
+最終回答を生成しない。
+
+
+AI Contract
+
+
+必要なContextをAIへ渡すためのContractを構成する。
+
+
+Understanding Resultと、
+
+回答生成用のAI Contractは同一ではない。
+
+
+LLM Interface
+
+
+Understanding Request ContractをProviderへ委譲し、
+
+Providerから得た構造化結果をUnderstanding Resultとして返す。
+
+
+LLM Interfaceは、
+
+Knowledge Boundaryの業務上の意味を独自判断しない。
+
+
+Provider Adapter
+
+
+Provider固有のRequest形式、
+
+JSON Schema、
+
+Response解析、
+
+技術的エラーの正規化を担当する。
+
+
+Provider Adapterは、
+
+Knowledgeを検索しない。
+
+
+Provider Adapterは、
+
+Canonical Entityを確定しない。
+
+
+-----
+
+
+20. Migration Policy from Version 1.1
+
+
+Version 2.0では、
+
+Version 1.1の構造へ、
+
+次を追加する。
+
+
+knowledgeBoundary: {
+  type: "unknown"
+}
+
+
+resolution: {
+  required: false
+}
+
+
+Version 1.1から維持する項目は、
+
+次のとおりである。
+
+
+input
+
+communication
+
+intent
+
+conversation
+
+entity
+
+view
+
+change
+
+missingFields
+
+memory
+
+
+Version 2.0への移行は、
+
+次の順序で行う。
+
+
+1. Understanding Model文書をVersion 2.0へ更新する。
+
+2. Understanding Request Contractへ許可値とPolicyを追加する。
+
+3. Understanding Result ContractをVersion 2.0へ変更する。
+
+4. Provider AdapterのJSON SchemaをVersion 2.0へ変更する。
+
+5. Understanding PromptをVersion 2.0へ変更する。
+
+6. Version 2.0単独テストを行う。
+
+7. 既存Updateテストを再実行する。
+
+8. 既存Questionテストを再実行する。
+
+9. 本番経路へ段階的に接続する。
+
+
+移行中は、
+
+KnowledgeBoundaryEngine、
+
+ViewResolutionEngine、
+
+既存Entity Resolution、
+
+Snapshot Engine、
+
+Response Specification
+
+を直ちに廃止または全面変更しない。
+
+
+新しいUnderstanding Resultの項目を単独で検証し、
+
+Fallback付きで一項目ずつ接続する。
+
+
+一度に既存処理を全面置換してはならない。
+
+
+-----
+
+
+21. Prohibited Behaviors
+
+
+Understandingは、
+
+次を行ってはならない。
+
+
+・Spreadsheetを検索する
+
+・Databaseへアクセスする
+
+・登録Entityの存在を断定する
+
+・Canonical Entity IDを生成する
+
+・存在しないEntityを創作する
+
+・Snapshotを構築する
+
+・現在値を取得する
+
+・一般知識を社内仕様として補完する
+
+・社内Knowledgeを一般知識で補完する
+
+・業務上の正否を判断する
+
+・権限を判断する
+
+・更新案を生成する
+
+・更新を確定する
+
+・データを変更する
+
+・回答文章を生成する
+
+・確認質問の文章を生成する
+
+・未入力値を推測する
+
+・自由文章を未定義Fieldへ格納する
+
+
+knowledgeBoundary.type = company_knowledgeは、
+
+社内Knowledgeが存在することを保証しない。
+
+
+knowledgeBoundary.type = general_knowledgeは、
+
+一般知識による回答が常に安全であることを保証しない。
+
+
+resolution.required = trueは、
+
+Entityが解決できることを保証しない。
+
+
+view.nameは、
+
+正式なView Specificationの確定を意味しない。
+
+
+entityTypeHintは、
+
+Entity Typeの確定を意味しない。
+
+
+-----
+
+
+22. Relationship
+
+
+SHiCIは、
+
+Knowledge Systemである。
+
+
+しかし、
+
+Knowledge Systemである前に、
+
+ユーザーの仕事を共に行うパートナー
+
+である。
+
+
+Communicationは、
+
+その関係を維持するために存在する。
+
+
+Communicationは、
+
+業務処理とは独立した、
+
+Understandingの最初の責務である。
+
+
+SHiCIは、
+
+ユーザーの言葉をSystemの都合へ合わせさせるのではない。
+
+
+ユーザーの自然な言葉を受け入れ、
+
+その意味をSHiCIの構造へ接続する。
+
+
+Understanding Result Version 2.0は、
+
+自然言語の意味を、
+
+後続処理が再利用できる一つのContractへ集約する。
+
+
+これにより、
+
+Knowledge Boundary、
+
+Entity Query、
+
+View、
+
+Change、
+
+Entity Resolutionの要否を、
+
+後続Engineが自然言語から個別に再推定する状態を段階的に解消する。
+
+
+-----
+
+
+23. Final Definition
+
+
+SHiCI Understanding Modelとは、
+
+ユーザーの発話を、
+
+人間が自然に感じる理解順序で解釈し、
+
+言語や表現の違いを越えて、
+
+その意味を言語非依存のUnderstanding Resultへ構造化し、
+
+後続Engineへ引き渡すための認知モデルである。
+
+
+Version 2.0では、
+
+Understanding Resultは、
+
+Intent、
+
+Communication、
+
+Conversation、
+
+Knowledge Boundary、
+
+Entity Query、
+
+Entity Type Hint、
+
+View、
+
+Change、
+
+Entity Resolutionの要否、
+
+Memory Decision、
+
+Missing Information
+
+を明示的に保持する。
+
+
+Understandingは、
+
+Knowledgeを検索しない。
+
+
+Canonical Entityを確定しない。
+
+
+業務上の事実を創作しない。
+
+
+Knowledge Boundaryに対応する情報の存在を保証しない。
+
+
+業務判断を確定しない。
+
+
+処理を実行しない。
+
+
+Understandingは、
+
+AIの能力を制限するものではない。
+
+
+自然言語理解というAIの強みを活かしながら、
+
+その出力をSHiCIの構造とContractによって制御し、
+
+人間との自然な対話と、
+
+安全で一貫した後続処理を両立するための基盤として存在する。
+
+
+-----

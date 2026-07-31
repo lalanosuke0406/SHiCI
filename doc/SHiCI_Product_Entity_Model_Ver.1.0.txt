@@ -1,0 +1,1058 @@
+SHiCI Product Entity Model
+
+Version 1.0
+
+
+--------------------------------------------------
+0. Purpose
+--------------------------------------------------
+
+SHiCI Product Entity Modelは、
+
+SHiCIがProductを
+どのような存在として理解するかを定義する。
+
+
+このModelは、
+製品マスターの列構成を定義するものではない。
+
+
+Product Entityを中心として、
+
+Identity、
+Attribute、
+Relation、
+Snapshot、
+State、
+Event、
+Knowledge
+
+がどのように結び付くかを定義する。
+
+
+--------------------------------------------------
+1. Product Entity
+--------------------------------------------------
+
+Productは、
+
+伸幸ファインテクノが製造、
+管理、
+参照する製品を表すCore Entityである。
+
+
+Productは、
+材料、
+金型、
+成形機、
+成形条件、
+部品、
+工程、
+トラブルなどを結び付ける、
+
+現在のSHiCI世界における
+中心的なEntityである。
+
+
+Productは、
+製品マスターの1行そのものではない。
+
+
+製品マスターの1行は、
+
+Product EntityのIdentity、
+Attribute、
+Relation、
+現在Snapshotへの参照
+
+を現在のStorage形式で保存したものである。
+
+
+--------------------------------------------------
+2. Continuity
+--------------------------------------------------
+
+Productは、
+製品名、
+図番、
+材料、
+金型、
+成形機、
+標準条件などが変更されても、
+
+同一のProduct Entityとして
+継続する場合がある。
+
+
+Productの同一性を保持する
+Canonical Identityは、
+
+productId
+
+である。
+
+
+製品名や図番の変更によって、
+新しいProduct Entityを自動的に生成してはならない。
+
+
+同一EntityのIdentity変更なのか、
+別製品Entityの新規生成なのかは、
+
+人間による確認を必要とする。
+
+
+--------------------------------------------------
+3. Identity
+--------------------------------------------------
+
+ProductのIdentityは、
+次の情報から構成される。
+
+
+3.1 Canonical Identity
+
+・productId
+
+
+productIdは、
+SHiCI内部でProduct Entityを
+一意に識別する不変のIdentityである。
+
+
+productIdは、
+通常のMutationによって変更しない。
+
+
+3.2 Business Identity
+
+・drawingNumber
+・productName
+
+
+drawingNumberは、
+業務上Productを識別する主要な情報である。
+
+
+productNameは、
+人間がProductを認識するための
+正式名称である。
+
+
+drawingNumberおよびproductNameは、
+変更される可能性がある。
+
+
+その変更は、
+Product Entityの消滅や再生成ではなく、
+
+同一Entityに対する
+Change Identityとして扱う。
+
+
+3.3 Expression / Alias
+
+・正式製品名
+・図番
+・通称
+・略称
+・旧名称
+・現場で使用される呼称
+・多言語表記
+
+
+Aliasは、
+Product Entityを検索、
+理解、
+Resolutionするための表現である。
+
+
+Aliasは、
+Product Entityそのものとは異なる。
+
+
+現在のStorageでは、
+一部のAliasが注意点や
+Knowledge_EntityResolutionに保存されている。
+
+
+将来的には、
+Aliasを独立したIdentity Expressionとして
+管理できる構造を持つ。
+
+
+--------------------------------------------------
+4. Attribute
+--------------------------------------------------
+
+Productが持つAttributeは、
+
+Productそのものに比較的持続して属する性質である。
+
+
+現在のProduct Storageには、
+次の候補が存在する。
+
+
+・productWeight
+・shotWeight
+・shotTime
+・robotUse
+・standardYield
+・notes
+
+
+ただし、
+Storage上でProductの列に存在することだけを理由に、
+
+すべてをProduct固有Attributeとは確定しない。
+
+
+4.1 Product Weight
+
+productWeightは、
+Product一個当たりの基準重量を表す。
+
+
+製品形状に直接由来するため、
+Product Attributeとして扱う。
+
+
+ただし、
+測定結果や条件ごとの差異を管理する場合は、
+
+測定EventまたはSnapshot上の値と
+区別しなければならない。
+
+
+4.2 Shot Weight
+
+shotWeightは、
+製品単体ではなく、
+
+取数、
+ランナー、
+使用金型、
+成形条件
+
+に依存する可能性がある。
+
+
+したがって、
+Product固有Attributeとして固定せず、
+
+将来的にはCondition Snapshotまたは
+Molding Configurationに属する値として
+扱う可能性を持つ。
+
+
+現在は、
+既存Storageとの互換性のため、
+Productから参照可能なCurrent Attributeとして扱う。
+
+
+4.3 Shot Time
+
+shotTimeは、
+Productそのものの性質ではなく、
+
+成形条件、
+使用設備、
+取出方法、
+工程構成
+
+によって変化しうる。
+
+
+したがって、
+将来的にはCondition Snapshotまたは
+Production Standardに属するStateとして扱う。
+
+
+現在は、
+既存Storageとの互換性のため、
+Productから参照可能なCurrent Attributeとして扱う。
+
+
+4.4 Robot Use
+
+robotUseは、
+Product固有の性質ではなく、
+
+生産方法またはProduction Configurationに属する。
+
+
+現在は、
+Productから参照される標準生産設定として扱う。
+
+
+4.5 Standard Yield
+
+standardYieldは、
+Productの物理的性質ではなく、
+
+標準生産状態に関する指標である。
+
+
+将来的には、
+Production Standardまたは
+Condition Snapshotに属するStateとして扱う。
+
+
+4.6 Notes
+
+notesは、
+一つの意味を持つ単純Attributeではない。
+
+
+現在の注意点には、
+
+・製造上の注意
+・通称
+・識別情報
+・品質上の注意
+・現場Knowledge
+
+が混在する可能性がある。
+
+
+SHiCIは、
+notesを無条件に一つのAttributeとして理解しない。
+
+
+内容に応じて、
+
+・Alias
+・Knowledge
+・Caution
+・Instruction
+・Evidence
+
+へ分類する。
+
+
+現在のStorageでは、
+互換性のためnotesとして保持する。
+
+
+--------------------------------------------------
+5. Relation
+--------------------------------------------------
+
+Productは、
+他のEntityとRelationを持つ。
+
+
+現在の基本Relationは、
+次のとおりである。
+
+
+5.1 Product uses Material
+
+Product
+    ── uses_material ──>
+Material
+
+
+現在のStorage表現：
+
+materialId
+
+
+materialIdはProductのAttributeではない。
+
+
+Product Entityと
+Material Entityの間に成立するRelationである。
+
+
+材料を変更する操作は、
+
+Productのセルを書き換える操作ではなく、
+
+現在のuses_material Relationを変更する
+Change Relationである。
+
+
+5.2 Product uses Mold
+
+Product
+    ── uses_mold ──>
+Mold
+
+
+現在のStorage表現：
+
+moldId
+
+
+moldIdはProductのAttributeではない。
+
+
+金型変更では、
+旧Relationと新Relationの履歴を保持する。
+
+
+5.3 Product molded by Machine
+
+Product
+    ── molded_by ──>
+Machine
+
+
+現在のStorage表現：
+
+machineId
+
+
+machineIdはProductのAttributeではない。
+
+
+標準成形機の変更は、
+Change Relationとして理解する。
+
+
+実際の生産時に使用したMachineは、
+将来Production Eventまたは
+Production Resultに記録する。
+
+
+5.4 Product has Current Standard Condition
+
+Product
+    ── has_current_standard_condition ──>
+Condition
+
+
+現在のStorage表現：
+
+currentStandardConditionId
+
+
+これは、
+Productが現在採用している
+Condition Snapshotを指すRelationである。
+
+
+ConditionそのものをProduct内部へ
+埋め込んではならない。
+
+
+標準条件の変更では、
+
+・旧Conditionを保持する
+・新しいCondition Versionを成立させる
+・現在標準Relationを新Conditionへ切り替える
+・変更Eventを残す
+
+という処理を行う。
+
+
+5.5 Product uses Part
+
+Product
+    ── uses_part ──>
+Part
+
+
+現在のStorage表現：
+
+UsedPart
+
+
+UsedPartは、
+独立したPart Entityではない。
+
+
+Product EntityとPart Entityの間に成立する
+Relationである。
+
+
+Relationは必要に応じて、
+
+・数量
+・使用位置
+・用途
+・有効期間
+・備考
+
+を持つことができる。
+
+
+5.6 Product requires Process
+
+Product
+    ── requires_process ──>
+Process
+
+
+現在のStorage表現：
+
+UsedProcess
+
+
+UsedProcessは、
+独立したProcess Entityではない。
+
+
+Product EntityとProcess Entityの間に成立する
+Relationである。
+
+
+Relationは必要に応じて、
+
+・工程順序
+・標準時間
+・使用設備
+・作業条件
+・有効期間
+
+を持つことができる。
+
+
+--------------------------------------------------
+6. Snapshot
+--------------------------------------------------
+
+Productは、
+複数のSnapshotを持つことができる。
+
+
+現在の主要Snapshotは、
+
+Condition
+
+である。
+
+
+Productは、
+過去のCondition Snapshotを失わず、
+
+その中の一つを
+現在標準条件として採用する。
+
+
+Product
+    ├─ has_condition_version ──> Condition V1
+    ├─ has_condition_version ──> Condition V2
+    └─ current_standard_condition ──> Condition V2
+
+
+現在標準条件の変更は、
+過去のConditionを書き換えることではない。
+
+
+新しい現在を選択することである。
+
+
+--------------------------------------------------
+7. State
+--------------------------------------------------
+
+Productには、
+現在状態を持つ可能性がある。
+
+
+例：
+
+・有効
+・生産中
+・休止
+・廃番
+・試作
+・量産
+・登録準備中
+
+
+ただし、
+現在のProduct Storageには、
+正式なProduct Stateは定義されていない。
+
+
+今後Product Stateを導入する場合は、
+
+製品名や注意点へ状態を埋め込まず、
+独立したStateとして定義する。
+
+
+条件値や生産状態を、
+Product Entityの状態と混同してはならない。
+
+
+--------------------------------------------------
+8. Event
+--------------------------------------------------
+
+Productに関連して、
+次のEventが発生する。
+
+
+・Product Created
+・Identity Changed
+・Attribute Changed
+・Material Relation Changed
+・Mold Relation Changed
+・Machine Relation Changed
+・Standard Condition Changed
+・Part Relation Created
+・Part Relation Changed
+・Process Relation Created
+・Process Relation Changed
+・Trouble Occurred
+・Condition Changed
+・Production Performed
+・Inspection Performed
+
+
+Eventは、
+現在値そのものではない。
+
+
+何が、
+いつ発生したかを示す
+時間的事実である。
+
+
+Eventは原則として追記され、
+過去のEventを書き換えない。
+
+
+--------------------------------------------------
+9. Knowledge
+--------------------------------------------------
+
+Productには、
+構造化された情報だけでなく、
+
+現場で蓄積されたKnowledgeが結び付く。
+
+
+例：
+
+・通称
+・識別の仕方
+・成形上の注意
+・品質上の注意
+・過去トラブルから得た知見
+・条件設定の理由
+・作業上のコツ
+・顧客固有の要求
+
+
+Knowledgeは、
+notesという一つの文字列へ
+永久に閉じ込めてはならない。
+
+
+Knowledgeは、
+
+・対象Product
+・Knowledge Type
+・内容
+・根拠
+・作成者
+・作成日時
+・有効性
+・関連Event
+・関連Snapshot
+
+を持つことができる。
+
+
+--------------------------------------------------
+10. Current Storage Mapping
+--------------------------------------------------
+
+現在の製品マスターは、
+次の意味を一つの行に保存している。
+
+
+製品ID
+    → Canonical Identity
+
+
+図番
+    → Business Identity
+
+
+製品名
+    → Business Identity
+
+
+金型ID
+    → uses_mold Relationの現在参照先
+
+
+材料ID
+    → uses_material Relationの現在参照先
+
+
+成形機ID
+    → molded_by Relationの現在参照先
+
+
+現在標準条件ID
+    → current_standard_condition Relationの参照先
+
+
+製品単重(g)
+    → Product Attribute
+
+
+1ショット重量(g)
+    → Current Production Attribute
+       またはCondition依存値の暫定保存
+
+
+1ショット時間(秒)
+    → Current Production Attribute
+       またはCondition依存値の暫定保存
+
+
+取出機使用有無
+    → Current Production Configurationの暫定保存
+
+
+標準歩留(%)
+    → Production Standardの暫定保存
+
+
+注意点
+    → Alias、Knowledge、Caution等の混在した暫定保存
+
+
+最終更新日
+    → Storage上の更新情報
+
+
+このMappingは、
+現在の保存形式を説明するものである。
+
+
+Product Entityの意味を、
+この列構成へ限定するものではない。
+
+
+--------------------------------------------------
+11. Create Product
+--------------------------------------------------
+
+Create Productは、
+製品マスターへ一行を追加することではない。
+
+
+新しいProduct Entityを
+SHiCIの世界に成立させることである。
+
+
+Create Productでは、
+最低限次を確定する。
+
+
+・新しいProductであること
+・既存Productとの重複がないこと
+・productNameまたはdrawingNumber
+・同一性判断に必要な情報
+
+
+材料、
+金型、
+成形機、
+条件などが指定された場合は、
+
+新しいProduct Entityの生成とは別に、
+
+Relationの生成としてChange Planへ含める。
+
+
+例：
+
+
+Create Product Entity
+
+    ＋
+
+Create uses_material Relation
+
+    ＋
+
+Create uses_mold Relation
+
+    ＋
+
+Create molded_by Relation
+
+    ＋
+
+Set current_standard_condition Relation
+
+
+参照先Entityが解決できない場合は、
+自動的に文字列だけを保存しない。
+
+
+候補確認、
+既存EntityへのResolution、
+または参照先Entityの新規作成判断を行う。
+
+
+--------------------------------------------------
+12. Update Product
+--------------------------------------------------
+
+Update Productという一つの抽象操作を、
+そのまま実行しない。
+
+
+入力内容を、
+次のMutationへ分解する。
+
+
+・Change Identity
+・Change Attribute
+・Create Relation
+・Change Relation
+・Change State
+・Create Snapshot
+・Set Current Snapshot
+・Append Event
+
+
+例：
+
+
+「製品名を変更して」
+
+    → Change Identity
+
+
+「製品単重を変更して」
+
+    → Change Attribute
+
+
+「材料を変更して」
+
+    → Change Relation
+
+
+「標準成形機を変更して」
+
+    → Change Relation
+
+
+「型温を変更して」
+
+    → Create Condition Version
+       Change State
+       Set Current Snapshot
+       Append Event
+
+
+--------------------------------------------------
+13. Resolution
+--------------------------------------------------
+
+Product Resolutionでは、
+次の表現を使用できる。
+
+
+・productId
+・drawingNumber
+・productName
+・alias
+・旧名称
+・注意点に含まれる既知の通称
+・Knowledge_EntityResolutionに登録された表現
+
+
+Resolutionは、
+
+完全一致、
+正規化一致、
+Alias一致、
+Semantic候補
+
+の順で行う。
+
+
+Semantic Resolutionは、
+Productを自動確定しない。
+
+
+曖昧な場合は、
+必ず候補を提示して
+人間に確定を求める。
+
+
+--------------------------------------------------
+14. Validation
+--------------------------------------------------
+
+Productに対するMutationでは、
+少なくとも次を検証する。
+
+
+・対象Productが存在するか
+・Create時に重複Productが存在しないか
+・productIdが変更されていないか
+・新しい図番が既存Productと衝突しないか
+・Relation先Entityが存在するか
+・Relation先Entityが正しいTypeか
+・変更前のRelationが現在も同じか
+・現在標準条件が変更前から変わっていないか
+・必要なSnapshot Preservation Policyがあるか
+・ユーザーに実行権限があるか
+・人間による確認が完了しているか
+
+
+--------------------------------------------------
+15. Change Plan
+--------------------------------------------------
+
+Product MutationのChange Planでは、
+少なくとも次を表示する。
+
+
+・対象Product
+・Product ID
+・現在の正式名称
+・現在の図番
+・成立または変更するIdentity
+・成立または変更するAttribute
+・成立または変更するRelation
+・作成されるSnapshot
+・現在として採用されるSnapshot
+・保持される過去
+・追加されるEvent
+・未解決の参照
+・不足情報
+・変更理由
+
+
+--------------------------------------------------
+16. Initial Mutation Scope
+--------------------------------------------------
+
+Product Entityについて、
+最初に対応するMutationは次のとおりとする。
+
+
+Create Entity
+
+・新しいProductを成立させる
+
+
+Change Identity
+
+・drawingNumber
+・productName
+
+
+Change Attribute
+
+・productWeight
+・shotWeight
+・shotTime
+・robotUse
+・standardYield
+・notes
+
+
+Change Relation
+
+・uses_material
+・uses_mold
+・molded_by
+・current_standard_condition
+
+
+Create Relation / Change Relation
+
+・uses_part
+・requires_process
+
+
+Create Snapshot / Change State / Set Current Snapshot
+
+・Conditionに属する条件変更
+
+
+Append Event
+
+・Trouble
+・Condition Change
+・Product Mutation
+
+
+このScopeは、
+現在のStorageと既存CRUDで
+実現可能な範囲を起点とする。
+
+
+ただし、
+Storage構造をSHiCIの世界の上限とはしない。
+
+
+--------------------------------------------------
+17. Boundary
+--------------------------------------------------
+
+Understandingは、
+ユーザーがProductについて
+何を望んでいるかを理解する。
+
+
+Entity Resolutionは、
+どのProductを指しているかを確定する。
+
+
+Product Entity Modelは、
+Productがどのような存在であるかを定義する。
+
+
+Mutation Composeは、
+Product世界に何が起きるかを構造化する。
+
+
+Validationは、
+その変化が成立可能かを検証する。
+
+
+Persistenceは、
+確定した変化を現在の製品マスター、
+Relation保存単位、
+Snapshot保存単位へ変換する。
+
+
+--------------------------------------------------
+18. SHiCI Principle
+--------------------------------------------------
+
+Productは、
+製品マスターの一行ではない。
+
+
+Productは、
+
+Identity、
+Attribute、
+Relation、
+Snapshot、
+State、
+Event、
+Knowledge
+
+によって構成され、
+
+時間の中で継続するEntityである。
+
+
+SHiCIは、
+Productの現在値だけを保持するのではない。
+
+
+Productが何であり、
+何と結び付き、
+何が起こり、
+どのように現在へ至ったかを理解する。

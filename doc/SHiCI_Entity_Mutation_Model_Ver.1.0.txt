@@ -1,0 +1,567 @@
+SHiCI Entity Mutation Model
+
+Version 1.0
+
+
+--------------------------------------------------
+0. Purpose
+--------------------------------------------------
+
+SHiCI Entity Mutation Modelは、
+
+SHiCIが理解している世界に対して、
+新しい存在や関係を成立させ、
+既存の存在の状態を変化させるための
+共通モデルを定義する。
+
+SHiCIは、
+データ行を追加・更新するシステムではない。
+
+Entity、
+Relation、
+Snapshot、
+Event、
+Contextによって構成された世界を理解し、
+
+その世界に何が起きたのかを
+構造として表現するシステムである。
+
+CreateおよびUpdateは、
+Storage上の操作ではなく、
+
+SHiCIの世界に生じる変化として理解される。
+
+
+--------------------------------------------------
+1. Principle
+--------------------------------------------------
+
+1. Entity First
+
+すべての変化は、
+Entityを中心に理解される。
+
+どのシートを変更するかではなく、
+
+どのEntityに、
+何が起きたのかを先に確定する。
+
+
+2. Structure Before Persistence
+
+SHiCIは、
+Storage構造から変化を定義しない。
+
+まず世界の変化を構造として定義し、
+
+その後、
+Persistence Layerが現在のStorage形式へ変換する。
+
+
+3. Snapshot Never Rewrite
+
+過去のSnapshotは原則として上書きしない。
+
+状態が変化した場合は、
+
+新しいSnapshot、
+新しいVersion、
+新しいEvent、
+
+または新しいRelationとして保持する。
+
+
+4. Relation is Knowledge
+
+Entity間の関係の生成・変更は、
+単なる参照IDの変更ではない。
+
+Relationそのものを、
+知識の生成または変化として扱う。
+
+
+5. Human Confirmation
+
+世界を変化させる最終判断は、
+人間が行う。
+
+SHiCIはChange Planを提示し、
+人間の確認後にのみ確定する。
+
+
+6. Traceability
+
+確定した変化には、
+
+誰が、
+いつ、
+何を、
+なぜ、
+どの状態から、
+どの状態へ変化させたか
+
+を追跡できる情報を残す。
+
+
+--------------------------------------------------
+2. Mutation
+--------------------------------------------------
+
+Mutationとは、
+
+SHiCIが理解する世界に生じる
+構造的な変化である。
+
+Mutationは、
+次のいずれかのMutation Typeを持つ。
+
+
+--------------------------------------------------
+3. Mutation Types
+--------------------------------------------------
+
+3.1 Create Entity
+
+新しいEntityを世界に成立させる。
+
+例：
+
+・新しい製品
+・新しい材料
+・新しい金型
+・新しい設備
+・新しい工程
+・新しい顧客
+・新しい受注
+
+
+3.2 Change Identity
+
+既存Entityを識別する情報を変更する。
+
+例：
+
+・製品名
+・図番
+・通称
+・金型番号
+
+Identityの変更では、
+同一Entityであることを失ってはならない。
+
+
+3.3 Change Attribute
+
+Entityが持つ属性を変更する。
+
+例：
+
+・製品重量
+・取数
+・材質区分
+・設備能力
+
+Attributeは、
+Entityそのものの性質を表す。
+
+
+3.4 Create Relation
+
+Entity間に新しい関係を成立させる。
+
+例：
+
+・製品が材料を使用する
+・製品が金型を使用する
+・製品が標準条件を持つ
+・工程が設備で実行される
+
+
+3.5 Change Relation
+
+既存Relationを別のRelationへ変更する。
+
+例：
+
+・標準材料を変更する
+・使用金型を変更する
+・標準成形機を変更する
+・現在標準条件を変更する
+
+旧Relationを失わず、
+変更の履歴を保持する。
+
+
+3.6 Change State
+
+EntityまたはRelationの状態を変更する。
+
+例：
+
+・金型温度
+・サイクルタイム
+・在庫数量
+・設備状態
+・受注状態
+・有効／無効
+
+状態変化は、
+変更前と変更後を保持する。
+
+
+3.7 Append Event
+
+世界に発生した出来事を追加する。
+
+例：
+
+・トラブル発生
+・金型修理
+・材料入荷
+・生産実績
+・検査結果
+・条件変更
+
+Eventは過去を書き換えず、
+時系列として追加される。
+
+
+3.8 Set Current Snapshot
+
+複数のSnapshotまたはVersionの中から、
+現在採用するものを指定する。
+
+例：
+
+・現在標準条件
+・現在使用中の金型版
+・現在有効な工程
+・現在の標準材料
+
+旧Snapshotは削除しない。
+
+
+--------------------------------------------------
+4. Mutation Structure
+--------------------------------------------------
+
+Mutationは、
+最低限次の構造を持つ。
+
+
+{
+  schemaVersion: "1.0",
+
+  mutationType: null,
+
+  subject: {
+    entityType: null,
+    entityId: null,
+    entityQuery: null
+  },
+
+  identityChanges: [],
+
+  attributeChanges: [],
+
+  relationChanges: [],
+
+  stateChanges: [],
+
+  events: [],
+
+  snapshotChange: null,
+
+  reason: null,
+
+  evidence: [],
+
+  unresolvedReferences: [],
+
+  missingFields: [],
+
+  confirmation: {
+    required: true
+  }
+}
+
+
+--------------------------------------------------
+5. Subject
+--------------------------------------------------
+
+Subjectは、
+Mutationの中心となるEntityである。
+
+Mutationは、
+必ずSubjectを持つ。
+
+Subjectは、
+可能な限りEntity Resolutionによって
+確定されたEntity IDを持つ。
+
+Entityが新規作成される場合は、
+entityIdはnullでよい。
+
+
+--------------------------------------------------
+6. Change
+--------------------------------------------------
+
+Changeは、
+変更前と変更後を明確に区別する。
+
+
+{
+  path: null,
+
+  currentValue: null,
+
+  proposedValue: null,
+
+  unit: null,
+
+  preservationPolicy: null
+}
+
+
+preservationPolicyは、
+次のいずれかを持つ。
+
+
+・replace_current
+・create_new_snapshot
+・create_new_version
+・append_history
+・create_relation
+・close_and_create_relation
+
+
+--------------------------------------------------
+7. Resolution
+--------------------------------------------------
+
+Mutationを確定する前に、
+
+Subject、
+Relation先Entity、
+参照Snapshot
+
+をSHiCIの世界へ対応付ける。
+
+曖昧な参照がある場合は、
+Mutationを実行しない。
+
+候補を提示し、
+人間に確定を求める。
+
+
+--------------------------------------------------
+8. Validation
+--------------------------------------------------
+
+Mutationは、
+実行前に次を検証する。
+
+
+・対象Entityが存在するか
+・新規Entityが重複しないか
+・Relation先Entityが存在するか
+・変更対象が現在も同じ状態か
+・必要な情報が揃っているか
+・値と単位が妥当か
+・権限があるか
+・履歴保全方針が定義されているか
+・Entity世界の整合性を破壊しないか
+
+
+--------------------------------------------------
+9. Change Plan
+--------------------------------------------------
+
+Mutationは、
+直ちにStorageへ書き込まない。
+
+まずChange Planを生成する。
+
+Change Planは、
+人間が理解できる形で、
+
+・対象Entity
+・成立するEntity
+・変化するIdentity
+・変化するAttribute
+・生成または変更されるRelation
+・変化するState
+・追加されるEvent
+・新しいSnapshot
+・保持される過去
+・変更理由
+
+を提示する。
+
+
+--------------------------------------------------
+10. Confirmation
+--------------------------------------------------
+
+Change Planは、
+ユーザーによる明示的な確認後にのみ実行する。
+
+確認時には、
+
+・提案者と確定者
+・有効期限
+・現在状態の再確認
+・権限
+・競合
+
+を検証する。
+
+
+--------------------------------------------------
+11. Persistence
+--------------------------------------------------
+
+Persistence Layerは、
+確定したMutationを
+現在のStorage構造へ変換する。
+
+Spreadsheetのシート名、
+列名、
+行番号、
+CRUD関数は、
+
+Entity Mutation Modelには含めない。
+
+それらはStorage固有の実装であり、
+SHiCIが理解する世界そのものではない。
+
+
+--------------------------------------------------
+12. Example
+--------------------------------------------------
+
+入力：
+
+「ワンワンの型温を61℃にして」
+
+
+理解される変化：
+
+・Subjectは製品Entity「ワンワン」
+・変更対象は現在標準条件
+・金型温度Stateが変化する
+・旧条件は保持する
+・新しい条件Versionを生成する
+・製品Entityの現在標準条件Relationを変更する
+・条件変更Eventを追加する
+
+
+Mutation：
+
+{
+  schemaVersion: "1.0",
+
+  mutationType: "change_state",
+
+  subject: {
+    entityType: "product",
+    entityId: "<resolved product id>",
+    entityQuery: "ワンワン"
+  },
+
+  stateChanges: [
+    {
+      path: "standard_condition.mold_temperature",
+      currentValue: 60,
+      proposedValue: 61,
+      unit: "celsius",
+      preservationPolicy: "create_new_version"
+    }
+  ],
+
+  relationChanges: [
+    {
+      relationType: "current_standard_condition",
+      preservationPolicy: "close_and_create_relation"
+    }
+  ],
+
+  events: [
+    {
+      eventType: "condition_changed"
+    }
+  ],
+
+  confirmation: {
+    required: true
+  }
+}
+
+
+--------------------------------------------------
+13. Processing
+--------------------------------------------------
+
+Mutationを伴う処理は、
+次の順序で行う。
+
+
+Input
+    ↓
+Understand
+    ↓
+Resolve
+    ↓
+Compose Mutation
+    ↓
+Validate Mutation
+    ↓
+Compose Change Plan
+    ↓
+Express
+    ↓
+Human Confirmation
+    ↓
+Persist
+    ↓
+Append History
+    ↓
+Output
+
+
+--------------------------------------------------
+14. Boundary
+--------------------------------------------------
+
+Understandingは、
+ユーザーの意図を理解する。
+
+Resolveは、
+入力をSHiCIのEntity世界へ対応付ける。
+
+Mutation Composeは、
+世界に何が起きるのかを構造化する。
+
+Validationは、
+その変化が成立可能か確認する。
+
+Persistenceは、
+確定した変化をStorageへ保存する。
+
+各段階は、
+他の責務を持たない。
+
+
+--------------------------------------------------
+15. SHiCI Principle
+--------------------------------------------------
+
+SHiCIはデータを書き換えない。
+
+SHiCIは、
+世界に起きた変化を理解し、
+
+過去を失うことなく、
+新しい現在を成立させる。

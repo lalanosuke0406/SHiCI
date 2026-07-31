@@ -1,0 +1,419 @@
+SHiCI Entity World Model
+
+Version 1.0
+
+
+--------------------------------------------------
+0. Purpose
+--------------------------------------------------
+
+SHiCI Entity World Modelは、
+
+SHiCIが理解する世界を構成する
+
+Entity、
+Identity、
+Attribute、
+Relation、
+State、
+Snapshot、
+Event、
+History
+
+の意味と境界を定義する。
+
+
+このModelは、
+Spreadsheetのシート構造を説明するものではない。
+
+SHiCIが、
+
+何を存在として理解し、
+何を存在間の関係として理解し、
+何を現在状態として理解し、
+何を出来事として理解するか
+
+を定義する。
+
+
+Storage上では別々のシートに保存されていても、
+SHiCIの世界では一つのEntityを構成する場合がある。
+
+逆に、
+一つのシートに保存されていても、
+
+Entity、
+Relation、
+State、
+Event
+
+として異なる意味を持つ場合がある。
+
+
+--------------------------------------------------
+1. Principle
+--------------------------------------------------
+
+1.1 Entity Before Storage
+
+SHiCIは、
+シート、行、列を世界の中心に置かない。
+
+まずEntityとその意味を理解し、
+その後にStorage上の保存場所へ対応付ける。
+
+
+1.2 One World
+
+製品、材料、金型、成形機、成形条件、
+工程、部品、トラブル、履歴は、
+
+独立したデータ群ではない。
+
+Relationによって結ばれた
+一つの世界を構成する。
+
+
+1.3 Relation is Knowledge
+
+Entity間のRelationは、
+単なる参照IDではない。
+
+「製品が材料を使用する」
+「製品が金型を使用する」
+「製品が現在標準条件を採用している」
+
+というRelationそのものが、
+SHiCIのKnowledgeである。
+
+
+1.4 State and Event are Different
+
+Stateは、
+ある時点における現在の状態である。
+
+Eventは、
+世界に発生した出来事である。
+
+状態が変わるときは、
+必要に応じてEventを残す。
+
+
+1.5 History is Never Lost
+
+過去のState、
+Snapshot、
+Relation、
+Eventは、
+
+現在値によって消去されてはならない。
+
+
+--------------------------------------------------
+2. World Components
+--------------------------------------------------
+
+SHiCIの世界は、
+次の構成要素によって表現される。
+
+
+2.1 Entity
+
+継続的な同一性を持つ存在。
+
+例：
+
+・製品
+・材料
+・成形機
+・金型
+・部品
+・工程
+・ユーザー
+
+
+2.2 Identity
+
+Entityを同一の存在として識別する情報。
+
+例：
+
+・製品ID
+・図番
+・製品名
+・通称
+・材料ID
+・材料名
+・グレード
+・金型ID
+・金型番号
+・成形機ID
+・呼称
+
+
+2.3 Attribute
+
+Entityが持つ比較的持続的な性質。
+
+例：
+
+・製品単重
+・取数
+・ゲート方式
+・金型材質
+・成形機の型締力
+・スクリュー径
+・部品分類
+
+
+2.4 Relation
+
+EntityとEntityの間に成立する関係。
+
+例：
+
+・製品 uses 材料
+・製品 uses 金型
+・製品 molded_by 成形機
+・製品 has_current_standard_condition 成形条件
+・製品 uses 部品
+・製品 requires 工程
+
+
+2.5 State
+
+Entity、
+Relation、
+Snapshotの現在状態。
+
+例：
+
+・金型温度
+・サイクルタイム
+・金型状態
+・成形条件の状態
+・有効／無効
+・現在使用中
+・現在標準
+
+
+2.6 Snapshot
+
+特定時点における、
+Entityまたは工程条件のまとまり。
+
+例：
+
+・成形条件
+・標準成形条件
+・条件の版
+・現在採用中の条件
+
+
+2.7 Event
+
+ある時点に発生した出来事。
+
+例：
+
+・トラブル発生
+・金型修理
+・条件変更
+・検査実施
+・材料入荷
+・生産実績
+
+
+2.8 History
+
+Entity、
+Relation、
+State、
+Snapshot、
+Eventの時間的な記録。
+
+Historyは、
+過去の事実を保持する。
+
+
+--------------------------------------------------
+3. Current World Classification
+--------------------------------------------------
+
+現在のSHiCIに存在する情報を、
+次のように分類する。
+
+
+3.1 Core Entity
+
+・Product
+・Material
+・Machine
+・Mold
+・Part
+・Process
+
+
+3.2 Snapshot / Version Entity
+
+・Condition
+
+
+3.3 Relation
+
+・Product uses Material
+・Product uses Mold
+・Product molded_by Machine
+・Product has_current_standard_condition Condition
+・UsedPart
+・UsedProcess
+
+
+3.4 State / Snapshot Component
+
+・ConditionDetail
+
+
+3.5 Event / History
+
+・Trouble
+・MoldHistory
+
+
+3.6 System Entity
+
+・User
+・Session
+
+
+--------------------------------------------------
+4. Important Boundary
+--------------------------------------------------
+
+現在のStorage上の名前と、
+SHiCIが理解する概念は一致するとは限らない。
+
+
+「使用部品」は、
+独立した部品Entityではない。
+
+既存のProduct Entityと
+既存のPart Entityとの間に成立するRelationである。
+
+
+「使用工程」は、
+独立した工程Entityではない。
+
+Productまたは製造対象と
+Process Entityとの間に成立するRelationである。
+
+
+「成形条件明細」は、
+単独で世界に存在するEntityではない。
+
+Condition Snapshotを構成する
+Stateの集合である。
+
+
+「トラブル履歴」は、
+現在状態を表すEntityではない。
+
+特定のEntityに関連して発生したEventである。
+
+
+「金型履歴」は、
+金型Entityとは別の金型ではない。
+
+Mold Entityに発生したEventまたはHistoryである。
+
+
+--------------------------------------------------
+5. Initial World Structure
+--------------------------------------------------
+
+Productを中心とした現在の基本構造は、
+次のように表現される。
+
+
+Product
+    ├─ identified_by Drawing Number
+    ├─ known_as Product Name
+    ├─ may_be_known_as Alias
+    │
+    ├─ uses Material
+    ├─ uses Mold
+    ├─ molded_by Machine
+    ├─ has_current_standard_condition Condition
+    ├─ uses Part
+    ├─ requires Process
+    │
+    ├─ has Attribute
+    │     ├─ Product Weight
+    │     ├─ Shot Weight
+    │     ├─ Shot Time
+    │     ├─ Robot Use
+    │     └─ Standard Yield
+    │
+    ├─ has Snapshot
+    │     └─ Condition
+    │           ├─ Version
+    │           ├─ State
+    │           ├─ Condition Detail
+    │           └─ Result
+    │
+    └─ involved_in Event
+          ├─ Trouble
+          ├─ Condition Change
+          └─ Mold History
+
+
+--------------------------------------------------
+6. Storage Boundary
+--------------------------------------------------
+
+Products、
+Materials、
+Machines、
+Molds、
+Conditions、
+ConditionDetails、
+Troubles、
+MoldHistories、
+Parts、
+UsedParts、
+Processes、
+UsedProcesses
+
+は、
+現在のStorage上の保存単位である。
+
+
+これらの保存単位を、
+そのままSHiCIのEntity Typeとはしない。
+
+
+Entity World Modelが世界の意味を定義し、
+
+Persistence Layerが、
+その意味を現在のStorage構造へ変換する。
+
+
+--------------------------------------------------
+7. SHiCI Principle
+--------------------------------------------------
+
+SHiCIは、
+分断されたデータを管理するシステムではない。
+
+
+SHiCIは、
+
+存在、
+関係、
+状態、
+出来事、
+履歴
+
+を失わずに結び付け、
+
+一つの世界として理解する。

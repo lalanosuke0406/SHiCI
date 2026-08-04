@@ -1,0 +1,87 @@
+ SHiCI Execution Plan Model Ver.1.0 
+==================================================
+
+1.  Purpose
+
+Execution Planは、Change Planで表現された業務上の意味を、
+Storage固有のOperation列へ変換した最終実行モデルである。
+
+Execution Plan自身はStorageを書き換えない。 実際の実行はTransaction
+Engineの責務とする。
+
+Executionは「意味」が「現実」へ変わる境界である。
+
+2.  Design Principles
+
+3.  Meaning Before Storage Execution
+    PlanはStorageではなく意味を起点として設計する。
+
+4.  Plans Are Immutable Execution Planは生成後に変更しない。
+
+5.  Execution Must Be Deterministic 同一Execution
+    Planは同一条件で同一結果を生成する。
+
+6.  Runtime Resolution Must Be Explicit 実行時に確定する値はRuntime
+    Bindingとして明示する。
+
+7.  Rollback Is Planned Before Execution RollbackはExecution
+    Plan生成時点で計画されていなければならない。
+
+8.  Responsibility
+
+Execution Planの責務 ・Operation生成 ・Runtime Binding生成 ・Execution
+Policy定義 ・Rollback計画 ・実行順序決定
+
+Execution Planの責務ではないもの ・LLM推論 ・Entity解決 ・Storage更新
+・ID採番
+
+4.  Position in SHiCI
+
+Understanding ↓ Entity Mutation ↓ Entity Resolution ↓ Change Plan ↓
+Confirmation ↓ Execution Plan ↓ Transaction Engine ↓ Storage
+
+5.  Execution Plan Structure
+
+Subject Bindings Operations Execution Policy Metadata
+
+6.  Runtime Binding Model
+
+Runtime Bindingは実行時に初めて確定する値を表す。
+OperationはbindingRefのみを保持し、 Transaction Engineが実値へ解決する。
+
+7.  Operation Model
+
+INSERT APPEND UPDATE DELETE
+
+OperationはStorage操作のみを表現する。
+
+8.  Rollback Model
+
+各OperationはRollback Operationを保持する。 RollbackはExecution
+Plan生成時点で定義される。
+
+9.  Execution Policy
+
+atomic stopOnError rollbackRequired
+
+Spreadsheetではatomicは補償型Transactionを意味する。
+
+10. Transaction Model
+
+Execution PlanはStorage非依存である。 Storage依存処理はTransaction
+Engineが担当する。
+
+11. Execution Flow
+
+Change Plan ↓ Execution Plan ↓ Runtime Binding Resolution ↓ Operation
+Execution ↓ Rollback ↓ Completion
+
+12. Future Extensions
+
+Storage Adapterを差し替えることで、
+Spreadsheet、SQL、Firestore、ERP、MESへ拡張可能。
+
+13. Version History
+
+Ver.1.0 ・初版 ・Execution Layer設計思想を定義 ・Runtime Binding導入
+・Rollback Policy導入 ・Execution Policy導入

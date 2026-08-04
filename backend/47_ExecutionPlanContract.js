@@ -121,6 +121,9 @@ function ExecutionPlanContract_createEmpty() {
 
     },
 
+    bindings:
+        [],
+
     operations:
       [],
 
@@ -162,6 +165,55 @@ function ExecutionPlanContract_createEmpty() {
   };
 
 }
+
+
+
+/**
+ * 空のRuntime Bindingを生成する。
+ *
+ * Runtime Bindingは、
+ * Transaction実行時に初めて確定する値を表す。
+ *
+ * Ver.1.0では、
+ * 新しいEntity IDの採番に使用する。
+ *
+ * @return {Object}
+ */
+function ExecutionPlanContract_createEmptyBinding() {
+
+  return {
+
+    bindingId:
+      null,
+
+    bindingType:
+      null,
+
+    generator: {
+
+      type:
+        null,
+
+      prefix:
+        null
+
+    },
+
+    resolvedValue:
+      null,
+
+    metadata: {
+
+      description:
+        null
+
+    }
+
+  };
+
+}
+
+
 
 
 /**
@@ -299,14 +351,28 @@ function ExecutionPlanContract_validate(
     executionPlan.subject
   );
 
+  ExecutionPlanContract_validateBindings(
+    executionPlan.bindings
+  );
+
 
   ExecutionPlanContract_validateOperations(
     executionPlan.operations
   );
 
 
+  ExecutionPlanContract_validateBindingReferences(
+    executionPlan.bindings,
+    executionPlan.operations
+  );
+
+
   ExecutionPlanContract_validateExecutionPolicy(
     executionPlan.executionPolicy
+  );
+
+  ExecutionPlanContract_validateRollbackConsistency(
+    executionPlan
   );
 
 
@@ -449,6 +515,405 @@ function ExecutionPlanContract_validateSubject(
   }
 
 }
+
+
+
+/*
+=========================================
+Runtime Bindings
+=========================================
+*/
+
+/**
+ * Runtime Bindingsを検証する。
+ *
+ * @param {Array<Object>} bindings
+ */
+function ExecutionPlanContract_validateBindings(
+  bindings
+) {
+
+  if (
+    !Array.isArray(
+      bindings
+    )
+  ) {
+
+    throw new Error(
+      "executionPlan.bindingsはArrayである必要があります。"
+    );
+
+  }
+
+
+  const bindingIds =
+    {};
+
+
+  bindings.forEach(
+    function(binding, index) {
+
+      const label =
+        "executionPlan.bindings[" +
+        index +
+        "]";
+
+
+      ExecutionPlanContract_assertObject(
+        binding,
+        label
+      );
+
+
+      ExecutionPlanContract_assertNonEmptyString(
+        binding.bindingId,
+        label +
+        ".bindingId"
+      );
+
+
+      if (
+        bindingIds[
+          binding.bindingId
+        ]
+      ) {
+
+        throw new Error(
+          "bindingIdが重複しています。bindingId=" +
+          binding.bindingId
+        );
+
+      }
+
+
+      bindingIds[
+        binding.bindingId
+      ] =
+        true;
+
+
+      ExecutionPlanContract_assertEqual(
+        binding.bindingType,
+        "generated_id",
+        label +
+        ".bindingType"
+      );
+
+
+      ExecutionPlanContract_assertObject(
+        binding.generator,
+        label +
+        ".generator"
+      );
+
+
+      ExecutionPlanContract_assertEqual(
+        binding.generator.type,
+        "sequence_id",
+        label +
+        ".generator.type"
+      );
+
+
+      ExecutionPlanContract_assertNonEmptyString(
+        binding.generator.prefix,
+        label +
+        ".generator.prefix"
+      );
+
+
+      if (
+        binding.resolvedValue !==
+          null
+      ) {
+
+        ExecutionPlanContract_assertNonEmptyString(
+          binding.resolvedValue,
+          label +
+          ".resolvedValue"
+        );
+
+      }
+
+
+      ExecutionPlanContract_assertObject(
+        binding.metadata,
+        label +
+        ".metadata"
+      );
+
+
+      if (
+        binding.metadata.description !==
+          null
+      ) {
+
+        ExecutionPlanContract_assertNonEmptyString(
+          binding.metadata.description,
+          label +
+          ".metadata.description"
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+
+/*
+=========================================
+Binding References
+=========================================
+*/
+
+/**
+ * Operation内のbindingRefを検証する。
+ *
+ * ・bindingRefは単独Objectで表現する
+ * ・bindingRefは空にできない
+ * ・参照先bindingIdがbindingsに存在する必要がある
+ * ・通常PayloadとRollback Payloadの両方を検証する
+ *
+ * @param {Array<Object>} bindings
+ * @param {Array<Object>} operations
+ */
+function ExecutionPlanContract_validateBindingReferences(
+  bindings,
+  operations
+) {
+
+  if (
+    !Array.isArray(
+      bindings
+    )
+  ) {
+
+    throw new Error(
+      "executionPlan.bindingsはArrayである必要があります。"
+    );
+
+  }
+
+
+  if (
+    !Array.isArray(
+      operations
+    )
+  ) {
+
+    throw new Error(
+      "executionPlan.operationsはArrayである必要があります。"
+    );
+
+  }
+
+
+  const bindingIds =
+    {};
+
+
+  bindings.forEach(
+    function(binding) {
+
+      if (
+        binding &&
+        typeof binding.bindingId ===
+          "string" &&
+        binding.bindingId.trim() !==
+          ""
+      ) {
+
+        bindingIds[
+          binding.bindingId
+        ] =
+          true;
+
+      }
+
+    }
+  );
+
+
+  operations.forEach(
+    function(operation, operationIndex) {
+
+      ExecutionPlanContract_validateBindingReferenceValue(
+        operation.payload,
+        bindingIds,
+        "executionPlan.operations[" +
+        operationIndex +
+        "].payload"
+      );
+
+
+      if (
+        operation.rollback &&
+        operation.rollback.payload !==
+          null
+      ) {
+
+        ExecutionPlanContract_validateBindingReferenceValue(
+          operation.rollback.payload,
+          bindingIds,
+          "executionPlan.operations[" +
+          operationIndex +
+          "].rollback.payload"
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/**
+ * 任意のJSON互換値を再帰的に確認し、
+ * bindingRef Objectを検証する。
+ *
+ * @param {*} value
+ * @param {Object} bindingIds
+ * @param {string} path
+ */
+function ExecutionPlanContract_validateBindingReferenceValue(
+  value,
+  bindingIds,
+  path
+) {
+
+  if (
+    value ===
+      null ||
+    value ===
+      undefined
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    Array.isArray(
+      value
+    )
+  ) {
+
+    value.forEach(
+      function(item, index) {
+
+        ExecutionPlanContract_validateBindingReferenceValue(
+          item,
+          bindingIds,
+          path +
+          "[" +
+          index +
+          "]"
+        );
+
+      }
+    );
+
+
+    return;
+
+  }
+
+
+  if (
+    typeof value !==
+      "object"
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    Object.prototype.hasOwnProperty.call(
+      value,
+      "bindingRef"
+    )
+  ) {
+
+    const keys =
+      Object.keys(
+        value
+      );
+
+
+    if (
+      keys.length !==
+        1
+    ) {
+
+      throw new Error(
+        path +
+        "のbindingRef ObjectにはbindingRef以外の項目を含められません。"
+      );
+
+    }
+
+
+    ExecutionPlanContract_assertNonEmptyString(
+      value.bindingRef,
+      path +
+      ".bindingRef"
+    );
+
+
+    if (
+      !bindingIds[
+        value.bindingRef
+      ]
+    ) {
+
+      throw new Error(
+        "未定義のbindingRefです。" +
+        " path=" +
+        path +
+        " bindingRef=" +
+        value.bindingRef
+      );
+
+    }
+
+
+    return;
+
+  }
+
+
+  Object.keys(
+    value
+  ).forEach(
+    function(key) {
+
+      ExecutionPlanContract_validateBindingReferenceValue(
+        value[
+          key
+        ],
+        bindingIds,
+        path +
+        "." +
+        key
+      );
+
+    }
+  );
+
+}
+
+
+
+
+
+
 
 
 /*
@@ -1009,6 +1474,110 @@ function ExecutionPlanContract_validateExecutionPolicy(
   }
 
 }
+
+
+
+/*
+=========================================
+Rollback Consistency
+=========================================
+*/
+
+/**
+ * Execution Policyと各Operationの
+ * Rollback対応状況の整合性を検証する。
+ *
+ * rollbackRequired=trueの場合は、
+ * すべてのOperationがRollback可能でなければならない。
+ *
+ * @param {Object} executionPlan
+ */
+function ExecutionPlanContract_validateRollbackConsistency(
+  executionPlan
+) {
+
+  ExecutionPlanContract_assertObject(
+    executionPlan,
+    "executionPlan"
+  );
+
+
+  ExecutionPlanContract_assertObject(
+    executionPlan.executionPolicy,
+    "executionPlan.executionPolicy"
+  );
+
+
+  if (
+    executionPlan.executionPolicy.rollbackRequired !==
+      true
+  ) {
+
+    return;
+
+  }
+
+
+  if (
+    !Array.isArray(
+      executionPlan.operations
+    )
+  ) {
+
+    throw new Error(
+      "executionPlan.operationsはArrayである必要があります。"
+    );
+
+  }
+
+
+  executionPlan.operations.forEach(
+    function(operation, index) {
+
+      if (
+        !operation ||
+        typeof operation !==
+          "object" ||
+        Array.isArray(
+          operation
+        )
+      ) {
+
+        throw new Error(
+          "executionPlan.operations[" +
+          index +
+          "]はObjectである必要があります。"
+        );
+
+      }
+
+
+      if (
+        !operation.rollback ||
+        operation.rollback.supported !==
+          true
+      ) {
+
+        throw new Error(
+          "rollbackRequired=trueのExecution Planでは、" +
+          "すべてのOperationがrollback対応である必要があります。" +
+          " index=" +
+          index +
+          " operationId=" +
+          String(
+            operation.operationId
+          )
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+
 
 
 /*

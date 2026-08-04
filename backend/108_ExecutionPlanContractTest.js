@@ -131,6 +131,12 @@ function ExecutionPlanContractTest_createValidExecutionPlan() {
   executionPlan.subject.entityName =
     "Sample Product";
 
+  executionPlan.bindings = [
+
+    ExecutionPlanContractTest_createValidBinding()
+
+  ];
+
 
   executionPlan.operations = [
 
@@ -179,6 +185,9 @@ function ExecutionPlanContractTest_createValidExecutionPlan() {
 
 /**
  * 正常なinsert Operationを生成する。
+ *
+ * InsertのRollbackは、
+ * 追加したEntityを同じIDで削除する。
  *
  * @param {number} sequence
  * @return {Object}
@@ -229,14 +238,29 @@ function ExecutionPlanContractTest_createValidInsertOperation(
     null;
 
 
+  /*
+   * Insertを取り消す場合は、
+   * 追加したEntityを削除する。
+   */
   operation.rollback.supported =
-    false;
+    true;
 
   operation.rollback.operationType =
-    null;
+    EXECUTION_PLAN_OPERATION_DELETE;
 
-  operation.rollback.payload =
-    null;
+  operation.rollback.payload = {
+
+    values:
+      null,
+
+    criteria: {
+
+      productId:
+        "PRODUCT-001"
+
+    }
+
+  };
 
 
   operation.metadata.description =
@@ -253,6 +277,9 @@ function ExecutionPlanContractTest_createValidInsertOperation(
 
 /**
  * 正常なappend Operationを生成する。
+ *
+ * AppendのRollbackは、
+ * 追加した履歴を一意な履歴IDで削除する。
  *
  * @param {number} sequence
  * @return {Object}
@@ -286,7 +313,7 @@ function ExecutionPlanContractTest_createValidAppendOperation(
     "ProductHistory";
 
   operation.target.entityId =
-    null;
+    "HISTORY-001";
 
 
   operation.payload.values = {
@@ -306,14 +333,29 @@ function ExecutionPlanContractTest_createValidAppendOperation(
     null;
 
 
+  /*
+   * Appendを取り消す場合は、
+   * 追加した履歴を履歴IDで削除する。
+   */
   operation.rollback.supported =
-    false;
+    true;
 
   operation.rollback.operationType =
-    null;
+    EXECUTION_PLAN_OPERATION_DELETE;
 
-  operation.rollback.payload =
-    null;
+  operation.rollback.payload = {
+
+    values:
+      null,
+
+    criteria: {
+
+      historyId:
+        "HISTORY-001"
+
+    }
+
+  };
 
 
   operation.metadata.description =
@@ -501,6 +543,47 @@ function ExecutionPlanContractTest_createValidDeleteOperation(
   return operation;
 
 }
+
+
+
+/**
+ * 正常なBindingを生成する。
+ *
+ * @return {Object}
+ */
+function ExecutionPlanContractTest_createValidBinding() {
+
+  const binding =
+    ExecutionPlanContract_createEmptyBinding();
+
+
+  binding.bindingId =
+    "NEW_CONDITION_ID";
+
+
+  binding.bindingType =
+    "generated_id";
+
+
+  binding.generator.type =
+    "sequence_id";
+
+  binding.generator.prefix =
+    "COND";
+
+
+  binding.resolvedValue =
+    null;
+
+
+  binding.metadata.description =
+    "新しい条件ID";
+
+
+  return binding;
+
+}
+
 
 
 /**
@@ -884,6 +967,12 @@ function test_ExecutionPlanContract_createEmpty() {
     "executionPlan.subject.entityName"
   );
 
+  ExecutionPlanContractTest_assertArrayLength(
+    0,
+    executionPlan.bindings,
+    "executionPlan.bindings"
+  );
+
 
   ExecutionPlanContractTest_assertArrayLength(
     0,
@@ -1210,6 +1299,70 @@ function test_ExecutionPlanContract_createEmptyOperation_independent() {
 
 
 
+/**
+ * Binding Factoryを検証する。
+ */
+function test_ExecutionPlanContract_createEmptyBinding() {
+
+  const binding =
+    ExecutionPlanContract_createEmptyBinding();
+
+
+  ExecutionPlanContractTest_assertNull(
+    binding.bindingId,
+    "binding.bindingId"
+  );
+
+
+  ExecutionPlanContractTest_assertNull(
+    binding.bindingType,
+    "binding.bindingType"
+  );
+
+
+  ExecutionPlanContractTest_assertObject(
+    binding.generator,
+    "binding.generator"
+  );
+
+
+  ExecutionPlanContractTest_assertNull(
+    binding.generator.type,
+    "binding.generator.type"
+  );
+
+
+  ExecutionPlanContractTest_assertNull(
+    binding.generator.prefix,
+    "binding.generator.prefix"
+  );
+
+
+  ExecutionPlanContractTest_assertNull(
+    binding.resolvedValue,
+    "binding.resolvedValue"
+  );
+
+
+  ExecutionPlanContractTest_assertObject(
+    binding.metadata,
+    "binding.metadata"
+  );
+
+
+  ExecutionPlanContractTest_assertNull(
+    binding.metadata.description,
+    "binding.metadata.description"
+  );
+
+}
+
+
+
+
+
+
+
 /*
 =========================================
 Part 3
@@ -1253,6 +1406,14 @@ function test_ExecutionPlanContract_validate_normal() {
   test_ExecutionPlanContract_validate_statusCompleted();
 
   test_ExecutionPlanContract_validate_statusFailed();
+  
+  test_ExecutionPlanContract_validate_rollbackRequiredAllSupported();
+
+  test_ExecutionPlanContract_validate_rollbackNotRequiredAllowsUnsupported();
+
+  test_ExecutionPlanContract_validate_binding();
+
+  test_ExecutionPlanContract_validate_bindingReference();
 
 }
 
@@ -1685,6 +1846,185 @@ function test_ExecutionPlanContract_validate_statusFailed() {
   );
 
 }
+
+
+
+/*
+=========================================
+Rollback Policy Normal Validation
+=========================================
+*/
+
+/**
+ * rollbackRequired=trueで、
+ * 全Operationがrollback対応の場合に
+ * 検証を通過することを確認する。
+ */
+function test_ExecutionPlanContract_validate_rollbackRequiredAllSupported() {
+
+  const executionPlan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  executionPlan.executionPolicy.rollbackRequired =
+    true;
+
+
+  executionPlan.operations = [
+
+    ExecutionPlanContractTest_createValidInsertOperation(
+      1
+    ),
+
+    ExecutionPlanContractTest_createValidUpdateOperation(
+      2
+    ),
+
+    ExecutionPlanContractTest_createValidAppendOperation(
+      3
+    ),
+
+    ExecutionPlanContractTest_createValidDeleteOperation(
+      4
+    )
+
+  ];
+
+
+  const result =
+    ExecutionPlanContract_validate(
+      executionPlan
+    );
+
+
+  ExecutionPlanContractTest_assertTrue(
+    result,
+    "rollbackRequired with all supported operations"
+  );
+
+}
+
+
+/**
+ * rollbackRequired=falseの場合は、
+ * rollback未対応Operationを含んでも
+ * 検証を通過することを確認する。
+ */
+function test_ExecutionPlanContract_validate_rollbackNotRequiredAllowsUnsupported() {
+
+  const executionPlan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  executionPlan.executionPolicy.rollbackRequired =
+    false;
+
+
+  executionPlan.operations[0].rollback.supported =
+    false;
+
+  executionPlan.operations[0].rollback.operationType =
+    null;
+
+  executionPlan.operations[0].rollback.payload =
+    null;
+
+
+  const result =
+    ExecutionPlanContract_validate(
+      executionPlan
+    );
+
+
+  ExecutionPlanContractTest_assertTrue(
+    result,
+    "rollbackNotRequired allows unsupported operation"
+  );
+
+}
+
+
+
+/**
+ * Bindingを含むExecution Planが
+ * 検証を通過することを確認する。
+ */
+function test_ExecutionPlanContract_validate_binding() {
+
+  const executionPlan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  executionPlan.bindings = [
+
+    ExecutionPlanContractTest_createValidBinding()
+
+  ];
+
+
+  const result =
+    ExecutionPlanContract_validate(
+      executionPlan
+    );
+
+
+  ExecutionPlanContractTest_assertTrue(
+    result,
+    "binding validation"
+  );
+
+}
+
+
+
+/**
+ * Operation内のbindingRefが、
+ * 定義済みBindingを参照する場合に
+ * 検証を通過することを確認する。
+ */
+function test_ExecutionPlanContract_validate_bindingReference() {
+
+  const executionPlan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  executionPlan.operations[0]
+    .payload
+    .values
+    .conditionId = {
+
+      bindingRef:
+        "NEW_CONDITION_ID"
+
+    };
+
+
+  executionPlan.operations[0]
+    .rollback
+    .payload
+    .criteria
+    .conditionId = {
+
+      bindingRef:
+        "NEW_CONDITION_ID"
+
+    };
+
+
+  const result =
+    ExecutionPlanContract_validate(
+      executionPlan
+    );
+
+
+  ExecutionPlanContractTest_assertTrue(
+    result,
+    "bindingRef validation"
+  );
+
+}
+
+
 
 
 
@@ -3077,6 +3417,41 @@ function test_ExecutionPlanContract_validate_remainingErrors() {
 
   /*
   =========================================
+  Bindings
+  =========================================
+  */
+
+  test_ExecutionPlanContract_bindingsNotArray();
+
+  test_ExecutionPlanContract_invalidBinding();
+
+  test_ExecutionPlanContract_missingBindingId();
+
+  test_ExecutionPlanContract_duplicateBindingId();
+
+  test_ExecutionPlanContract_invalidBindingType();
+
+  test_ExecutionPlanContract_invalidBindingGenerator();
+
+  test_ExecutionPlanContract_invalidBindingGeneratorType();
+
+  test_ExecutionPlanContract_missingBindingPrefix();
+
+  test_ExecutionPlanContract_invalidBindingResolvedValue();
+
+  test_ExecutionPlanContract_invalidBindingMetadata();
+
+  test_ExecutionPlanContract_invalidBindingDescription();
+
+  test_ExecutionPlanContract_emptyBindingReference();
+  
+  test_ExecutionPlanContract_undefinedBindingReference();
+  
+  test_ExecutionPlanContract_bindingReferenceWithExtraField();
+
+
+  /*
+  =========================================
   Subject
   =========================================
   */
@@ -3103,6 +3478,8 @@ function test_ExecutionPlanContract_validate_remainingErrors() {
   test_ExecutionPlanContract_invalidRollbackRequired();
 
   test_ExecutionPlanContract_atomicWithoutStopOnError();
+
+  test_ExecutionPlanContract_rollbackRequiredHasUnsupportedOperation();
 
 
   /*
@@ -3440,6 +3817,51 @@ function test_ExecutionPlanContract_atomicWithoutStopOnError() {
   );
 
 }
+
+
+/**
+ * rollbackRequired=trueにもかかわらず、
+ * rollback未対応Operationを含む場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_rollbackRequiredHasUnsupportedOperation() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.executionPolicy.rollbackRequired =
+    true;
+
+
+  plan.operations[0].rollback.supported =
+    false;
+
+  plan.operations[0].rollback.operationType =
+    null;
+
+  plan.operations[0].rollback.payload =
+    null;
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "rollbackRequired=trueのExecution Planでは、すべてのOperationがrollback対応である必要があります。",
+
+    "rollbackRequired has unsupported operation"
+
+  );
+
+}
+
 
 
 /*
@@ -3966,6 +4388,8 @@ function test_ExecutionPlanContract_runAll() {
 
   test_ExecutionPlanContract_createEmptyOperation();
 
+  test_ExecutionPlanContract_createEmptyBinding();
+
   test_ExecutionPlanContract_createEmpty_independent();
 
   test_ExecutionPlanContract_createEmptyOperation_independent();
@@ -3996,6 +4420,519 @@ function test_ExecutionPlanContract_runAll() {
   Logger.log("=========================================");
   Logger.log("All ExecutionPlanContract Tests Passed.");
   Logger.log("=========================================");
+
+}
+
+
+
+/*
+=========================================
+Bindings
+=========================================
+*/
+
+/**
+ * bindingsがArrayでない場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_bindingsNotArray() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings =
+    {};
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindingsはArrayである必要があります。",
+
+    "bindings not array"
+
+  );
+
+}
+
+
+/**
+ * BindingがObjectでない場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_invalidBinding() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings = [
+
+    null
+
+  ];
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0]はObjectである必要があります。",
+
+    "invalid binding"
+
+  );
+
+}
+
+
+/**
+ * bindingIdが空の場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_missingBindingId() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].bindingId =
+    "";
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].bindingIdは空でないstringである必要があります。",
+
+    "missing bindingId"
+
+  );
+
+}
+
+
+/**
+ * bindingIdが重複する場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_duplicateBindingId() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  const firstBinding =
+    ExecutionPlanContractTest_createValidBinding();
+
+  const secondBinding =
+    ExecutionPlanContractTest_createValidBinding();
+
+
+  secondBinding.metadata.description =
+    "重複確認用Binding";
+
+
+  plan.bindings = [
+
+    firstBinding,
+
+    secondBinding
+
+  ];
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "bindingIdが重複しています。bindingId=NEW_CONDITION_ID",
+
+    "duplicate bindingId"
+
+  );
+
+}
+
+
+/**
+ * bindingTypeがgenerated_id以外の場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_invalidBindingType() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].bindingType =
+    "runtime_value";
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].bindingTypeが不正です。",
+
+    "invalid bindingType"
+
+  );
+
+}
+
+
+/**
+ * generatorがObjectでない場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_invalidBindingGenerator() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].generator =
+    null;
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].generatorはObjectである必要があります。",
+
+    "invalid binding generator"
+
+  );
+
+}
+
+
+/**
+ * generator.typeがsequence_id以外の場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_invalidBindingGeneratorType() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].generator.type =
+    "uuid";
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].generator.typeが不正です。",
+
+    "invalid binding generator type"
+
+  );
+
+}
+
+
+/**
+ * generator.prefixが空の場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_missingBindingPrefix() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].generator.prefix =
+    "   ";
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].generator.prefixは空でないstringである必要があります。",
+
+    "missing binding prefix"
+
+  );
+
+}
+
+
+/**
+ * resolvedValueはnullを許可するが、
+ * stringの場合は空にできないことを確認する。
+ */
+function test_ExecutionPlanContract_invalidBindingResolvedValue() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].resolvedValue =
+    "";
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].resolvedValueは空でないstringである必要があります。",
+
+    "invalid binding resolvedValue"
+
+  );
+
+}
+
+
+/**
+ * BindingのmetadataがObjectでない場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_invalidBindingMetadata() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].metadata =
+    null;
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].metadataはObjectである必要があります。",
+
+    "invalid binding metadata"
+
+  );
+
+}
+
+
+/**
+ * metadata.descriptionはnullを許可するが、
+ * stringの場合は空にできないことを確認する。
+ */
+function test_ExecutionPlanContract_invalidBindingDescription() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.bindings[0].metadata.description =
+    "   ";
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "executionPlan.bindings[0].metadata.descriptionは空でないstringである必要があります。",
+
+    "invalid binding description"
+
+  );
+
+}
+
+
+
+/**
+ * bindingRefが空の場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_emptyBindingReference() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.operations[0]
+    .payload
+    .values
+    .conditionId = {
+
+      bindingRef:
+        ""
+
+    };
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    ".bindingRefは空でないstringである必要があります。",
+
+    "empty bindingRef"
+
+  );
+
+}
+
+
+/**
+ * 存在しないBindingを参照した場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_undefinedBindingReference() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.operations[0]
+    .payload
+    .values
+    .conditionId = {
+
+      bindingRef:
+        "UNKNOWN_BINDING"
+
+    };
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "未定義のbindingRefです。",
+
+    "undefined bindingRef"
+
+  );
+
+}
+
+
+/**
+ * bindingRef Objectに余分な項目がある場合に
+ * 例外となることを確認する。
+ */
+function test_ExecutionPlanContract_bindingReferenceWithExtraField() {
+
+  const plan =
+    ExecutionPlanContractTest_createValidExecutionPlan();
+
+
+  plan.operations[0]
+    .payload
+    .values
+    .conditionId = {
+
+      bindingRef:
+        "NEW_CONDITION_ID",
+
+      fallback:
+        "COND-999999"
+
+    };
+
+
+  ExecutionPlanContractTest_assertThrows(
+
+    function () {
+
+      ExecutionPlanContract_validate(
+        plan
+      );
+
+    },
+
+    "bindingRef ObjectにはbindingRef以外の項目を含められません。",
+
+    "bindingRef with extra field"
+
+  );
 
 }
 

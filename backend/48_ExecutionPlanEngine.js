@@ -90,32 +90,28 @@ function ExecutionPlanEngine_build(
   );
 
 
+  ExecutionPlanEngine_buildExecutionPolicy(
+    executionPlan
+  );
 
 
+  ExecutionPlanEngine_buildMetadata(
+    executionPlan,
+    confirmationExecution
+  );
 
-  /*
-   * 後続Partで追加する。
-   *
-   *
-   * ExecutionPlanEngine_buildExecutionPolicy(
-   *   executionPlan,
-   *   confirmationExecution
-   * );
-   *
-   * ExecutionPlanEngine_buildMetadata(
-   *   executionPlan,
-   *   confirmationExecution
-   * );
-   *
-   * ExecutionPlanEngine_finalize(
-   *   executionPlan
-   * );
-   */
+
+  ExecutionPlanEngine_finalize(
+    executionPlan,
+    confirmationExecution
+  );
 
 
   return executionPlan;
 
 }
+
+
 
 
 /*
@@ -755,7 +751,80 @@ function ExecutionPlanEngine_buildOperations(
     insertConditionDetailOperation
   );
 
+
+
+  /*
+  =========================================
+  Operation 3
+  新しい成形条件を標準状態へ変更
+  =========================================
+  */
+
+  const promoteNewConditionOperation =
+    ExecutionPlanEngine_createPromoteNewConditionOperation(
+      confirmationExecution,
+      executionContext
+    );
+
+
+  ExecutionPlanEngine_addOperation(
+    executionPlan,
+    promoteNewConditionOperation
+  );
+
+
+
+  /*
+  =========================================
+  Operation 4
+  製品の現在標準条件IDを切り替える
+  =========================================
+  */
+
+  const switchProductConditionOperation =
+    ExecutionPlanEngine_createSwitchProductConditionOperation(
+      confirmationExecution,
+      executionContext
+    );
+
+
+  ExecutionPlanEngine_addOperation(
+    executionPlan,
+    switchProductConditionOperation
+  );
+
+
+
+  /*
+  =========================================
+  Operation 5
+  旧成形条件を旧版状態へ変更
+  =========================================
+  */
+
+  const archiveOldConditionOperation =
+    ExecutionPlanEngine_createArchiveOldConditionOperation(
+      confirmationExecution,
+      executionContext
+    );
+
+
+  ExecutionPlanEngine_addOperation(
+    executionPlan,
+    archiveOldConditionOperation
+  );
+
+
+
+
 }
+
+
+
+
+
+
+
 
 
 /**
@@ -1096,6 +1165,571 @@ function ExecutionPlanEngine_createInsertConditionDetailOperation(
 }
 
 
+
+/**
+ * Operation 3を生成する。
+ *
+ * Operation 1で「試験」として追加した新条件を、
+ * 「標準」状態へ変更する。
+ *
+ * 現行ConditionUpdateEngineの実行順序を維持し、
+ * Productの現在標準条件IDを切り替える前に実行する。
+ *
+ * @param {Object} confirmationExecution
+ * @param {Object} executionContext
+ * @return {Object}
+ */
+function ExecutionPlanEngine_createPromoteNewConditionOperation(
+  confirmationExecution,
+  executionContext
+) {
+
+  ExecutionPlanEngine_assertObject(
+    confirmationExecution,
+    "confirmationExecution"
+  );
+
+
+  ExecutionPlanEngine_assertObject(
+    executionContext,
+    "executionContext"
+  );
+
+
+  const operation =
+    ExecutionPlanContract_createEmptyOperation();
+
+
+  operation.operationId =
+    "PROMOTE_NEW_CONDITION_TO_STANDARD";
+
+
+  operation.sequence =
+    3;
+
+
+  operation.operationType =
+    EXECUTION_PLAN_OPERATION_UPDATE;
+
+
+  /*
+  =========================================
+  Target
+  =========================================
+  */
+
+  operation.target.repository =
+    "spreadsheet";
+
+
+  operation.target.sheetName =
+    "成形条件マスター";
+
+
+  operation.target.entityType =
+    "condition";
+
+
+  /*
+   * 新条件IDは実行時に採番されるため、
+   * target.entityIdには設定しない。
+   *
+   * 更新対象はcriteria内のbindingRefで指定する。
+   */
+  operation.target.entityId =
+    null;
+
+
+  /*
+  =========================================
+  Values
+  =========================================
+  */
+
+  operation.payload.values = {
+
+    "状態":
+      "標準",
+
+    "最終更新日":
+      ExecutionPlanEngine_requireNonEmptyString(
+        confirmationExecution.decidedAt,
+        "confirmationExecution.decidedAt"
+      )
+
+  };
+
+
+  /*
+   * 条件IDだけでなく、
+   * 親条件IDと現在状態も照合する。
+   *
+   * これにより、意図しない条件や、
+   * 既に状態が変わった条件を更新しない。
+   */
+  operation.payload.criteria = {
+
+    "条件ID":
+      ExecutionPlanEngine_createBindingReference(
+        "NEW_CONDITION_ID"
+      ),
+
+    "親条件ID":
+      executionContext.currentConditionId,
+
+    "状態":
+      "試験"
+
+  };
+
+
+  /*
+  =========================================
+  Rollback
+  =========================================
+  */
+
+  operation.rollback.supported =
+    true;
+
+
+  operation.rollback.operationType =
+    EXECUTION_PLAN_OPERATION_UPDATE;
+
+
+  /*
+   * Operation 3を取り消す場合は、
+   * 新条件を「試験」へ戻す。
+   *
+   * Rollback時にも、
+   * 条件ID・親条件ID・現在状態を照合する。
+   */
+  operation.rollback.payload = {
+
+    values: {
+
+      "状態":
+        "試験",
+
+      "最終更新日":
+        ExecutionPlanEngine_requireNonEmptyString(
+          confirmationExecution.decidedAt,
+          "confirmationExecution.decidedAt"
+        )
+
+    },
+
+    criteria: {
+
+      "条件ID":
+        ExecutionPlanEngine_createBindingReference(
+          "NEW_CONDITION_ID"
+        ),
+
+      "親条件ID":
+        executionContext.currentConditionId,
+
+      "状態":
+        "標準"
+
+    }
+
+  };
+
+
+  /*
+  =========================================
+  Metadata
+  =========================================
+  */
+
+  operation.metadata.description =
+    "新しい成形条件を試験状態から標準状態へ変更する";
+
+
+  operation.metadata.sourcePath =
+    "changePlan.proposedSnapshot.condition.状態";
+
+
+  return operation;
+
+}
+
+
+
+
+/**
+ * Operation 4を生成する。
+ *
+ * 製品マスターの現在標準条件IDを、
+ * 旧条件IDから新条件IDへ切り替える。
+ *
+ * 新条件IDは実行時に採番されるため、
+ * NEW_CONDITION_ID Bindingを参照する。
+ *
+ * @param {Object} confirmationExecution
+ * @param {Object} executionContext
+ * @return {Object}
+ */
+function ExecutionPlanEngine_createSwitchProductConditionOperation(
+  confirmationExecution,
+  executionContext
+) {
+
+  ExecutionPlanEngine_assertObject(
+    confirmationExecution,
+    "confirmationExecution"
+  );
+
+
+  ExecutionPlanEngine_assertObject(
+    executionContext,
+    "executionContext"
+  );
+
+
+  const operation =
+    ExecutionPlanContract_createEmptyOperation();
+
+
+  operation.operationId =
+    "SWITCH_PRODUCT_CURRENT_CONDITION";
+
+
+  operation.sequence =
+    4;
+
+
+  operation.operationType =
+    EXECUTION_PLAN_OPERATION_UPDATE;
+
+
+  /*
+  =========================================
+  Target
+  =========================================
+  */
+
+  operation.target.repository =
+    "spreadsheet";
+
+
+  operation.target.sheetName =
+    "製品マスター";
+
+
+  operation.target.entityType =
+    "product";
+
+
+  operation.target.entityId =
+    executionContext.productId;
+
+
+  /*
+  =========================================
+  Values
+  =========================================
+  */
+
+  operation.payload.values = {
+
+    "現在標準条件ID":
+      ExecutionPlanEngine_createBindingReference(
+        "NEW_CONDITION_ID"
+      ),
+
+    "最終更新日":
+      ExecutionPlanEngine_requireNonEmptyString(
+        confirmationExecution.decidedAt,
+        "confirmationExecution.decidedAt"
+      )
+
+  };
+
+
+  /*
+   * 製品IDだけではなく、
+   * 現在標準条件IDが確認時点の旧条件IDと
+   * 一致することも更新条件とする。
+   *
+   * 確認後に別の更新が行われていた場合は、
+   * 上書きせず失敗させる。
+   */
+  operation.payload.criteria = {
+
+    "製品ID":
+      executionContext.productId,
+
+    "現在標準条件ID":
+      executionContext.currentConditionId
+
+  };
+
+
+  /*
+  =========================================
+  Rollback
+  =========================================
+  */
+
+  operation.rollback.supported =
+    true;
+
+
+  operation.rollback.operationType =
+    EXECUTION_PLAN_OPERATION_UPDATE;
+
+
+  /*
+   * Rollbackでは、
+   * 製品が新条件を参照している場合に限り、
+   * 旧条件IDへ戻す。
+   */
+  operation.rollback.payload = {
+
+    values: {
+
+      "現在標準条件ID":
+        executionContext.currentConditionId,
+
+      "最終更新日":
+        ExecutionPlanEngine_requireNonEmptyString(
+          confirmationExecution.decidedAt,
+          "confirmationExecution.decidedAt"
+        )
+
+    },
+
+    criteria: {
+
+      "製品ID":
+        executionContext.productId,
+
+      "現在標準条件ID":
+        ExecutionPlanEngine_createBindingReference(
+          "NEW_CONDITION_ID"
+        )
+
+    }
+
+  };
+
+
+  /*
+  =========================================
+  Metadata
+  =========================================
+  */
+
+  operation.metadata.description =
+    "製品の現在標準条件IDを旧条件から新条件へ切り替える";
+
+
+  operation.metadata.sourcePath =
+    "changePlan.proposedSnapshot.product.現在標準条件ID";
+
+
+  return operation;
+
+}
+
+
+
+
+/**
+ * Operation 5を生成する。
+ *
+ * Productの現在標準条件IDを新条件へ切り替えた後、
+ * 旧条件を「標準」から「旧版」へ変更する。
+ *
+ * @param {Object} confirmationExecution
+ * @param {Object} executionContext
+ * @return {Object}
+ */
+function ExecutionPlanEngine_createArchiveOldConditionOperation(
+  confirmationExecution,
+  executionContext
+) {
+
+  ExecutionPlanEngine_assertObject(
+    confirmationExecution,
+    "confirmationExecution"
+  );
+
+
+  ExecutionPlanEngine_assertObject(
+    executionContext,
+    "executionContext"
+  );
+
+
+  const operation =
+    ExecutionPlanContract_createEmptyOperation();
+
+
+  operation.operationId =
+    "ARCHIVE_OLD_STANDARD_CONDITION";
+
+
+  operation.sequence =
+    5;
+
+
+  operation.operationType =
+    EXECUTION_PLAN_OPERATION_UPDATE;
+
+
+  /*
+  =========================================
+  Target
+  =========================================
+  */
+
+  operation.target.repository =
+    "spreadsheet";
+
+
+  operation.target.sheetName =
+    "成形条件マスター";
+
+
+  operation.target.entityType =
+    "condition";
+
+
+  operation.target.entityId =
+    executionContext.currentConditionId;
+
+
+  /*
+  =========================================
+  Values
+  =========================================
+  */
+
+  operation.payload.values = {
+
+    "状態":
+      "旧版",
+
+    "最終更新日":
+      ExecutionPlanEngine_requireNonEmptyString(
+        confirmationExecution.decidedAt,
+        "confirmationExecution.decidedAt"
+      )
+
+  };
+
+
+  /*
+   * 旧条件IDだけでなく、
+   * 対象製品ID・状態・版数も照合する。
+   *
+   * 確認後に旧条件の状態や版数が変化していた場合は、
+   * 意図せず上書きせず失敗させる。
+   */
+  operation.payload.criteria = {
+
+    "条件ID":
+      executionContext.currentConditionId,
+
+    "製品ID":
+      executionContext.productId,
+
+    "版数":
+      executionContext.currentVersion,
+
+    "状態":
+      "標準"
+
+  };
+
+
+  /*
+  =========================================
+  Rollback
+  =========================================
+  */
+
+  operation.rollback.supported =
+    true;
+
+
+  operation.rollback.operationType =
+    EXECUTION_PLAN_OPERATION_UPDATE;
+
+
+  /*
+   * Operation 5を取り消す場合は、
+   * 旧条件が「旧版」である場合に限り
+   * 「標準」へ戻す。
+   */
+  operation.rollback.payload = {
+
+    values: {
+
+      "状態":
+        "標準",
+
+      "最終更新日":
+        ExecutionPlanEngine_requireNonEmptyString(
+          confirmationExecution.decidedAt,
+          "confirmationExecution.decidedAt"
+        )
+
+    },
+
+    criteria: {
+
+      "条件ID":
+        executionContext.currentConditionId,
+
+      "製品ID":
+        executionContext.productId,
+
+      "版数":
+        executionContext.currentVersion,
+
+      "状態":
+        "旧版"
+
+    }
+
+  };
+
+
+  /*
+  =========================================
+  Metadata
+  =========================================
+  */
+
+  operation.metadata.description =
+    "旧標準成形条件を標準状態から旧版状態へ変更する";
+
+
+  operation.metadata.sourcePath =
+    "changePlan.currentSnapshot.condition.状態";
+
+
+  return operation;
+
+}
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
 /**
  * OperationをExecution Planへ追加する。
  *
@@ -1192,6 +1826,217 @@ function ExecutionPlanEngine_addOperation(
   );
 
 }
+
+
+
+
+
+
+
+
+
+/*
+=========================================
+Execution Policy
+=========================================
+*/
+
+/**
+ * Execution Planの実行方針を設定する。
+ *
+ * Spreadsheetでは真のDB Transactionではなく、
+ * 失敗時に逆操作を行う補償型Transactionとして扱う。
+ *
+ * @param {Object} executionPlan
+ */
+function ExecutionPlanEngine_buildExecutionPolicy(
+  executionPlan
+) {
+
+  ExecutionPlanEngine_assertObject(
+    executionPlan,
+    "executionPlan"
+  );
+
+
+  executionPlan.executionPolicy.atomic =
+    true;
+
+
+  executionPlan.executionPolicy.stopOnError =
+    true;
+
+
+  executionPlan.executionPolicy.rollbackRequired =
+    true;
+
+}
+
+
+
+
+
+
+
+/*
+=========================================
+Metadata
+=========================================
+*/
+
+/**
+ * Execution PlanのMetadataを設定する。
+ *
+ * @param {Object} executionPlan
+ * @param {Object} confirmationExecution
+ */
+function ExecutionPlanEngine_buildMetadata(
+  executionPlan,
+  confirmationExecution
+) {
+
+  ExecutionPlanEngine_assertObject(
+    executionPlan,
+    "executionPlan"
+  );
+
+
+  ExecutionPlanEngine_assertObject(
+    confirmationExecution,
+    "confirmationExecution"
+  );
+
+
+  executionPlan.metadata.source =
+    "confirmation_execution";
+
+
+  executionPlan.metadata.requestId =
+    confirmationExecution.metadata &&
+    typeof confirmationExecution
+      .metadata
+      .requestId ===
+        "string" &&
+    confirmationExecution
+      .metadata
+      .requestId
+      .trim() !==
+        ""
+      ? confirmationExecution
+          .metadata
+          .requestId
+          .trim()
+      : null;
+
+
+  /*
+   * proposalIdを、確認から実行までを追跡する
+   * correlationIdとして使用する。
+   */
+  executionPlan.metadata.correlationId =
+    ExecutionPlanEngine_requireNonEmptyString(
+      confirmationExecution.proposalId,
+      "confirmationExecution.proposalId"
+    );
+
+}
+
+
+
+
+
+/*
+=========================================
+Finalize
+=========================================
+*/
+
+/**
+ * Execution Planを実行可能な状態へ確定する。
+ *
+ * 全項目を設定した後にContract検証を行う。
+ *
+ * @param {Object} executionPlan
+ * @param {Object} confirmationExecution
+ */
+function ExecutionPlanEngine_finalize(
+  executionPlan,
+  confirmationExecution
+) {
+
+  ExecutionPlanEngine_assertObject(
+    executionPlan,
+    "executionPlan"
+  );
+
+
+  ExecutionPlanEngine_assertObject(
+    confirmationExecution,
+    "confirmationExecution"
+  );
+
+
+  executionPlan.executionPlanId =
+    ExecutionPlanEngine_createExecutionPlanId();
+
+
+  executionPlan.createdAt =
+    ExecutionPlanEngine_requireNonEmptyString(
+      confirmationExecution.decidedAt,
+      "confirmationExecution.decidedAt"
+    );
+
+
+  const decidedBy =
+    confirmationExecution.metadata &&
+    typeof confirmationExecution
+      .metadata
+      .decidedBy ===
+        "string"
+      ? confirmationExecution
+          .metadata
+          .decidedBy
+          .trim()
+      : "";
+
+
+  executionPlan.createdBy =
+    decidedBy ||
+    null;
+
+
+  executionPlan.status =
+    EXECUTION_PLAN_STATUS_READY;
+
+
+  executionPlan.executable =
+    true;
+
+
+  /*
+   * Transaction Engineへ渡す前の
+   * 最終Contract検証。
+   */
+  ExecutionPlanContract_validate(
+    executionPlan
+  );
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1394,6 +2239,73 @@ function ExecutionPlanEngine_resolveChangedBy(
   );
 
 }
+
+
+
+/**
+ * Execution Plan IDを生成する。
+ *
+ * 永続Storageは更新しない。
+ * Ver.1.0ではUUIDを使用する。
+ *
+ * @return {string}
+ */
+function ExecutionPlanEngine_createExecutionPlanId() {
+
+  let uniquePart =
+    null;
+
+
+  if (
+    typeof Utilities !==
+      "undefined" &&
+    Utilities &&
+    typeof Utilities.getUuid ===
+      "function"
+  ) {
+
+    uniquePart =
+      Utilities
+        .getUuid()
+        .replace(
+          /-/g,
+          ""
+        )
+        .toUpperCase();
+
+  } else {
+
+    uniquePart =
+      String(
+        new Date().getTime()
+      ) +
+      "_" +
+      String(
+        Math.floor(
+          Math.random() *
+          1000000000
+        )
+      );
+
+  }
+
+
+  return (
+    "EXECUTION-PLAN-" +
+    uniquePart
+  );
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

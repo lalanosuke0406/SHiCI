@@ -165,7 +165,8 @@ function UnderstandingEngine_handle(
       sessionId,
       state,
       updateIntent,
-      targetQuery
+      targetQuery,
+      understandingResult
     );
 
   }
@@ -446,8 +447,13 @@ function UnderstandingEngine_handleUpdateIntent(
   sessionId,
   state,
   updateIntent,
-  targetQuery
+  targetQuery,
+  understandingResult
 ) {
+
+  UnderstandingResultContract_validate(
+    understandingResult
+  );
 
   if (
     !updateIntent ||
@@ -600,7 +606,8 @@ function UnderstandingEngine_handleUpdateIntent(
 
       return UnderstandingEngine_buildUpdateTargetResult(
         entity,
-        updateIntent
+        updateIntent,
+        understandingResult
       );
 
     }
@@ -617,6 +624,7 @@ function UnderstandingEngine_handleUpdateIntent(
       candidates;
 
     state.pendingUpdateIntent = {
+
       updateType:
         updateIntent.updateType,
 
@@ -632,8 +640,16 @@ function UnderstandingEngine_handleUpdateIntent(
       originalText:
         String(
           text || ""
-        ).trim()
-    };
+        ).trim(),
+
+      understandingResult:
+        JSON.parse(
+          JSON.stringify(
+            understandingResult
+          )
+        )
+
+};
 
     saveConversationState(
       sessionId,
@@ -687,7 +703,8 @@ function UnderstandingEngine_handleUpdateIntent(
 
     return UnderstandingEngine_buildUpdateTargetResult(
       state.currentEntity,
-      updateIntent
+      updateIntent,
+      understandingResult
     );
 
   }
@@ -711,6 +728,9 @@ function UnderstandingEngine_handleUpdateIntent(
 
 
 
+
+
+
 /**
  * 更新対象と変更値を構造化して返す
  *
@@ -728,8 +748,25 @@ function UnderstandingEngine_handleUpdateIntent(
  */
 function UnderstandingEngine_buildUpdateTargetResult(
   entity,
-  updateIntent
+  updateIntent,
+  understandingResult
 ) {
+
+
+    if (
+    understandingResult !==
+      null &&
+    understandingResult !==
+      undefined
+  ) {
+
+    UnderstandingResultContract_validate(
+      understandingResult
+    );
+
+  }
+
+
 
   /*
   =========================================
@@ -945,6 +982,18 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
     messageType:
       "update_target_resolved",
+
+    understandingResult:
+      understandingResult ===
+        null ||
+      understandingResult ===
+        undefined
+        ? null
+        : JSON.parse(
+            JSON.stringify(
+              understandingResult
+            )
+          ),
 
     updateType:
       "mold_temperature",

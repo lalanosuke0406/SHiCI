@@ -332,6 +332,47 @@ function ConversationStateEngine_selectCandidate(
     }
 
 
+
+
+        /*
+    * 保存されていた正式なUnderstanding Resultを取得する。
+    */
+    const restoredUnderstandingResult =
+      pendingUpdateIntent.understandingResult;
+
+
+    if (
+      !restoredUnderstandingResult ||
+      typeof restoredUnderstandingResult !==
+        "object" ||
+      Array.isArray(
+        restoredUnderstandingResult
+      )
+    ) {
+
+      return {
+
+        status:
+          "error",
+
+        messageType:
+          "text",
+
+        answer:
+          "候補選択後の変更処理に必要な理解結果を復元できませんでした。もう一度変更内容を指定してください。"
+
+      };
+
+    }
+
+
+    UnderstandingResultContract_validate(
+      restoredUnderstandingResult
+    );
+
+
+
+
     /*
     * 保存されていた更新意図を取得する。
     */
@@ -425,7 +466,8 @@ function ConversationStateEngine_selectCandidate(
 
       ...UnderstandingEngine_buildUpdateTargetResult(
         entity,
-        restoredUpdateIntent
+        restoredUpdateIntent,
+        restoredUnderstandingResult
       )
 
     };

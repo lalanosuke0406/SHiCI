@@ -189,7 +189,10 @@ function ActionRouter_routePost(data) {
 
         "createMoldTemperatureUpdateProposal",
         "confirmUpdateRequest",
-        "cancelUpdateRequest"
+        "cancelUpdateRequest",
+
+        "createChangeProposal",
+        "confirmExecutionProposal"
 
     ];
 
@@ -270,6 +273,140 @@ function ActionRouter_routePost(data) {
 
     if (data.action === "addCondition") return addCondition(data);
     if (data.action === "addConditionDetail") return addConditionDetail(data);
+
+
+
+
+
+
+    /*
+    =========================================
+    Entity Change Proposal生成
+    =========================================
+    */
+
+    if (
+        data.action ===
+        "createChangeProposal"
+    ) {
+
+        return ChangeProposalService_create(
+            data.understandingResult,
+            {
+
+                requestedBy:
+                    authenticatedUser.userId,
+
+                userId:
+                    authenticatedUser.userId,
+
+                requestedAt:
+                    new Date()
+                        .toISOString(),
+
+                requestId:
+                    String(
+                        data.requestId || ""
+                    ).trim() ||
+                    null,
+
+                source:
+                    "action_router"
+
+            }
+        );
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /*
+=========================================
+Entity Change Proposal確定・実行
+=========================================
+*/
+
+if (
+    data.action ===
+    "confirmExecutionProposal"
+) {
+
+    return ActionExecutionService_execute({
+
+        actionType:
+            ACTION_EXECUTION_SERVICE_ACTION_CONFIRM,
+
+        proposalId:
+            String(
+                data.proposalId || ""
+            ).trim(),
+
+        changePlanId:
+            String(
+                data.changePlanId || ""
+            ).trim(),
+
+        metadata: {
+
+            requestedBy:
+                authenticatedUser.userId,
+
+            decidedBy:
+                authenticatedUser.userId,
+
+            userId:
+                authenticatedUser.userId,
+
+            requestedAt:
+                new Date()
+                    .toISOString(),
+
+            requestId:
+                String(
+                    data.requestId || ""
+                ).trim() ||
+                null,
+
+            source:
+                "action_router"
+
+        }
+
+    });
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     /*

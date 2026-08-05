@@ -209,6 +209,32 @@ async function handleResolvedUpdateTarget(
 
     /*
     =========================================
+    正式なUnderstanding Resultの取得
+    =========================================
+    */
+
+    const understandingResult =
+        result.understandingResult;
+
+
+    if (
+        !understandingResult ||
+        typeof understandingResult !==
+            "object" ||
+        Array.isArray(
+            understandingResult
+        )
+    ) {
+
+        throw new Error(
+            "変更案生成に必要なUnderstanding Resultを取得できませんでした。"
+        );
+
+    }
+
+
+    /*
+    =========================================
     更新種別の確認
     =========================================
     */
@@ -217,6 +243,7 @@ async function handleResolvedUpdateTarget(
         String(
             result.updateType || ""
         ).trim();
+
 
     if (
         updateType !==
@@ -232,136 +259,61 @@ async function handleResolvedUpdateTarget(
 
     /*
     =========================================
-    更新対象情報の取得
-    =========================================
-    */
-
-    const target =
-        result.target &&
-        typeof result.target ===
-            "object"
-            ? result.target
-            : {};
-
-    const productId =
-        String(
-            target.productId ||
-            target.entityId ||
-            ""
-        ).trim();
-
-    if (!productId) {
-
-        throw new Error(
-            "更新対象の製品IDを取得できませんでした。"
-        );
-
-    }
-
-
-    /*
-    =========================================
-    期待状態の取得
-    =========================================
-    */
-
-    const expectedState =
-        result.expectedState &&
-        typeof result.expectedState ===
-            "object"
-            ? result.expectedState
-            : {};
-
-    const expectedCurrentConditionId =
-        String(
-            expectedState.currentConditionId ||
-            ""
-        ).trim();
-
-    if (
-        !expectedCurrentConditionId
-    ) {
-
-        throw new Error(
-            "現在標準条件IDを取得できませんでした。"
-        );
-
-    }
-
-
-    /*
-    =========================================
-    変更予定値の取得
-    =========================================
-    */
-
-    const proposedValue =
-        result.proposedValue &&
-        typeof result.proposedValue ===
-            "object"
-            ? result.proposedValue
-            : {};
-
-    const newMoldTemperature =
-        Number(
-            proposedValue.value
-        );
-
-    if (
-        !Number.isFinite(
-            newMoldTemperature
-        )
-    ) {
-
-        throw new Error(
-            "変更後の金型温度を取得できませんでした。"
-        );
-
-    }
-
-
-    /*
-    =========================================
-    更新案を生成
+    新しいEntity Change Proposalを生成
     =========================================
     */
 
     const proposal =
-        await createMoldTemperatureUpdateProposal(
-            productId,
-            expectedCurrentConditionId,
-            newMoldTemperature
+        await createChangeProposal(
+            understandingResult,
+            null
         );
 
 
     /*
     =========================================
-    更新案生成結果の確認
+    Proposal生成結果の確認
     =========================================
     */
 
     if (
         !proposal ||
-        proposal.status !==
-            "success"
+        typeof proposal !==
+            "object" ||
+        Array.isArray(
+            proposal
+        )
     ) {
 
         throw new Error(
-            proposal &&
-            proposal.message
-                ? proposal.message
-                : "更新案を作成できませんでした。"
+            "変更案を作成できませんでした。"
         );
 
     }
 
+
     if (
-        !proposal.requiresConfirmation ||
-        !proposal.requestId
+        proposal.status !==
+            "proposal_created"
     ) {
 
         throw new Error(
-            "更新確認に必要な情報を取得できませんでした。"
+            proposal.message ||
+            "変更案を作成できませんでした。"
+        );
+
+    }
+
+
+    if (
+        proposal.requiresConfirmation !==
+            true ||
+        !proposal.proposalId ||
+        !proposal.changePlanId
+    ) {
+
+        throw new Error(
+            "変更確認に必要な情報を取得できませんでした。"
         );
 
     }
@@ -376,6 +328,7 @@ async function handleResolvedUpdateTarget(
     addUpdateConfirmationCard(
         proposal
     );
+
 
     return proposal;
 

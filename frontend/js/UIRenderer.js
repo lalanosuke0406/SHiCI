@@ -280,9 +280,13 @@ function addUpdateConfirmationCard(
     result
 ) {
 
-    if (
+       if (
         !result ||
-        !result.requestId
+        typeof result !==
+            "object" ||
+        Array.isArray(
+            result
+        )
     ) {
 
         throw new Error(
@@ -291,17 +295,84 @@ function addUpdateConfirmationCard(
 
     }
 
+
+    /*
+    =========================================
+    Proposal形式の判定
+    =========================================
+    */
+
+    const proposalId =
+        String(
+            result.proposalId || ""
+        ).trim();
+
+
+    const changePlanId =
+        String(
+            result.changePlanId || ""
+        ).trim();
+
+
     const requestId =
         String(
             result.requestId || ""
         ).trim();
 
+
+    const isExecutionProposal =
+        Boolean(
+            proposalId &&
+            changePlanId
+        );
+
+
+    const isLegacyUpdateRequest =
+        Boolean(
+            requestId
+        );
+
+
+    if (
+        !isExecutionProposal &&
+        !isLegacyUpdateRequest
+    ) {
+
+        throw new Error(
+            "更新確認に必要なIDがありません。"
+        );
+
+    }
+
+
+    /*
+    =========================================
+    表示情報の取得
+    =========================================
+    */
+
     const confirmation =
-        result.confirmation &&
-        typeof result.confirmation ===
-            "object"
-            ? result.confirmation
-            : {};
+        isExecutionProposal
+            ? (
+                result.presentation &&
+                typeof result.presentation ===
+                    "object" &&
+                !Array.isArray(
+                    result.presentation
+                )
+                    ? result.presentation
+                    : {}
+            )
+            : (
+                result.confirmation &&
+                typeof result.confirmation ===
+                    "object" &&
+                !Array.isArray(
+                    result.confirmation
+                )
+                    ? result.confirmation
+                    : {}
+            );
 
     const title =
         String(
@@ -315,17 +386,61 @@ function addUpdateConfirmationCard(
             ""
         ).trim();
 
+    const presentationActions =
+        Array.isArray(
+            confirmation.actions
+        )
+            ? confirmation.actions
+            : [];
+
+
+    const confirmAction =
+        presentationActions.find(
+            function(action) {
+
+                return (
+                    action &&
+                    action.actionType ===
+                        "confirm"
+                );
+
+            }
+        ) || {};
+
+
+    const rejectAction =
+        presentationActions.find(
+            function(action) {
+
+                return (
+                    action &&
+                    action.actionType ===
+                        "reject"
+                );
+
+            }
+        ) || {};
+
+
     const confirmLabel =
         String(
             confirmation.confirmLabel ||
+            confirmAction.label ||
             "この内容で確定"
         ).trim();
+
 
     const cancelLabel =
         String(
             confirmation.cancelLabel ||
+            rejectAction.label ||
             "キャンセル"
         ).trim();
+
+
+
+
+
 
 
     /*
@@ -357,8 +472,23 @@ function addUpdateConfirmationCard(
     card.className =
         "update-confirmation-card";
 
+    card.dataset.proposalMode =
+        isExecutionProposal
+            ? "execution"
+            : "legacy";
+
+
     card.dataset.requestId =
         requestId;
+
+
+    card.dataset.proposalId =
+        proposalId;
+
+
+    card.dataset.changePlanId =
+        changePlanId;
+
 
     card.dataset.requestStatus =
         "PENDING";
@@ -1019,20 +1149,67 @@ document.addEventListener(
 
         }
 
+        const proposalMode =
+            String(
+                card.dataset.proposalMode ||
+                ""
+            ).trim();
+
+
         const requestId =
             String(
                 card.dataset.requestId ||
                 ""
             ).trim();
 
-        if (!requestId) {
 
-            resetUpdateConfirmation(
-                card,
-                "更新案IDを取得できませんでした。"
-            );
+        const proposalId =
+            String(
+                card.dataset.proposalId ||
+                ""
+            ).trim();
 
-            return;
+
+        const changePlanId =
+            String(
+                card.dataset.changePlanId ||
+                ""
+            ).trim();
+
+
+        if (
+            proposalMode ===
+                "execution"
+        ) {
+
+            if (
+                !proposalId ||
+                !changePlanId
+            ) {
+
+                resetUpdateConfirmation(
+                    card,
+                    "変更案の確定に必要なIDを取得できませんでした。"
+                );
+
+                return;
+
+            }
+
+        } else {
+
+            if (
+                !requestId
+            ) {
+
+                resetUpdateConfirmation(
+                    card,
+                    "更新案IDを取得できませんでした。"
+                );
+
+                return;
+
+            }
 
         }
 
@@ -1062,15 +1239,52 @@ document.addEventListener(
 
             try {
 
-                const result =
-                    await confirmUpdateRequest(
-                        requestId
-                    );
+                let result =
+                    null;
+
 
                 if (
+                    proposalMode ===
+                        "execution"
+                ) {
+
+                    result =
+                        await confirmExecutionProposal(
+                            proposalId,
+                            changePlanId,
+                            null
+                        );
+
+                } else {
+
+                    result =
+                        await confirmUpdateRequest(
+                            requestId
+                        );
+
+                }
+
+                const isExecutionSuccess =
+                    proposalMode ===
+                        "execution" &&
                     result &&
                     result.status ===
-                        "success"
+                        "completed" &&
+                    result.executionStatus ===
+                        "success";
+
+
+                const isLegacySuccess =
+                    proposalMode !==
+                        "execution" &&
+                    result &&
+                    result.status ===
+                        "success";
+
+
+                if (
+                    isExecutionSuccess ||
+                    isLegacySuccess
                 ) {
 
                     completeUpdateConfirmation(
@@ -1079,8 +1293,13 @@ document.addEventListener(
                     );
 
                     addMessage(
-                        result.message ||
-                        "金型温度を更新しました。",
+                        proposalMode ===
+                            "execution"
+                            ? "変更を確定しました。"
+                            : (
+                                result.message ||
+                                "金型温度を更新しました。"
+                            ),
                         "shici"
                     );
 
@@ -1088,15 +1307,63 @@ document.addEventListener(
 
                 }
 
-                resetUpdateConfirmation(
-                    card,
+                let failureMessage =
+                    "変更を確定できませんでした。";
+
+
+                if (
+                    proposalMode ===
+                        "execution"
+                ) {
+
+                    if (
+                        result &&
+                        result.executionStatus ===
+                            "rolled_back"
+                    ) {
+
+                        failureMessage =
+                            "変更処理に失敗したため、元の状態へ戻しました。";
+
+                    } else if (
+                        result &&
+                        result.executionStatus ===
+                            "partial"
+                    ) {
+
+                        failureMessage =
+                            "変更処理が一部だけ完了しました。管理者へ確認してください。";
+
+                    } else if (
+                        result &&
+                        result.executionStatus ===
+                            "failed"
+                    ) {
+
+                        failureMessage =
+                            "変更処理を実行できませんでした。";
+
+                    }
+
+                } else if (
                     result &&
                     result.message
-                        ? result.message
-                        : "変更を確定できませんでした。"
+                ) {
+
+                    failureMessage =
+                        result.message;
+
+                }
+
+
+                resetUpdateConfirmation(
+                    card,
+                    failureMessage
                 );
 
             }
+
+
             catch (error) {
 
                 resetUpdateConfirmation(
@@ -1135,10 +1402,43 @@ document.addEventListener(
 
             try {
 
-                const result =
-                    await cancelUpdateRequest(
-                        requestId
+                let result =
+                    null;
+
+
+                if (
+                    proposalMode ===
+                        "execution"
+                ) {
+
+                    /*
+                    * 新Execution ProposalのReject Actionは
+                    * まだBackendへ接続していない。
+                    *
+                    * この段階では、画面上だけキャンセル済みにして、
+                    * Pending Changeは有効期限による失効へ委ねる。
+                    */
+                    completeUpdateCancellation(
+                        card
                     );
+
+
+                    addMessage(
+                        "変更をキャンセルしました。",
+                        "shici"
+                    );
+
+
+                    return;
+
+                } else {
+
+                    result =
+                        await cancelUpdateRequest(
+                            requestId
+                        );
+
+                }
 
                 if (
                     result &&

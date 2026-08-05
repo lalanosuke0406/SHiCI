@@ -35,6 +35,140 @@ async function selectCandidate(
 
 
 
+
+
+
+/**
+ * 正式なUnderstanding Resultから
+ * Entity Change Proposalを生成する。
+ *
+ * この時点では、
+ * マスターデータの更新は行わない。
+ *
+ * @param {Object} understandingResult
+ * @param {string|null|undefined} requestId
+ * @returns {Promise<Object>}
+ */
+async function createChangeProposal(
+    understandingResult,
+    requestId
+) {
+
+    if (
+        !understandingResult ||
+        typeof understandingResult !==
+            "object" ||
+        Array.isArray(
+            understandingResult
+        )
+    ) {
+
+        throw new Error(
+            "変更案生成に必要なUnderstanding Resultがありません。"
+        );
+
+    }
+
+
+    return await callApi(
+        "createChangeProposal",
+        {
+
+            understandingResult:
+                JSON.parse(
+                    JSON.stringify(
+                        understandingResult
+                    )
+                ),
+
+            requestId:
+                String(
+                    requestId || ""
+                ).trim() ||
+                null
+
+        }
+    );
+
+}
+
+
+/**
+ * 保存済みのEntity Change Proposalを
+ * 確定して実行する。
+ *
+ * @param {string} proposalId
+ * @param {string} changePlanId
+ * @param {string|null|undefined} requestId
+ * @returns {Promise<Object>}
+ */
+async function confirmExecutionProposal(
+    proposalId,
+    changePlanId,
+    requestId
+) {
+
+    const normalizedProposalId =
+        String(
+            proposalId || ""
+        ).trim();
+
+
+    const normalizedChangePlanId =
+        String(
+            changePlanId || ""
+        ).trim();
+
+
+    if (
+        !normalizedProposalId ||
+        !normalizedChangePlanId
+    ) {
+
+        throw new Error(
+            "変更案の確定に必要なIDがありません。"
+        );
+
+    }
+
+
+    return await callApi(
+        "confirmExecutionProposal",
+        {
+
+            proposalId:
+                normalizedProposalId,
+
+            changePlanId:
+                normalizedChangePlanId,
+
+            requestId:
+                String(
+                    requestId || ""
+                ).trim() ||
+                null
+
+        }
+    );
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * 金型温度の更新案を作成する
  *

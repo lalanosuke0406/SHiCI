@@ -304,37 +304,12 @@ function SpreadsheetRepository_update(
     );
 
 
-  const currentRowValues =
-    sheet
-      .getRange(
-        targetRowNumber,
-        1,
-        1,
-        headerInfo.lastColumn
-      )
-      .getValues()[0];
-
-
-  const updatedRowValues =
-    SpreadsheetRepository_buildUpdatedRowValues(
-      currentRowValues,
-      headerInfo.headerMap,
-      values
-    );
-
-
-  sheet
-    .getRange(
-      targetRowNumber,
-      1,
-      1,
-      headerInfo.lastColumn
-    )
-    .setValues(
-      [
-        updatedRowValues
-      ]
-    );
+    SpreadsheetRepository_writeUpdatedCells(
+    sheet,
+    targetRowNumber,
+    headerInfo.headerMap,
+    values
+  );
 
 
   return SpreadsheetRepository_createResult(
@@ -1420,31 +1395,48 @@ Update Support
 */
 
 /**
- * 現在行を基に、
- * valuesで指定された列だけを変更した
- * 新しい行配列を生成する。
+ * valuesで指定されたセルだけを書き込む。
  *
- * 現在行の原本は変更しない。
+ * 行全体を書き直さないため、
+ * 未指定列に存在する数式・チェックボックス・
+ * データ検証・将来追加された列を変更しない。
  *
- * @param {Array<*>} currentRowValues
+ * @param {GoogleAppsScript.Spreadsheet.Sheet} sheet
+ * @param {number} targetRowNumber
  * @param {Object} headerMap
  * @param {Object} values
- * @return {Array<*>}
  */
-function SpreadsheetRepository_buildUpdatedRowValues(
-  currentRowValues,
+function SpreadsheetRepository_writeUpdatedCells(
+  sheet,
+  targetRowNumber,
   headerMap,
   values
 ) {
 
+  SpreadsheetRepository_assertSheet(
+    sheet,
+    "sheet"
+  );
+
+
+  SpreadsheetRepository_assertPositiveInteger(
+    targetRowNumber,
+    "targetRowNumber"
+  );
+
+
+  /*
+   * Header行は更新対象にできない。
+   */
   if (
-    !Array.isArray(
-      currentRowValues
-    )
+    targetRowNumber <
+      2
   ) {
 
     throw new Error(
-      "currentRowValuesはArrayである必要があります。"
+      "UPDATE対象行は2行目以降である必要があります。" +
+      " targetRowNumber=" +
+      targetRowNumber
     );
 
   }
@@ -1469,10 +1461,6 @@ function SpreadsheetRepository_buildUpdatedRowValues(
   );
 
 
-  const updatedRowValues =
-    currentRowValues.slice();
-
-
   Object.keys(
     values
   ).forEach(
@@ -1487,21 +1475,31 @@ function SpreadsheetRepository_buildUpdatedRowValues(
         );
 
 
-      updatedRowValues[
-        columnNumber -
-        1
-      ] =
+      const normalizedCellValue =
         SpreadsheetRepository_normalizeCellValue(
           values[
             fieldName
           ]
         );
 
+
+      sheet
+        .getRange(
+          targetRowNumber,
+          columnNumber,
+          1,
+          1
+        )
+        .setValues(
+          [
+            [
+              normalizedCellValue
+            ]
+          ]
+        );
+
     }
   );
-
-
-  return updatedRowValues;
 
 }
 
@@ -2163,7 +2161,33 @@ function SpreadsheetRepository_assertSheet(
 
 
 
+/**
+ * 1以上の整数であることを確認する。
+ *
+ * @param {*} value
+ * @param {string} label
+ */
+function SpreadsheetRepository_assertPositiveInteger(
+  value,
+  label
+) {
 
+  if (
+    !Number.isInteger(
+      value
+    ) ||
+    value <
+      1
+  ) {
+
+    throw new Error(
+      label +
+      "は1以上の整数である必要があります。"
+    );
+
+  }
+
+}
 
 
 

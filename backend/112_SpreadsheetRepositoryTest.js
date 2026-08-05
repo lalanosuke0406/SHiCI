@@ -97,6 +97,13 @@ function test_SpreadsheetRepository_runAll() {
 
     {
       name:
+        "updateWritesOnlySpecifiedCells",
+      run:
+        test_SpreadsheetRepository_updateWritesOnlySpecifiedCells
+    },
+
+    {
+      name:
         "spreadsheetOverrideIsCleared",
       run:
         test_SpreadsheetRepository_spreadsheetOverrideIsCleared
@@ -951,6 +958,131 @@ function test_SpreadsheetRepository_updatePreservesUnspecifiedColumns() {
 }
 
 
+
+/*
+=========================================
+Write Only Specified Cells
+=========================================
+*/
+
+/**
+ * UPDATEがvaluesで指定されたセルだけを書き込み、
+ * 行全体を書き直さないことを確認する。
+ *
+ * 数式・チェックボックス・将来追加される列を
+ * 不要に破壊しないための安全性テスト。
+ */
+function test_SpreadsheetRepository_updateWritesOnlySpecifiedCells() {
+
+  const spreadsheet =
+    SpreadsheetRepositoryTest_createSpreadsheet({
+
+      "TestSheet": [
+
+        [
+          "ID",
+          "Formula",
+          "Status",
+          "Memo"
+        ],
+
+        [
+          "TEST-001",
+          "=A2&\"-FORMULA\"",
+          "before",
+          "Keep This Memo"
+        ]
+
+      ]
+
+    });
+
+
+  SpreadsheetRepository_setSpreadsheetOverride(
+    spreadsheet
+  );
+
+
+  const sheet =
+    spreadsheet.getSheetByName(
+      "TestSheet"
+    );
+
+
+  SpreadsheetRepository_update(
+    "TestSheet",
+    {
+
+      "Status":
+        "after"
+
+    },
+    {
+
+      "ID":
+        "TEST-001",
+
+      "Status":
+        "before"
+
+    }
+  );
+
+
+  const writeLog =
+    sheet.getWriteLog();
+
+
+  SpreadsheetRepositoryTest_assertEquals(
+    1,
+    writeLog.length,
+    "writeLog.length"
+  );
+
+
+  SpreadsheetRepositoryTest_assertDeepEquals(
+    {
+
+      startRow:
+        2,
+
+      startColumn:
+        3,
+
+      rowCount:
+        1,
+
+      columnCount:
+        1,
+
+      values: [
+        [
+          "after"
+        ]
+      ]
+
+    },
+    writeLog[0],
+    "writeLog[0]"
+  );
+
+
+  SpreadsheetRepositoryTest_assertDeepEquals(
+    [
+      "TEST-001",
+      "=A2&\"-FORMULA\"",
+      "after",
+      "Keep This Memo"
+    ],
+    sheet.getAllValues()[1],
+    "updated row"
+  );
+
+}
+
+
+
+
 /*
 =========================================
 Override
@@ -1094,6 +1226,9 @@ function SpreadsheetRepositoryTest_createSheet(
       initialValues
     );
 
+  const writeLog =
+  [];
+
 
   const sheet = {
 
@@ -1206,6 +1341,28 @@ function SpreadsheetRepositoryTest_createSheet(
           },
           function(newValues) {
 
+                        
+            writeLog.push({
+
+              startRow:
+                startRow,
+
+              startColumn:
+                startColumn,
+
+              rowCount:
+                rowCount,
+
+              columnCount:
+                columnCount,
+
+              values:
+                SpreadsheetRepositoryTest_deepCopy(
+                  newValues
+                )
+
+            });
+
             for (
               let rowOffset = 0;
               rowOffset < rowCount;
@@ -1313,6 +1470,15 @@ function SpreadsheetRepositoryTest_createSheet(
 
         return SpreadsheetRepositoryTest_deepCopy(
           values
+        );
+
+      },
+
+    getWriteLog:
+      function() {
+
+        return SpreadsheetRepositoryTest_deepCopy(
+          writeLog
         );
 
       }

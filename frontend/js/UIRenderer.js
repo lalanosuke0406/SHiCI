@@ -389,9 +389,9 @@ function addUpdateConfirmationCard(
     const proposalChanges =
         isExecutionProposal &&
         Array.isArray(
-            result.changes
+            confirmation.changes
         )
-            ? result.changes
+            ? confirmation.changes
             : [];
 
     const presentationActions =

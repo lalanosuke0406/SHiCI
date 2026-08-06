@@ -8,9 +8,9 @@ ApiClient.js
 =========================================
 */
 
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbw34Qs-g5IqPLwluES704A03yyoW9P6liiv6z3JOkJiVFMP-Fifg6i6IH4EM98EM-Ubjg/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxdT6Zhk2evdrRJVHNNhpuVvp0CSTV28zNoau8DjymkWx4GDYn6bgs__Pg-tY-ptD_Igg/exec";
 
-
+ 
 
 
 async function selectCandidate(

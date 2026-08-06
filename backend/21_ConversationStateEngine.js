@@ -306,9 +306,55 @@ function ConversationStateEngine_selectCandidate(
   ) {
 
     /*
-    * 現在対応している更新対象は、
-    * 製品の金型温度のみ。
+    =========================================
+    保存されていた更新意図の取得
+    =========================================
     */
+
+    const updateType =
+      String(
+        pendingUpdateIntent.updateType ||
+        ""
+      ).trim();
+
+
+    const fieldDefinition =
+      StandardConditionFieldRegistry_find(
+        updateType
+      );
+
+
+    /*
+     * Registryに登録されていない更新項目は
+     * 復元しない。
+     */
+    if (
+      fieldDefinition ===
+        null
+    ) {
+
+      return {
+
+        status:
+          "error",
+
+        messageType:
+          "text",
+
+        answer:
+          "保存されていた変更内容は、現在対応していない項目です。もう一度変更内容を指定してください。"
+
+      };
+
+    }
+
+
+    /*
+    =========================================
+    Entity Typeの確認
+    =========================================
+    */
+
     if (
       String(
         entity.entityType || ""
@@ -325,18 +371,20 @@ function ConversationStateEngine_selectCandidate(
           "text",
 
         answer:
-          "金型温度を変更できる対象は製品です。"
+          fieldDefinition.label +
+          "を変更できる対象は製品です。"
 
       };
 
     }
 
 
-
-
-        /*
-    * 保存されていた正式なUnderstanding Resultを取得する。
+    /*
+    =========================================
+    Understanding Resultの復元
+    =========================================
     */
+
     const restoredUnderstandingResult =
       pendingUpdateIntent.understandingResult;
 
@@ -371,16 +419,11 @@ function ConversationStateEngine_selectCandidate(
     );
 
 
-
-
     /*
-    * 保存されていた更新意図を取得する。
+    =========================================
+    保存値の取得
+    =========================================
     */
-    const updateType =
-      String(
-        pendingUpdateIntent.updateType ||
-        ""
-      ).trim();
 
     const targetField =
       String(
@@ -388,11 +431,13 @@ function ConversationStateEngine_selectCandidate(
         ""
       ).trim();
 
+
     const unit =
       String(
         pendingUpdateIntent.unit ||
         ""
       ).trim();
+
 
     const newValue =
       Number(
@@ -401,11 +446,9 @@ function ConversationStateEngine_selectCandidate(
 
 
     /*
-    * 保存内容が正しいか確認する。
-    */
+     * 保存された値が正しいか確認する。
+     */
     if (
-      updateType !==
-        "mold_temperature" ||
       !Number.isFinite(
         newValue
       )
@@ -420,7 +463,9 @@ function ConversationStateEngine_selectCandidate(
           "text",
 
         answer:
-          "保存されていた変更内容を復元できませんでした。もう一度変更内容を指定してください。"
+          "保存されていた" +
+          fieldDefinition.label +
+          "の変更値を復元できませんでした。もう一度変更内容を指定してください。"
 
       };
 
@@ -428,9 +473,11 @@ function ConversationStateEngine_selectCandidate(
 
 
     /*
-    * UnderstandingEngineで使用する形式へ
-    * 更新意図を復元する。
+    =========================================
+    Update Intentの復元
+    =========================================
     */
+
     const restoredUpdateIntent = {
 
       status:
@@ -440,25 +487,28 @@ function ConversationStateEngine_selectCandidate(
         "update",
 
       updateType:
-        updateType,
+        fieldDefinition.changeField,
 
       targetField:
         targetField ||
-        "金型温度(℃)",
+        fieldDefinition.spreadsheetHeader,
 
       newValue:
         newValue,
 
       unit:
         unit ||
-        "℃"
+        fieldDefinition.displayUnit
 
     };
 
 
     /*
-    * 候補選択前と同じ形式で返す。
+    =========================================
+    候補選択前と同じ形式で返す
+    =========================================
     */
+
     return {
 
       status:

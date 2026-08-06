@@ -175,7 +175,7 @@ async function handleSubmit(event) {
 
 /**
  * update_target_resolvedを受け取り、
- * 金型温度の更新案を生成して
+ * Entityの更新案を生成して
  * 確認カードを表示する。
  *
  * この関数を実行した時点では、
@@ -233,28 +233,7 @@ async function handleResolvedUpdateTarget(
     }
 
 
-    /*
-    =========================================
-    更新種別の確認
-    =========================================
-    */
 
-    const updateType =
-        String(
-            result.updateType || ""
-        ).trim();
-
-
-    if (
-        updateType !==
-            "mold_temperature"
-    ) {
-
-        throw new Error(
-            "この更新内容には、まだ対応していません。"
-        );
-
-    }
 
 
     /*

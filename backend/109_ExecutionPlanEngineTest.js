@@ -107,14 +107,16 @@ function test_ExecutionPlanEngine_runAll() {
 
       try {
 
-        test.run();
+            ExecutionPlanEngineTest_clearSnapshotOverride();
 
-        console.log(
-          "[PASS] " +
-          test.name
-        );
+            test.run();
 
-      } catch (error) {
+            console.log(
+                "[PASS] " +
+                test.name
+            );
+
+        } catch (error) {
 
         failures.push({
 
@@ -143,6 +145,10 @@ function test_ExecutionPlanEngine_runAll() {
               : error
           )
         );
+
+      } finally {
+
+        ExecutionPlanEngineTest_clearSnapshotOverride();
 
       }
 
@@ -1186,6 +1192,9 @@ function ExecutionPlanEngineTest_createExecutionPlanFixture() {
  */
 function ExecutionPlanEngineTest_createConfirmationExecution() {
 
+  ExecutionPlanEngineTest_setSnapshotOverride();
+
+
   /*
   =========================================
   Entity Mutation
@@ -1411,6 +1420,137 @@ function ExecutionPlanEngineTest_createConfirmationExecution() {
 }
 
 
+
+
+
+
+
+/*
+=========================================
+Snapshot Override
+=========================================
+*/
+
+let ExecutionPlanEngineTest_originalSnapshotGetter =
+  null;
+
+
+/**
+ * Change Plan生成時に使用するProduct Snapshotを、
+ * Execution Plan Engine Test専用の固定値へ差し替える。
+ */
+function ExecutionPlanEngineTest_setSnapshotOverride() {
+
+  if (
+    ExecutionPlanEngineTest_originalSnapshotGetter ===
+      null
+  ) {
+
+    ExecutionPlanEngineTest_originalSnapshotGetter =
+      SnapshotEngine_getProductSnapshot;
+
+  }
+
+
+  SnapshotEngine_getProductSnapshot =
+    function(productId) {
+
+      ExecutionPlanEngineTest_assertEquals(
+        "P-000035",
+        productId,
+        "Snapshot productId"
+      );
+
+
+      return {
+
+        status:
+          "success",
+
+        product: {
+
+          "製品ID":
+            "P-000035",
+
+          "製品名":
+            "LEVER, CLAMP",
+
+          "図番":
+            "KLW-M374C-000",
+
+          "現在標準条件ID":
+            "COND-000152"
+
+        },
+
+        condition: {
+
+          "条件ID":
+            "COND-000152",
+
+          "製品ID":
+            "P-000035",
+
+          "状態":
+            "標準",
+
+          "版数":
+            4,
+
+          "親条件ID":
+            null,
+
+          "変更理由":
+            null,
+
+          "最終更新日":
+            "2026-08-01T00:00:00.000Z"
+
+        },
+
+        conditionDetail: {
+
+          "条件ID":
+            "COND-000152",
+
+          "金型温度(℃)":
+            60,
+
+          "冷却時間":
+            8,
+
+          "最終更新日":
+            "2026-08-01T00:00:00.000Z"
+
+        }
+
+      };
+
+    };
+
+}
+
+
+/**
+ * Snapshot Overrideを解除する。
+ */
+function ExecutionPlanEngineTest_clearSnapshotOverride() {
+
+  if (
+    ExecutionPlanEngineTest_originalSnapshotGetter !==
+      null
+  ) {
+
+    SnapshotEngine_getProductSnapshot =
+      ExecutionPlanEngineTest_originalSnapshotGetter;
+
+
+    ExecutionPlanEngineTest_originalSnapshotGetter =
+      null;
+
+  }
+
+}
 
 
 

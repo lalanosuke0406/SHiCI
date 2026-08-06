@@ -40,10 +40,24 @@ function test_UpdateTargetResolvedUnderstanding_runAll() {
     },
 
     {
+        name:
+            "coolingTimeDirectResolved",
+        run:
+            test_UpdateTargetResolvedUnderstanding_coolingTimeDirectResolved
+    },
+
+    {
       name:
         "candidateSelectionRestoresUnderstandingResult",
       run:
         test_UpdateTargetResolvedUnderstanding_candidateSelectionRestoresUnderstandingResult
+    },
+
+    {
+        name:
+            "coolingTimeCandidateSelectionRestoresUnderstandingResult",
+        run:
+            test_UpdateTargetResolvedUnderstanding_coolingTimeCandidateSelectionRestoresUnderstandingResult
     },
 
     {
@@ -205,6 +219,113 @@ function test_UpdateTargetResolvedUnderstanding_directResolvedContainsUnderstand
   );
 
 }
+
+
+
+
+
+
+
+
+/**
+ * 冷却時間の更新要求が直接1件に確定した場合、
+ * update_target_resolvedへ正しく変換されることを確認する。
+ */
+function test_UpdateTargetResolvedUnderstanding_coolingTimeDirectResolved() {
+
+  const understandingResult =
+    UpdateTargetResolvedUnderstandingTest_createCoolingTimeUnderstandingResult(
+      "ワンワン",
+      9
+    );
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      understandingResult
+    );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "ready",
+    updateIntent.status,
+    "updateIntent.status"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "cooling_time",
+    updateIntent.updateType,
+    "updateIntent.updateType"
+  );
+
+
+  const entity =
+    UpdateTargetResolvedUnderstandingTest_createProductEntity();
+
+
+  UpdateTargetResolvedUnderstandingTest_setSnapshotOverride();
+
+
+  const result =
+    UnderstandingEngine_buildUpdateTargetResult(
+      entity,
+      updateIntent,
+      understandingResult
+    );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertObject(
+    result,
+    "result"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "update_target_resolved",
+    result.messageType,
+    "result.messageType"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "cooling_time",
+    result.updateType,
+    "result.updateType"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    9,
+    result.proposedValue.value,
+    "result.proposedValue.value"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "second",
+    result.proposedValue.canonicalUnit,
+    "result.proposedValue.canonicalUnit"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertDeepEquals(
+    understandingResult,
+    result.understandingResult,
+    "result.understandingResult"
+  );
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 /*
@@ -385,6 +506,170 @@ function test_UpdateTargetResolvedUnderstanding_candidateSelectionRestoresUnders
   );
 
 }
+
+
+
+
+
+
+
+
+
+/**
+ * 冷却時間の更新要求で候補が複数になった場合、
+ * 候補選択後にUnderstanding Resultと
+ * Update Intentが正しく復元されることを確認する。
+ */
+function test_UpdateTargetResolvedUnderstanding_coolingTimeCandidateSelectionRestoresUnderstandingResult() {
+
+  const sessionId =
+    "UPDATE_TARGET_RESOLVED_COOLING_TIME_CANDIDATE_TEST_" +
+    new Date().getTime();
+
+
+  UpdateTargetResolvedUnderstandingTest_sessionIds.push(
+    sessionId
+  );
+
+
+  const understandingResult =
+    UpdateTargetResolvedUnderstandingTest_createCoolingTimeUnderstandingResult(
+      "ワンワン",
+      9
+    );
+
+
+  const state =
+    getConversationState(
+      sessionId
+    );
+
+
+  state.candidateEntities = [
+
+    UpdateTargetResolvedUnderstandingTest_createProductEntity()
+
+  ];
+
+
+  state.pendingUpdateIntent = {
+
+    updateType:
+      "cooling_time",
+
+    targetField:
+      "冷却時間",
+
+    newValue:
+      9,
+
+    unit:
+      "秒",
+
+    originalText:
+      understandingResult.input.originalText,
+
+    understandingResult:
+      JSON.parse(
+        JSON.stringify(
+          understandingResult
+        )
+      )
+
+  };
+
+
+  saveConversationState(
+    sessionId,
+    state
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_setSnapshotOverride();
+
+
+  const result =
+    ConversationStateEngine_selectCandidate(
+      "P-000035",
+      "product",
+      sessionId
+    );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertObject(
+    result,
+    "result"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "success",
+    result.status,
+    "result.status"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "update_target_resolved",
+    result.messageType,
+    "result.messageType"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "cooling_time",
+    result.updateType,
+    "result.updateType"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "冷却時間",
+    result.proposedValue.field,
+    "result.proposedValue.field"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    9,
+    result.proposedValue.value,
+    "result.proposedValue.value"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "秒",
+    result.proposedValue.unit,
+    "result.proposedValue.unit"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertEquals(
+    "second",
+    result.proposedValue.canonicalUnit,
+    "result.proposedValue.canonicalUnit"
+  );
+
+
+  UpdateTargetResolvedUnderstandingTest_assertDeepEquals(
+    understandingResult,
+    result.understandingResult,
+    "result.understandingResult"
+  );
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /*
@@ -600,6 +885,101 @@ function UpdateTargetResolvedUnderstandingTest_validateResolvedResult(
   );
 
 }
+
+
+
+
+
+
+/**
+ * 冷却時間更新を表す
+ * Understanding Result Ver.2.0を生成する。
+ *
+ * @param {string} entityQuery
+ * @param {number} value
+ * @return {Object}
+ */
+function UpdateTargetResolvedUnderstandingTest_createCoolingTimeUnderstandingResult(
+  entityQuery,
+  value
+) {
+
+  const originalText =
+    String(
+      entityQuery
+    ) +
+    "の冷却時間を" +
+    String(
+      value
+    ) +
+    "秒にして";
+
+
+  const result =
+    UnderstandingResultContract_create(
+      originalText
+    );
+
+
+  result.communication.type =
+    "none";
+
+  result.intent.type =
+    "update";
+
+  result.conversation.action =
+    "new";
+
+  result.entity.query =
+    entityQuery;
+
+  result.entity.entityTypeHint =
+    "product";
+
+  result.view.name =
+    "cooling_time";
+
+  result.change.field =
+    "cooling_time";
+
+  result.change.operation =
+    "set";
+
+  result.change.value =
+    value;
+
+  result.change.unit =
+    "second";
+
+  result.missingFields =
+    [];
+
+  result.memory.decision =
+    "none";
+
+  result.knowledgeBoundary.type =
+    "company_knowledge";
+
+  result.resolution.required =
+    true;
+
+
+  UnderstandingResultContract_validate(
+    result
+  );
+
+
+  return result;
+
+}
+
+
+
+
+
+
+
+
 
 
 /*
@@ -823,7 +1203,12 @@ function UpdateTargetResolvedUnderstandingTest_setSnapshotOverride() {
             "COND-000152",
 
           "金型温度(℃)":
-            60
+            60,
+
+          "冷却時間":
+            8
+
+        
 
         }
 

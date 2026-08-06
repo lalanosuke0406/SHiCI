@@ -80,16 +80,22 @@ function ChangePlanEngineTest_runAll() {
   tests.forEach(
     function(test) {
 
-      try {
+        try {
+
+        ChangePlanEngineTest_clearSnapshotOverride();
+
+        ChangePlanEngineTest_setSnapshotOverride();
+
 
         test.run();
 
+
         console.log(
-          "[PASS] " +
-          test.name
+            "[PASS] " +
+            test.name
         );
 
-      } catch (error) {
+         } catch (error) {
 
         failures.push({
 
@@ -118,6 +124,10 @@ function ChangePlanEngineTest_runAll() {
               : error
           )
         );
+
+      } finally {
+
+        ChangePlanEngineTest_clearSnapshotOverride();
 
       }
 
@@ -641,6 +651,148 @@ function ChangePlanEngineTest_createResolvedMutation() {
   return resolutionResult;
 
 }
+
+
+
+
+
+
+/*
+=========================================
+Snapshot Override
+=========================================
+*/
+
+let ChangePlanEngineTest_originalSnapshotGetter =
+  null;
+
+
+/**
+ * SnapshotEngine_getProductSnapshotを
+ * Change Plan Engine Test専用の
+ * 固定Snapshotへ差し替える。
+ */
+function ChangePlanEngineTest_setSnapshotOverride() {
+
+  if (
+    ChangePlanEngineTest_originalSnapshotGetter ===
+      null
+  ) {
+
+    ChangePlanEngineTest_originalSnapshotGetter =
+      SnapshotEngine_getProductSnapshot;
+
+  }
+
+
+  SnapshotEngine_getProductSnapshot =
+    function(productId) {
+
+      ChangePlanEngineTest_assertEqual(
+        productId,
+        "P-000035",
+        "Snapshot productId"
+      );
+
+
+      return {
+
+        status:
+          "success",
+
+        product: {
+
+          "製品ID":
+            "P-000035",
+
+          "製品名":
+            "LEVER, CLAMP",
+
+          "図番":
+            "KLW-M374C-000",
+
+          "現在標準条件ID":
+            "COND-000152"
+
+        },
+
+        condition: {
+
+          "条件ID":
+            "COND-000152",
+
+          "製品ID":
+            "P-000035",
+
+          "状態":
+            "標準",
+
+          "版数":
+            4,
+
+          "親条件ID":
+            null,
+
+          "変更理由":
+            null,
+
+          "最終更新日":
+            "2026-08-01T00:00:00.000Z"
+
+        },
+
+        conditionDetail: {
+
+          "条件ID":
+            "COND-000152",
+
+          "金型温度(℃)":
+            60,
+
+          "冷却時間":
+            8,
+
+          "最終更新日":
+            "2026-08-01T00:00:00.000Z"
+
+        }
+
+      };
+
+    };
+
+}
+
+
+/**
+ * Snapshot Overrideを解除する。
+ */
+function ChangePlanEngineTest_clearSnapshotOverride() {
+
+  if (
+    ChangePlanEngineTest_originalSnapshotGetter !==
+      null
+  ) {
+
+    SnapshotEngine_getProductSnapshot =
+      ChangePlanEngineTest_originalSnapshotGetter;
+
+
+    ChangePlanEngineTest_originalSnapshotGetter =
+      null;
+
+  }
+
+}
+
+
+
+
+
+
+
+
+
 
 
 /*

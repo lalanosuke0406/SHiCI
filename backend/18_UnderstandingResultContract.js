@@ -96,6 +96,7 @@ const UNDERSTANDING_RESULT_ALLOWED_VIEW_NAMES = [
   "material",
   "drying_condition",
   "mold_temperature",
+  "cooling_time",
   "cavity_count",
   "gate",
   "machine",
@@ -110,7 +111,9 @@ const UNDERSTANDING_RESULT_ALLOWED_VIEW_NAMES = [
 
 const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
 
-  "mold_temperature"
+  null,
+  "mold_temperature",
+  "cooling_time"
 
 ];
 
@@ -131,7 +134,8 @@ const UNDERSTANDING_RESULT_ALLOWED_CHANGE_OPERATIONS = [
 
 const UNDERSTANDING_RESULT_ALLOWED_CHANGE_UNITS = [
 
-  "celsius"
+  "celsius",
+  "second"
 
 ];
 

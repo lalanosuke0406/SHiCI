@@ -136,22 +136,26 @@ function ProductMutationAdapter_convert(
       : null;
 
 
-  switch (
-    changeField
+  const fieldDefinition =
+    StandardConditionFieldRegistry_find(
+      changeField
+    );
+
+
+  if (
+    fieldDefinition ===
+      null
   ) {
 
-    case "mold_temperature":
-
-      return ProductMutationAdapter_convertMoldTemperature(
-        understandingResult
-      );
-
-
-    default:
-
-      return null;
+    return null;
 
   }
+
+
+  return ProductMutationAdapter_convertStandardConditionField(
+    understandingResult,
+    fieldDefinition
+  );
 
 }
 
@@ -163,14 +167,17 @@ Mold Temperature
 */
 
 /**
- * 金型温度変更要求を
+ * 標準成形条件Fieldの変更要求を
  * Entity Mutationへ変換する。
+ *
+ * Field固有情報は、
+ * StandardConditionFieldRegistryから受け取る。
  *
  * この段階では、
  *
  * ・対象Product ID
  * ・現在のCondition ID
- * ・現在の金型温度
+ * ・現在値
  * ・新しいCondition ID
  *
  * はまだ確定しない。
@@ -179,11 +186,57 @@ Mold Temperature
  * Snapshot取得後に補完する。
  *
  * @param {Object} understandingResult
+ * @param {Object} fieldDefinition
  * @return {Object}
  */
-function ProductMutationAdapter_convertMoldTemperature(
-  understandingResult
+function ProductMutationAdapter_convertStandardConditionField(
+  understandingResult,
+  fieldDefinition
 ) {
+
+  UnderstandingResultContract_validate(
+    understandingResult
+  );
+
+
+  StandardConditionFieldRegistry_validateDefinition(
+    fieldDefinition
+  );
+
+
+  const proposedValue =
+    ProductMutationAdapter_getChangeValue(
+      understandingResult
+    );
+
+
+  const canonicalUnit =
+    ProductMutationAdapter_getCanonicalUnit(
+      understandingResult
+    );
+
+
+  /*
+   * Understanding Resultの単位と、
+   * Registryの正式単位が一致していることを確認する。
+   */
+  if (
+    canonicalUnit !==
+      fieldDefinition.canonicalUnit
+  ) {
+
+    throw new Error(
+      "標準成形条件Fieldの単位が一致しません。" +
+      " changeField=" +
+      fieldDefinition.changeField +
+      " expectedUnit=" +
+      fieldDefinition.canonicalUnit +
+      " actualUnit=" +
+      canonicalUnit
+    );
+
+  }
+
 
   const mutation =
     EntityMutationContract_createEmpty();
@@ -220,23 +273,19 @@ function ProductMutationAdapter_convertMoldTemperature(
   mutation.stateChanges.push({
 
     path:
-      "standard_condition.mold_temperature",
+      fieldDefinition.path,
 
     currentValue:
       null,
 
     proposedValue:
-      ProductMutationAdapter_getChangeValue(
-        understandingResult
-      ),
+      proposedValue,
 
     unit:
-      ProductMutationAdapter_getCanonicalUnit(
-        understandingResult
-      ),
+      fieldDefinition.canonicalUnit,
 
     preservationPolicy:
-      "create_new_version"
+      fieldDefinition.preservationPolicy
 
   });
 
@@ -259,7 +308,7 @@ function ProductMutationAdapter_convertMoldTemperature(
       null,
 
     preservationPolicy:
-      "create_new_version"
+      fieldDefinition.preservationPolicy
 
   };
 
@@ -281,20 +330,22 @@ function ProductMutationAdapter_convertMoldTemperature(
     details: {
 
       field:
-        "mold_temperature",
+        fieldDefinition.changeField,
+
+      path:
+        fieldDefinition.path,
+
+      label:
+        fieldDefinition.label,
 
       currentValue:
         null,
 
       proposedValue:
-        ProductMutationAdapter_getChangeValue(
-          understandingResult
-        ),
+        proposedValue,
 
       unit:
-        ProductMutationAdapter_getCanonicalUnit(
-          understandingResult
-        )
+        fieldDefinition.canonicalUnit
 
     }
 

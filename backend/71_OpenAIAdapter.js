@@ -1952,6 +1952,14 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- Updateの対象項目が理解できた場合は、change.fieldをCanonical Fieldへ変換してください。",
 
+    "- 標準成形条件の金型温度は、view.nameおよびchange.fieldをmold_temperatureとしてください。",
+
+    "- 金型温度の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の冷却時間は、view.nameおよびchange.fieldをcooling_timeとしてください。",
+
+    "- 冷却時間の単位は、change.unitをsecondとしてください。",
+
     "- 温度記号や単位表記に揺れがあっても、値と単位を意味に基づいて分離してください。",
 
     "- ユーザーが設定値を伝えていない場合は、change.valueをnullとしてください。",
@@ -1996,6 +2004,36 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "",
 
+    "社内Knowledge質問の例（冷却時間）:",
+
+    "入力: ワンワンの冷却時間は？",
+
+    "意味:",
+
+    "- intent.type = question",
+
+    "- knowledgeBoundary.type = company_knowledge",
+
+    "- entity.query = ワンワン",
+
+    "- entity.entityTypeHint = product",
+
+    "- view.name = cooling_time",
+
+    "- resolution.required = true",
+
+    "- change.field = null",
+
+    "- change.operation = null",
+
+    "- change.value = null",
+
+    "- change.unit = null",
+
+    "- missingFields = []",
+
+    "",
+
     "Update理解の例:",
 
     "入力: ワンワンの型温を61℃に変更して",
@@ -2021,6 +2059,36 @@ function OpenAIAdapter_buildUnderstandingInstructions(
     "- change.value = 61",
 
     "- change.unit = celsius",
+
+    "- missingFields = []",
+
+    "",
+
+    "Update理解の例（冷却時間）:",
+
+    "入力: ワンワンの冷却時間を9秒に変更して",
+
+    "意味:",
+
+    "- intent.type = update",
+
+    "- knowledgeBoundary.type = company_knowledge",
+
+    "- entity.query = ワンワン",
+
+    "- entity.entityTypeHint = product",
+
+    "- view.name = cooling_time",
+
+    "- resolution.required = true",
+
+    "- change.field = cooling_time",
+
+    "- change.operation = set",
+
+    "- change.value = 9",
+
+    "- change.unit = second",
 
     "- missingFields = []",
 

@@ -286,6 +286,12 @@ function ChangePlanEngine_findBlockingFields(
     [];
 
 
+  /*
+  =========================================
+  Mutation
+  =========================================
+  */
+
   if (
     mutation.mutationType !==
       "change_state"
@@ -309,6 +315,12 @@ function ChangePlanEngine_findBlockingFields(
 
   }
 
+
+  /*
+  =========================================
+  Snapshot
+  =========================================
+  */
 
   if (
     !snapshot.product
@@ -385,23 +397,16 @@ function ChangePlanEngine_findBlockingFields(
   }
 
 
-  if (
-    snapshot.conditionDetail &&
-    !Object.prototype.hasOwnProperty.call(
-      snapshot.conditionDetail,
-      CHANGE_PLAN_ENGINE_MOLD_TEMPERATURE_KEY
-    )
-  ) {
-
-    missingFields.push(
-      "snapshot.conditionDetail." +
-      CHANGE_PLAN_ENGINE_MOLD_TEMPERATURE_KEY
-    );
-
-  }
-
+  /*
+  =========================================
+  State Changes
+  =========================================
+  */
 
   if (
+    !Array.isArray(
+      mutation.stateChanges
+    ) ||
     mutation.stateChanges.length ===
       0
   ) {
@@ -410,46 +415,132 @@ function ChangePlanEngine_findBlockingFields(
       "mutation.stateChanges"
     );
 
+  } else {
+
+    mutation.stateChanges.forEach(
+      function(
+        stateChange,
+        index
+      ) {
+
+        const fieldDefinition =
+          StandardConditionFieldRegistry_findByPath(
+            stateChange.path
+          );
+
+
+        /*
+         * 未登録Pathは対応外。
+         */
+        if (
+          fieldDefinition ===
+            null
+        ) {
+
+          missingFields.push(
+            "mutation.stateChanges[" +
+            index +
+            "].unsupportedPath:" +
+            String(
+              stateChange.path
+            )
+          );
+
+
+          return;
+
+        }
+
+
+        /*
+         * Snapshotに対応列が存在するか確認する。
+         */
+        if (
+          snapshot.conditionDetail &&
+          !Object.prototype.hasOwnProperty.call(
+            snapshot.conditionDetail,
+            fieldDefinition.spreadsheetHeader
+          )
+        ) {
+
+          missingFields.push(
+            "snapshot.conditionDetail." +
+            fieldDefinition.spreadsheetHeader
+          );
+
+        }
+
+
+        /*
+         * Ver.1.0では数値Fieldのみを扱う。
+         */
+        if (
+          typeof stateChange.proposedValue !==
+            "number" ||
+          !isFinite(
+            stateChange.proposedValue
+          )
+        ) {
+
+          missingFields.push(
+            "mutation.stateChanges[" +
+            index +
+            "].proposedValue"
+          );
+
+        }
+
+
+        /*
+         * Mutationの単位がRegistry定義と一致するか確認する。
+         */
+        if (
+          stateChange.unit !==
+            fieldDefinition.canonicalUnit
+        ) {
+
+          missingFields.push(
+            "mutation.stateChanges[" +
+            index +
+            "].unit:" +
+            String(
+              stateChange.unit
+            )
+          );
+
+        }
+
+
+        /*
+         * 保存方針がRegistry定義と一致するか確認する。
+         */
+        if (
+          stateChange.preservationPolicy !==
+            fieldDefinition.preservationPolicy
+        ) {
+
+          missingFields.push(
+            "mutation.stateChanges[" +
+            index +
+            "].preservationPolicy:" +
+            String(
+              stateChange.preservationPolicy
+            )
+          );
+
+        }
+
+      }
+    );
+
   }
 
 
-  mutation.stateChanges.forEach(
-    function(stateChange, index) {
-
-      if (
-        stateChange.path !==
-          CHANGE_PLAN_ENGINE_SUPPORTED_PATH
-      ) {
-
-        missingFields.push(
-          "mutation.stateChanges[" +
-          index +
-          "].unsupportedPath:" +
-          stateChange.path
-        );
-
-      }
-
-
-      if (
-        typeof stateChange.proposedValue !==
-          "number" ||
-        !isFinite(
-          stateChange.proposedValue
-        )
-      ) {
-
-        missingFields.push(
-          "mutation.stateChanges[" +
-          index +
-          "].proposedValue"
-        );
-
-      }
-
-    }
-  );
-
+  /*
+  =========================================
+  Snapshot Consistency
+  =========================================
+  */
 
   /*
    * Productが示す現在標準条件IDと、
@@ -566,27 +657,18 @@ function ChangePlanEngine_applyStateChanges(
   snapshot
 ) {
 
-  const currentMoldTemperature =
-    snapshot.conditionDetail[
-      CHANGE_PLAN_ENGINE_MOLD_TEMPERATURE_KEY
-    ];
-
-
   mutation.stateChanges.forEach(
     function(stateChange) {
 
-      if (
-        stateChange.path !==
-          CHANGE_PLAN_ENGINE_SUPPORTED_PATH
-      ) {
-
-        throw new Error(
-          "未対応のState Changeです。path=" +
+      const fieldDefinition =
+        StandardConditionFieldRegistry_requireByPath(
           stateChange.path
         );
 
-      }
-
+      const currentValue =
+        snapshot.conditionDetail[
+          fieldDefinition.spreadsheetHeader
+        ];
 
       changePlan.changes.push({
 
@@ -597,7 +679,7 @@ function ChangePlanEngine_applyStateChanges(
           stateChange.path,
 
         before:
-          currentMoldTemperature,
+          currentValue,
 
         after:
           stateChange.proposedValue,
@@ -666,10 +748,7 @@ function ChangePlanEngine_applySnapshotPlan(
     );
 
 
-  const proposedMoldTemperature =
-    ChangePlanEngine_getProposedMoldTemperature(
-      mutation
-    );
+
 
 
   /*
@@ -695,14 +774,32 @@ function ChangePlanEngine_applySnapshotPlan(
 
 
   proposedConditionDetail["条件ID"] =
-    null;
+  null;
 
-  proposedConditionDetail[
-    CHANGE_PLAN_ENGINE_MOLD_TEMPERATURE_KEY
-  ] =
-    proposedMoldTemperature;
 
-  proposedConditionDetail["最終更新日"] =
+    /*
+    * Mutationに含まれる各標準成形条件変更を、
+    * RegistryでSpreadsheet Headerへ解決して反映する。
+    */
+    mutation.stateChanges.forEach(
+    function(stateChange) {
+
+        const fieldDefinition =
+        StandardConditionFieldRegistry_requireByPath(
+            stateChange.path
+        );
+
+
+        proposedConditionDetail[
+        fieldDefinition.spreadsheetHeader
+        ] =
+        stateChange.proposedValue;
+
+    }
+    );
+
+
+    proposedConditionDetail["最終更新日"] =
     null;
 
 
@@ -820,43 +917,7 @@ function ChangePlanEngine_buildCurrentConditionSnapshot(
 }
 
 
-/**
- * Mutationから提案金型温度を取得する。
- *
- * @param {Object} mutation
- * @return {number}
- */
-function ChangePlanEngine_getProposedMoldTemperature(
-  mutation
-) {
 
-  for (
-    let index = 0;
-    index < mutation.stateChanges.length;
-    index++
-  ) {
-
-    const stateChange =
-      mutation.stateChanges[index];
-
-
-    if (
-      stateChange.path ===
-        CHANGE_PLAN_ENGINE_SUPPORTED_PATH
-    ) {
-
-      return stateChange.proposedValue;
-
-    }
-
-  }
-
-
-  throw new Error(
-    "金型温度の変更値がありません。"
-  );
-
-}
 
 
 /*

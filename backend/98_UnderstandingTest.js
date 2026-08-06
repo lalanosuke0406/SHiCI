@@ -663,6 +663,24 @@ function UnderstandingTest_validateVersion2RequestContract() {
     "allowedChangeUnits"
   );
 
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedViewNames,
+    "cooling_time",
+    "allowedViewNames"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "cooling_time",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeUnits,
+    "second",
+    "allowedChangeUnits"
+  );
+
 
   Logger.log(
     "[Passed] Version 2.0 Request Contract"
@@ -770,6 +788,41 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
       .type,
     "boolean",
     "Schema resolution.required type"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .view
+        .properties
+        .name
+        .anyOf[0]
+        .enum,
+    "cooling_time",
+    "Schema view.name enum"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .change
+        .properties
+        .field
+        .anyOf[0]
+        .enum,
+    "cooling_time",
+    "Schema change.field enum"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .change
+        .properties
+        .unit
+        .anyOf[0]
+        .enum,
+    "second",
+    "Schema change.unit enum"
   );
 
 
@@ -1839,6 +1892,50 @@ function UnderstandingTest_runVersion2OpenAILive() {
     }
   );
 
+  UnderstandingTest_runVersion2OpenAICase(
+    "Cooling Time Update",
+    "ワンワンの冷却時間を9秒にして",
+    {
+
+        communicationType:
+        "none",
+
+        intentType:
+        "update",
+
+        knowledgeBoundaryType:
+        "company_knowledge",
+
+        entityQuery:
+        "ワンワン",
+
+        entityTypeHint:
+        "product",
+
+        viewName:
+        "cooling_time",
+
+        resolutionRequired:
+        true,
+
+        changeField:
+        "cooling_time",
+
+        changeOperation:
+        "set",
+
+        changeValue:
+        9,
+
+        changeUnit:
+        "second",
+
+        requiredMissingFields:
+        []
+
+    }
+  );
+
 
   Logger.log(
     "[Understanding Ver.2.0 OpenAI Live Test Passed]"
@@ -2212,6 +2309,8 @@ function UnderstandingTest_runVersion2UpdateAdapterCompatibility() {
 
   UnderstandingTest_validateVersion2UpdateAdapterReady();
 
+  UnderstandingTest_validateVersion2CoolingTimeUpdateAdapterReady();
+
   UnderstandingTest_validateVersion2UpdateAdapterIncomplete();
 
   UnderstandingTest_validateVersion2UpdateAdapterNonUpdate();
@@ -2294,6 +2393,82 @@ function UnderstandingTest_validateVersion2UpdateAdapterReady() {
   );
 
 }
+
+
+
+
+/**
+ * 冷却時間の完全なUpdate Resultが、
+ * 既存Update Intentへ正しく変換されることを確認する。
+ */
+function UnderstandingTest_validateVersion2CoolingTimeUpdateAdapterReady() {
+
+  const result =
+    UnderstandingTest_createVersion2StandardConditionUpdateResult(
+      "ワンワンの冷却時間を9秒にして",
+      "ワンワン",
+      "cooling_time",
+      9,
+      "second",
+      []
+    );
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.status,
+    "ready",
+    "Cooling Time Update Adapter Ready status"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.intentType,
+    "update",
+    "Cooling Time Update Adapter Ready intentType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.updateType,
+    "cooling_time",
+    "Cooling Time Update Adapter Ready updateType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.targetField,
+    "冷却時間",
+    "Cooling Time Update Adapter Ready targetField"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.newValue,
+    9,
+    "Cooling Time Update Adapter Ready newValue"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.unit,
+    "second",
+    "Cooling Time Update Adapter Ready unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Cooling Time Update Adapter Ready"
+  );
+
+}
+
+
 
 
 /**
@@ -2546,6 +2721,90 @@ function UnderstandingTest_validateVersion2UpdateAdapterUnitConversion() {
   );
 
 }
+
+
+
+/**
+ * 標準成形条件Update用の
+ * Understanding Result Ver.2.0を生成する。
+ *
+ * @param {string} originalText
+ * @param {string|null} entityQuery
+ * @param {string} changeField
+ * @param {number|null} value
+ * @param {string|null} unit
+ * @param {Array} missingFields
+ * @returns {Object}
+ */
+function UnderstandingTest_createVersion2StandardConditionUpdateResult(
+  originalText,
+  entityQuery,
+  changeField,
+  value,
+  unit,
+  missingFields
+) {
+
+  const result =
+    UnderstandingResultContract_create(
+      originalText
+    );
+
+
+  result.communication.type =
+    "none";
+
+  result.intent.type =
+    "update";
+
+  result.knowledgeBoundary.type =
+    "company_knowledge";
+
+  result.conversation.action =
+    "new";
+
+  result.entity.query =
+    entityQuery;
+
+  result.entity.entityTypeHint =
+    "product";
+
+  result.view.name =
+    changeField;
+
+  result.resolution.required =
+    entityQuery !==
+      null;
+
+  result.change.field =
+    changeField;
+
+  result.change.operation =
+    "set";
+
+  result.change.value =
+    value;
+
+  result.change.unit =
+    unit;
+
+  result.missingFields =
+    Array.isArray(
+      missingFields
+    )
+      ? missingFields.slice()
+      : [];
+
+  result.memory.decision =
+    "none";
+
+
+  return result;
+
+}
+
+
+
 
 
 /**

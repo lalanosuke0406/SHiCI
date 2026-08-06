@@ -31,33 +31,23 @@ Presentation Definition
 */
 
 /**
- * Change Pathごとの表示定義。
+ * 標準成形条件変更の共通表示定義。
  *
- * Ver.1.0では金型温度のみ対応する。
+ * Field固有のlabel・displayUnitは、
+ * StandardConditionFieldRegistryから取得する。
  */
-const CONFIRMATION_PRESENTATION_DEFINITIONS = {
+const CONFIRMATION_PRESENTATION_STANDARD_CONDITION_DEFINITION = {
 
-  "standard_condition.mold_temperature": {
+  proposalType:
+    "standard_condition_change",
 
-    proposalType:
-      "standard_condition_change",
+  title:
+    "標準成形条件の変更",
 
-    title:
-      "標準成形条件の変更",
-
-    changeLabel:
-      "金型温度",
-
-    displayUnit:
-      "℃",
-
-    order:
-      10
-
-  }
+  defaultOrder:
+    100
 
 };
-
 
 /*
 =========================================
@@ -257,6 +247,9 @@ Definition Resolution
 /**
  * Change Pathに対応する表示定義を取得する。
  *
+ * Field固有情報は、
+ * StandardConditionFieldRegistryから取得する。
+ *
  * @param {string} path
  * @return {Object}
  */
@@ -270,14 +263,15 @@ function ConfirmationPresentationFormatter_getDefinition(
   );
 
 
-  const definition =
-    CONFIRMATION_PRESENTATION_DEFINITIONS[
+  const fieldDefinition =
+    StandardConditionFieldRegistry_findByPath(
       path
-    ];
+    );
 
 
   if (
-    !definition
+    fieldDefinition ===
+      null
   ) {
 
     throw new Error(
@@ -288,7 +282,27 @@ function ConfirmationPresentationFormatter_getDefinition(
   }
 
 
-  return definition;
+  return {
+
+    proposalType:
+      CONFIRMATION_PRESENTATION_STANDARD_CONDITION_DEFINITION
+        .proposalType,
+
+    title:
+      CONFIRMATION_PRESENTATION_STANDARD_CONDITION_DEFINITION
+        .title,
+
+    changeLabel:
+      fieldDefinition.label,
+
+    displayUnit:
+      fieldDefinition.displayUnit,
+
+    order:
+      CONFIRMATION_PRESENTATION_STANDARD_CONDITION_DEFINITION
+        .defaultOrder
+
+  };
 
 }
 

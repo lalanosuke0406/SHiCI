@@ -561,21 +561,6 @@ function ExecutionPlanEngine_buildExecutionContext(
     );
 
 
-  const currentMoldTemperature =
-    ExecutionPlanEngine_requireFiniteNumber(
-      currentSnapshot
-        .conditionDetail["金型温度(℃)"],
-      "changePlan.currentSnapshot.conditionDetail.金型温度(℃)"
-    );
-
-
-  const proposedMoldTemperature =
-    ExecutionPlanEngine_requireFiniteNumber(
-      proposedSnapshot
-        .conditionDetail["金型温度(℃)"],
-      "changePlan.proposedSnapshot.conditionDetail.金型温度(℃)"
-    );
-
 
   const proposedVersion =
     ExecutionPlanEngine_requireFiniteNumber(
@@ -636,11 +621,6 @@ function ExecutionPlanEngine_buildExecutionContext(
     proposedVersion:
       proposedVersion,
 
-    currentMoldTemperature:
-      currentMoldTemperature,
-
-    proposedMoldTemperature:
-      proposedMoldTemperature,
 
     reason:
       reason,
@@ -680,10 +660,10 @@ Operations
 /**
  * Execution PlanのOperation列を生成する。
  *
- * Ver.1.0では、標準成形条件の
- * 金型温度変更を5件のOperationへ展開する。
+ * Ver.1.0では、標準成形条件の変更を
+ * 5件のOperationへ展開する。
  *
- * 現段階ではOperation 1と2を生成する。
+ * Operation 1〜5を順番に生成する。
  *
  * @param {Object} executionPlan
  * @param {Object} confirmationExecution
@@ -1101,10 +1081,6 @@ function ExecutionPlanEngine_createInsertConditionDetailOperation(
     ExecutionPlanEngine_createBindingReference(
       "NEW_CONDITION_ID"
     );
-
-
-  values["金型温度(℃)"] =
-    executionContext.proposedMoldTemperature;
 
 
   operation.payload.values =

@@ -495,23 +495,31 @@ function UnderstandingEngine_handleUpdateIntent(
 
   /*
   =========================================
-  現在対応している更新種別を確認
+  対応更新種別をRegistryで確認
   =========================================
   */
+
+  const fieldDefinition =
+    StandardConditionFieldRegistry_find(
+      updateIntent.updateType
+    );
+
 
   if (
     updateIntent.status !==
       "ready" ||
-    updateIntent.updateType !==
-      "mold_temperature"
+    fieldDefinition ===
+      null
   ) {
 
     return {
+
       messageType:
         "text",
 
       answer:
         "この変更指示には、まだ対応していません。"
+
     };
 
   }
@@ -584,11 +592,14 @@ function UnderstandingEngine_handleUpdateIntent(
       ) {
 
         return {
+
           messageType:
             "text",
 
           answer:
-            "金型温度を変更できる対象は製品です。"
+            fieldDefinition.label +
+            "を変更できる対象は製品です。"
+
         };
 
       }
@@ -717,11 +728,14 @@ function UnderstandingEngine_handleUpdateIntent(
   */
 
   return {
+
     messageType:
       "text",
 
     answer:
-      "金型温度を変更する製品名を指定してください。"
+      fieldDefinition.label +
+      "を変更する製品名を指定してください。"
+
   };
 
 }
@@ -732,11 +746,14 @@ function UnderstandingEngine_handleUpdateIntent(
 
 
 /**
- * 更新対象と変更値を構造化して返す
+ * 更新対象と変更値を構造化して返す。
  *
  * 製品Snapshotから、
  * 更新案生成時に必要となる
  * 現在標準条件IDも取得する。
+ *
+ * 更新Field固有の情報は、
+ * StandardConditionFieldRegistryから取得する。
  *
  * この関数では、
  * UpdateRequestの生成や
@@ -744,6 +761,7 @@ function UnderstandingEngine_handleUpdateIntent(
  *
  * @param {Object} entity
  * @param {Object} updateIntent
+ * @param {Object|null|undefined} understandingResult
  * @returns {Object}
  */
 function UnderstandingEngine_buildUpdateTargetResult(
@@ -752,8 +770,13 @@ function UnderstandingEngine_buildUpdateTargetResult(
   understandingResult
 ) {
 
+  /*
+  =========================================
+  Understanding Resultの確認
+  =========================================
+  */
 
-    if (
+  if (
     understandingResult !==
       null &&
     understandingResult !==
@@ -765,7 +788,6 @@ function UnderstandingEngine_buildUpdateTargetResult(
     );
 
   }
-
 
 
   /*
@@ -785,15 +807,18 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
   }
 
+
   const entityType =
     String(
       entity.entityType || ""
     ).trim();
 
+
   const entityId =
     String(
       entity.entityId || ""
     ).trim();
+
 
   if (
     entityType !==
@@ -806,7 +831,7 @@ function UnderstandingEngine_buildUpdateTargetResult(
         "text",
 
       answer:
-        "金型温度を変更できる対象は製品です。"
+        "標準成形条件を変更できる対象は製品です。"
 
     };
 
@@ -821,8 +846,41 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
   if (
     !updateIntent ||
-    updateIntent.updateType !==
-      "mold_temperature"
+    typeof updateIntent !==
+      "object" ||
+    Array.isArray(
+      updateIntent
+    )
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "変更内容を正しく取得できませんでした。"
+
+    };
+
+  }
+
+
+  const updateType =
+    String(
+      updateIntent.updateType || ""
+    ).trim();
+
+
+  const fieldDefinition =
+    StandardConditionFieldRegistry_find(
+      updateType
+    );
+
+
+  if (
+    fieldDefinition ===
+      null
   ) {
 
     return {
@@ -837,14 +895,16 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
   }
 
-  const newMoldTemperature =
+
+  const newValue =
     Number(
       updateIntent.newValue
     );
 
+
   if (
     !Number.isFinite(
-      newMoldTemperature
+      newValue
     )
   ) {
 
@@ -854,7 +914,9 @@ function UnderstandingEngine_buildUpdateTargetResult(
         "text",
 
       answer:
-        "変更後の金型温度を正しく取得できませんでした。"
+        "変更後の" +
+        fieldDefinition.label +
+        "を正しく取得できませんでした。"
 
     };
 
@@ -871,6 +933,7 @@ function UnderstandingEngine_buildUpdateTargetResult(
     SnapshotEngine_getProductSnapshot(
       entityId
     );
+
 
   if (
     !snapshot ||
@@ -905,7 +968,10 @@ function UnderstandingEngine_buildUpdateTargetResult(
       ] || ""
     ).trim();
 
-  if (!currentConditionId) {
+
+  if (
+    !currentConditionId
+  ) {
 
     return {
 
@@ -913,7 +979,9 @@ function UnderstandingEngine_buildUpdateTargetResult(
         "text",
 
       answer:
-        "この製品には現在標準条件が設定されていないため、金型温度を変更できません。"
+        "この製品には現在標準条件が設定されていないため、" +
+        fieldDefinition.label +
+        "を変更できません。"
 
     };
 
@@ -945,6 +1013,35 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
   /*
   =========================================
+  現在標準条件詳細の確認
+  =========================================
+  */
+
+  if (
+    !snapshot.conditionDetail ||
+    !Object.prototype.hasOwnProperty.call(
+      snapshot.conditionDetail,
+      fieldDefinition.spreadsheetHeader
+    )
+  ) {
+
+    return {
+
+      messageType:
+        "text",
+
+      answer:
+        "現在の" +
+        fieldDefinition.label +
+        "を取得できませんでした。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
   製品表示情報
   =========================================
   */
@@ -956,12 +1053,14 @@ function UnderstandingEngine_buildUpdateTargetResult(
       ] || ""
     ).trim();
 
+
   const drawingNumber =
     String(
       snapshot.product[
         "図番"
       ] || ""
     ).trim();
+
 
   const alias =
     String(
@@ -996,7 +1095,7 @@ function UnderstandingEngine_buildUpdateTargetResult(
           ),
 
     updateType:
-      "mold_temperature",
+      fieldDefinition.changeField,
 
     target: {
 
@@ -1023,26 +1122,37 @@ function UnderstandingEngine_buildUpdateTargetResult(
     expectedState: {
 
       currentConditionId:
-        currentConditionId
+        currentConditionId,
+
+      currentValue:
+        snapshot.conditionDetail[
+          fieldDefinition.spreadsheetHeader
+        ]
 
     },
 
     proposedValue: {
 
       field:
-        String(
-          updateIntent.targetField ||
-          "金型温度(℃)"
-        ).trim(),
+        fieldDefinition.spreadsheetHeader,
+
+      changeField:
+        fieldDefinition.changeField,
+
+      path:
+        fieldDefinition.path,
+
+      label:
+        fieldDefinition.label,
 
       value:
-        newMoldTemperature,
+        newValue,
 
       unit:
-        String(
-          updateIntent.unit ||
-          "℃"
-        ).trim()
+        fieldDefinition.displayUnit,
+
+      canonicalUnit:
+        fieldDefinition.canonicalUnit
 
     },
 

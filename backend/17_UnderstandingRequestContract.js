@@ -195,6 +195,7 @@ function UnderstandingRequestContract_create(
         "material",
         "drying_condition",
         "mold_temperature",
+        "cooling_time",
         "cavity_count",
         "gate",
         "machine",
@@ -217,7 +218,8 @@ function UnderstandingRequestContract_create(
        */
       allowedChangeFields: [
 
-        "mold_temperature"
+        "mold_temperature",
+        "cooling_time",
 
       ],
 
@@ -248,7 +250,8 @@ function UnderstandingRequestContract_create(
        */
       allowedChangeUnits: [
 
-        "celsius"
+        "celsius",
+        "second"
 
       ],
 

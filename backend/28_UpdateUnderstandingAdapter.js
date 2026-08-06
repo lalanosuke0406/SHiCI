@@ -66,13 +66,19 @@ function UpdateUnderstandingAdapter_convert(
 
   /*
   =========================================
-  現在対応している変更項目
+  標準成形条件Field確認
   =========================================
   */
 
+  const fieldDefinition =
+    StandardConditionFieldRegistry_find(
+      validatedResult.change.field
+    );
+
+
   if (
-    validatedResult.change.field !==
-      "mold_temperature"
+    fieldDefinition ===
+      null
   ) {
 
     return {
@@ -123,10 +129,10 @@ function UpdateUnderstandingAdapter_convert(
         "update",
 
       updateType:
-        "mold_temperature",
+        fieldDefinition.changeField,
 
       targetField:
-        "金型温度(℃)",
+        fieldDefinition.spreadsheetHeader,
 
       newValue:
         validatedResult.change.value,
@@ -137,7 +143,9 @@ function UpdateUnderstandingAdapter_convert(
         ),
 
       message:
-        "現在、金型温度は値を指定した変更だけに対応しています。"
+        "現在、" +
+        fieldDefinition.label +
+        "は値を指定した変更だけに対応しています。"
 
     };
 
@@ -156,6 +164,7 @@ function UpdateUnderstandingAdapter_convert(
       "change.value"
     );
 
+
   if (
     hasMissingValue ||
     validatedResult.change.value ===
@@ -171,10 +180,10 @@ function UpdateUnderstandingAdapter_convert(
         "update",
 
       updateType:
-        "mold_temperature",
+        fieldDefinition.changeField,
 
       targetField:
-        "金型温度(℃)",
+        fieldDefinition.spreadsheetHeader,
 
       newValue:
         null,
@@ -185,7 +194,51 @@ function UpdateUnderstandingAdapter_convert(
         ),
 
       message:
-        "変更後の金型温度を指定してください。"
+        "変更後の" +
+        fieldDefinition.label +
+        "を指定してください。"
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  単位確認
+  =========================================
+  */
+
+  if (
+    validatedResult.change.unit !==
+      fieldDefinition.canonicalUnit
+  ) {
+
+    return {
+
+      status:
+        "incomplete",
+
+      intentType:
+        "update",
+
+      updateType:
+        fieldDefinition.changeField,
+
+      targetField:
+        fieldDefinition.spreadsheetHeader,
+
+      newValue:
+        null,
+
+      unit:
+        UpdateUnderstandingAdapter_convertUnit(
+          validatedResult.change.unit
+        ),
+
+      message:
+        fieldDefinition.label +
+        "の単位を正しく取得できませんでした。"
 
     };
 
@@ -198,14 +251,15 @@ function UpdateUnderstandingAdapter_convert(
   =========================================
   */
 
-  const newMoldTemperature =
+  const newValue =
     Number(
       validatedResult.change.value
     );
 
+
   if (
     !Number.isFinite(
-      newMoldTemperature
+      newValue
     )
   ) {
 
@@ -218,10 +272,10 @@ function UpdateUnderstandingAdapter_convert(
         "update",
 
       updateType:
-        "mold_temperature",
+        fieldDefinition.changeField,
 
       targetField:
-        "金型温度(℃)",
+        fieldDefinition.spreadsheetHeader,
 
       newValue:
         null,
@@ -232,7 +286,9 @@ function UpdateUnderstandingAdapter_convert(
         ),
 
       message:
-        "変更後の金型温度を正しく取得できませんでした。"
+        "変更後の" +
+        fieldDefinition.label +
+        "を正しく取得できませんでした。"
 
     };
 
@@ -254,17 +310,17 @@ function UpdateUnderstandingAdapter_convert(
       "update",
 
     updateType:
-      "mold_temperature",
+      fieldDefinition.changeField,
 
     targetField:
-      "金型温度(℃)",
+      fieldDefinition.spreadsheetHeader,
 
     newValue:
-      newMoldTemperature,
+      newValue,
 
     unit:
       UpdateUnderstandingAdapter_convertUnit(
-        validatedResult.change.unit
+        fieldDefinition.canonicalUnit
       )
 
   };

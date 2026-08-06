@@ -386,6 +386,14 @@ function addUpdateConfirmationCard(
             ""
         ).trim();
 
+    const proposalChanges =
+        isExecutionProposal &&
+        Array.isArray(
+            result.changes
+        )
+            ? result.changes
+            : [];
+
     const presentationActions =
         Array.isArray(
             confirmation.actions
@@ -552,6 +560,148 @@ function addUpdateConfirmationCard(
     body.appendChild(
         messageText
     );
+
+
+
+
+
+    /*
+    =========================================
+    変更項目一覧
+    =========================================
+    */
+
+    if (
+        proposalChanges.length >
+            0
+    ) {
+
+        const changesElement =
+            document.createElement(
+                "div"
+            );
+
+        changesElement.className =
+            "update-confirmation-changes";
+
+
+        proposalChanges.forEach(
+            function(change) {
+
+                if (
+                    !change ||
+                    typeof change !==
+                        "object" ||
+                    Array.isArray(
+                        change
+                    )
+                ) {
+
+                    return;
+
+                }
+
+
+                const label =
+                    String(
+                        change.label ||
+                        change.path ||
+                        "変更項目"
+                    ).trim();
+
+
+                const before =
+                    change.before ===
+                        null ||
+                    change.before ===
+                        undefined
+                        ? "未設定"
+                        : String(
+                            change.before
+                        );
+
+
+                const after =
+                    change.after ===
+                        null ||
+                    change.after ===
+                        undefined
+                        ? "未設定"
+                        : String(
+                            change.after
+                        );
+
+
+                const unit =
+                    String(
+                        change.unit ||
+                        ""
+                    ).trim();
+
+
+                const changeElement =
+                    document.createElement(
+                        "div"
+                    );
+
+                changeElement.className =
+                    "update-confirmation-change";
+
+
+                const labelElement =
+                    document.createElement(
+                        "div"
+                    );
+
+                labelElement.className =
+                    "update-confirmation-change-label";
+
+                labelElement.textContent =
+                    label;
+
+
+                const valueElement =
+                    document.createElement(
+                        "div"
+                    );
+
+                valueElement.className =
+                    "update-confirmation-change-value";
+
+                valueElement.textContent =
+                    before +
+                    unit +
+                    " → " +
+                    after +
+                    unit;
+
+
+                changeElement.appendChild(
+                    labelElement
+                );
+
+                changeElement.appendChild(
+                    valueElement
+                );
+
+                changesElement.appendChild(
+                    changeElement
+                );
+
+            }
+        );
+
+
+        body.appendChild(
+            changesElement
+        );
+
+    }
+
+
+
+
+
 
 
     /*

@@ -504,55 +504,23 @@ function UnderstandingEngine_handleUpdateIntent(
       updateIntent.updateType
     );
 
-  Logger.log(
-    "[Cooling Time Debug] updateIntent=" +
-    JSON.stringify(
-      updateIntent
-    )
-  );
 
-  Logger.log(
-    "[Cooling Time Debug] fieldDefinition=" +
-    JSON.stringify(
-      fieldDefinition
-    )
-  );
+  if (
+    updateIntent.status !==
+      "ready" ||
+    fieldDefinition ===
+      null
+  ) {
 
-if (
-  updateIntent.status !==
-    "ready" ||
-  fieldDefinition ===
-    null
-) {
+    return {
+      messageType:
+        "text",
 
-  return {
+      answer:
+        "この変更指示には、まだ対応していません。"
+    };
 
-    messageType:
-      "text",
-
-    answer:
-      "[UPDATE DEBUG] " +
-      "status=" +
-      String(
-        updateIntent.status
-      ) +
-      " / updateType=" +
-      String(
-        updateIntent.updateType
-      ) +
-      " / registry=" +
-      (
-        fieldDefinition ===
-          null
-          ? "null"
-          : String(
-              fieldDefinition.changeField
-            )
-      )
-
-  };
-
-}
+  }
 
 
 

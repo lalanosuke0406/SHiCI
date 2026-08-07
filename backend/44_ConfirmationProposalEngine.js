@@ -59,22 +59,6 @@ function ConfirmationProposalEngine_build(
 
 
 
-  Logger.log(
-    "[Confirmation Debug] changePlan=\n" +
-    JSON.stringify(
-        changePlan,
-        null,
-        2
-    )
-  );
-
-
-
-
-
-
-
-
 
   /*
   =========================================
@@ -87,14 +71,7 @@ function ConfirmationProposalEngine_build(
       changePlan
     );
 
-  Logger.log(
-    "[Confirmation Debug] presentation=\n" +
-    JSON.stringify(
-        presentation,
-        null,
-        2
-    )
-  );
+
 
 
 

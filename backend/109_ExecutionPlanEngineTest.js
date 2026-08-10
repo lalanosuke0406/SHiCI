@@ -77,6 +77,13 @@ function test_ExecutionPlanEngine_runAll() {
             "buildPassesExecutionPlanContract",
         run:
             test_ExecutionPlanEngine_build_passesExecutionPlanContract
+    },
+
+    {
+        name:
+            "buildHoldingPressureP1",
+        run:
+            test_ExecutionPlanEngine_build_holdingPressureP1
     }
 
 
@@ -1519,6 +1526,9 @@ function ExecutionPlanEngineTest_setSnapshotOverride() {
           "冷却時間":
             8,
 
+          "保圧力:P1":
+            30,
+
           "最終更新日":
             "2026-08-01T00:00:00.000Z"
 
@@ -1673,11 +1683,252 @@ function ExecutionPlanEngineTest_assertBindingReference(
 
 
 
+function ExecutionPlanEngineTest_createHoldingPressureP1ConfirmationExecution() {
+
+  ExecutionPlanEngineTest_setSnapshotOverride();
+
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_EXECUTION_PLAN_ENGINE_HP_P1_" +
+    Utilities
+      .getUuid()
+      .replace(
+        /-/g,
+        ""
+      )
+      .toUpperCase();
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      "standard_condition.holding_pressure_p1",
+
+    currentValue:
+      null,
+
+    proposedValue:
+      31,
+
+    unit:
+      "megapascal",
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        "holding_pressure_p1",
+
+      currentValue:
+        null,
+
+      proposedValue:
+        31,
+
+      unit:
+        "megapascal"
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "ワンワンのP1を31MPaにして";
+
+
+  mutation.metadata.source =
+    "understanding_result";
+
+  mutation.metadata.requestedBy =
+    "USER_TEST_001";
+
+  mutation.metadata.requestedAt =
+    new Date()
+      .toISOString();
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "resolved",
+    resolutionResult.status,
+    "resolutionResult.status"
+  );
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "ready_for_confirmation",
+    changePlan.status,
+    "changePlan.status"
+  );
+
+
+  const proposal =
+    ConfirmationProposalEngine_build(
+      changePlan
+    );
+
+
+  PendingChangeStore_save(
+    changePlan,
+    proposal
+  );
+
+
+  const confirmationExecution =
+    ConfirmationExecutionEngine_confirm(
+      proposal.proposalId,
+      changePlan.changePlanId,
+      {
+
+        source:
+          "execution_plan_engine_test",
+
+        decidedBy:
+          "USER_TEST_001",
+
+        requestId:
+          "REQUEST_EXECUTION_PLAN_ENGINE_HP_P1"
+
+      }
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "confirmed",
+    confirmationExecution.status,
+    "confirmationExecution.status"
+  );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "confirm",
+    confirmationExecution.actionType,
+    "confirmationExecution.actionType"
+  );
+
+
+  return confirmationExecution;
+
+}
 
 
 
 
+function test_ExecutionPlanEngine_build_holdingPressureP1() {
+
+  const confirmationExecution =
+    ExecutionPlanEngineTest_createHoldingPressureP1ConfirmationExecution();
 
 
+  try {
+
+    const executionPlan =
+      ExecutionPlanEngine_build(
+        confirmationExecution
+      );
 
 
+    const insertDetailOperation =
+      executionPlan.operations.find(
+        function(operation) {
+
+          return (
+            operation.operationId ===
+            "INSERT_NEW_CONDITION_DETAIL"
+          );
+
+        }
+      );
+
+
+    ExecutionPlanEngineTest_assertTrue(
+      !!insertDetailOperation,
+      "INSERT_NEW_CONDITION_DETAILがありません。"
+    );
+
+
+    ExecutionPlanEngineTest_assertEquals(
+      31,
+      insertDetailOperation
+        .payload
+        .values["保圧力:P1"],
+      "payload.values.保圧力:P1"
+    );
+
+
+    console.log(
+      "[PASS] buildHoldingPressureP1"
+    );
+
+  } finally {
+
+    ExecutionPlanEngineTest_clearSnapshotOverride();
+
+  }
+
+}

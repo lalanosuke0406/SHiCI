@@ -42,6 +42,13 @@ function test_StandardConditionFieldRegistry_runAll() {
     },
 
     {
+      name:
+        "findsHoldingPressureP1",
+      run:
+        test_StandardConditionFieldRegistry_findsHoldingPressureP1
+    },
+
+    {
         name:
             "findsDefinitionByPath",
         run:
@@ -386,6 +393,91 @@ function test_StandardConditionFieldRegistry_findsCoolingTime() {
 }
 
 
+
+/*
+=========================================
+Holding Pressure P1
+=========================================
+*/
+
+/**
+ * 保圧力P1の正式なField Definitionを
+ * 取得できることを確認する。
+ */
+function test_StandardConditionFieldRegistry_findsHoldingPressureP1() {
+
+  const definition =
+    StandardConditionFieldRegistry_require(
+      "holding_pressure_p1"
+    );
+
+
+  StandardConditionFieldRegistryTest_assertObject(
+    definition,
+    "definition"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    "holding_pressure_p1",
+    definition.changeField,
+    "definition.changeField"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    "standard_condition.holding_pressure_p1",
+    definition.path,
+    "definition.path"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    "保圧力:P1",
+    definition.spreadsheetHeader,
+    "definition.spreadsheetHeader"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    "保圧力 P1",
+    definition.label,
+    "definition.label"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    "megapascal",
+    definition.canonicalUnit,
+    "definition.canonicalUnit"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    "MPa",
+    definition.displayUnit,
+    "definition.displayUnit"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    true,
+    StandardConditionFieldRegistry_isSupported(
+      "holding_pressure_p1"
+    ),
+    "isSupported(holding_pressure_p1)"
+  );
+
+}
+
+
+
+
+
+
+
+
+
 /*
 =========================================
 Normalization
@@ -621,7 +713,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    2,
+    3,
     definitions.length,
     "definitions.length"
   );
@@ -642,6 +734,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
   StandardConditionFieldRegistryTest_assertDeepEquals(
     [
       "cooling_time",
+      "holding_pressure_p1",
       "mold_temperature"
     ],
     fields,
@@ -678,6 +771,7 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
   StandardConditionFieldRegistryTest_assertDeepEquals(
     [
       "cooling_time",
+      "holding_pressure_p1",
       "mold_temperature"
     ],
     fields,

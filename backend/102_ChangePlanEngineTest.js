@@ -43,6 +43,13 @@ function ChangePlanEngineTest_runAll() {
     },
 
     {
+        name:
+            "buildHoldingPressureP1ChangePlan",
+        run:
+            ChangePlanEngineTest_buildHoldingPressureP1ChangePlan
+    },
+
+    {
       name:
         "proposedSnapshotCreatesNextVersion",
       run:
@@ -295,6 +302,224 @@ function ChangePlanEngineTest_buildMoldTemperatureChangePlan() {
   );
 
 }
+
+
+
+
+
+
+
+/**
+ * ワンワンの保圧力P1を
+ * 30MPaから31MPaへ変更する
+ * Change Planが生成されることを確認する。
+ */
+function ChangePlanEngineTest_buildHoldingPressureP1ChangePlan() {
+
+  const resolutionResult =
+    ChangePlanEngineTest_createHoldingPressureP1ResolvedMutation();
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.status,
+    "ready_for_confirmation",
+    "status"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.changes.length,
+    1,
+    "changes.length"
+  );
+
+
+  const change =
+    changePlan.changes[0];
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.path,
+    "standard_condition.holding_pressure_p1",
+    "change.path"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.before,
+    30,
+    "change.before"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.after,
+    31,
+    "change.after"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.unit,
+    "megapascal",
+    "change.unit"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.proposedSnapshot
+      .conditionDetail["保圧力:P1"],
+    31,
+    "proposedSnapshot.conditionDetail.保圧力:P1"
+  );
+
+
+  ChangePlanContract_validate(
+    changePlan
+  );
+
+}
+
+
+
+
+
+function ChangePlanEngineTest_createHoldingPressureP1ResolvedMutation() {
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_CHANGE_PLAN_TEST_HP_P1";
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      "standard_condition.holding_pressure_p1",
+
+    currentValue:
+      null,
+
+    proposedValue:
+      31,
+
+    unit:
+      "megapascal",
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        "holding_pressure_p1",
+
+      currentValue:
+        null,
+
+      proposedValue:
+        31,
+
+      unit:
+        "megapascal"
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "ワンワンのP1を31MPaにして";
+
+
+  mutation.metadata.source =
+    "understanding_result";
+
+  mutation.metadata.requestedBy =
+    "USER_TEST_001";
+
+  mutation.metadata.requestedAt =
+    "2026-08-10T11:50:00+09:00";
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    resolutionResult.status,
+    "resolved",
+    "resolutionResult.status"
+  );
+
+
+  return resolutionResult;
+
+}
+
+
+
+
+
+
+
 
 
 /**
@@ -751,6 +976,9 @@ function ChangePlanEngineTest_setSnapshotOverride() {
 
           "冷却時間":
             8,
+
+          "保圧力:P1":
+            30,
 
           "最終更新日":
             "2026-08-01T00:00:00.000Z"

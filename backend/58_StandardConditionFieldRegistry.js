@@ -148,6 +148,44 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
     enabled:
       true
 
+  },
+
+
+  holding_pressure_p1: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "holding_pressure_p1",
+
+    path:
+      "standard_condition.holding_pressure_p1",
+
+    spreadsheetHeader:
+      "保圧力:P1",
+
+    label:
+      "保圧力 P1",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "megapascal",
+
+    displayUnit:
+      "MPa",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
   }
 
 };

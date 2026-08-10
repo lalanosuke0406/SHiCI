@@ -113,7 +113,8 @@ const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
 
   null,
   "mold_temperature",
-  "cooling_time"
+  "cooling_time",
+  "holding_pressure_p1"
 
 ];
 
@@ -135,7 +136,8 @@ const UNDERSTANDING_RESULT_ALLOWED_CHANGE_OPERATIONS = [
 const UNDERSTANDING_RESULT_ALLOWED_CHANGE_UNITS = [
 
   "celsius",
-  "second"
+  "second",
+  "megapascal"
 
 ];
 

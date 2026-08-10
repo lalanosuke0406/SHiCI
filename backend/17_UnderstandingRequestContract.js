@@ -220,6 +220,7 @@ function UnderstandingRequestContract_create(
 
         "mold_temperature",
         "cooling_time",
+        "holding_pressure_p1"
 
       ],
 
@@ -251,7 +252,8 @@ function UnderstandingRequestContract_create(
       allowedChangeUnits: [
 
         "celsius",
-        "second"
+        "second",
+        "megapascal"
 
       ],
 

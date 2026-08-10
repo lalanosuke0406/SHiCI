@@ -1960,6 +1960,10 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- 冷却時間の単位は、change.unitをsecondとしてください。",
 
+    "- 標準成形条件の保圧力P1を変更する場合は、change.fieldをholding_pressure_p1としてください。",
+
+    "- 保圧力P1の単位は、change.unitをmegapascalとしてください。",
+
     "- 温度記号や単位表記に揺れがあっても、値と単位を意味に基づいて分離してください。",
 
     "- ユーザーが設定値を伝えていない場合は、change.valueをnullとしてください。",

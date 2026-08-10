@@ -681,6 +681,18 @@ function UnderstandingTest_validateVersion2RequestContract() {
     "allowedChangeUnits"
   );
 
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_pressure_p1",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeUnits,
+    "megapascal",
+    "allowedChangeUnits"
+  );
+
 
   Logger.log(
     "[Passed] Version 2.0 Request Contract"
@@ -825,12 +837,85 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
     "Schema change.unit enum"
   );
 
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .change
+        .properties
+        .field
+        .anyOf[0]
+        .enum,
+    "holding_pressure_p1",
+    "Schema change.field enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .change
+        .properties
+        .unit
+        .anyOf[0]
+        .enum,
+    "megapascal",
+    "Schema change.unit enum"
+  );
+
 
   Logger.log(
     "[Passed] Version 2.0 OpenAI Schema"
   );
 
 }
+
+
+
+
+/**
+ * OpenAI Understanding Instructionsに
+ * 保圧力P1のCanonical変換規則が
+ * 含まれていることを確認する。
+ *
+ * OpenAI APIは呼ばない。
+ */
+function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingPressureP1() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンのP1を30MPaにして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  UnderstandingTest_assertTrueV2(
+    instructions.indexOf(
+      "holding_pressure_p1"
+    ) !== -1,
+    "Instructionsにholding_pressure_p1がありません。"
+  );
+
+
+  UnderstandingTest_assertTrueV2(
+    instructions.indexOf(
+      "megapascal"
+    ) !== -1,
+    "Instructionsにmegapascalがありません。"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Instructions Holding Pressure P1"
+  );
+
+}
+
+
+
+
+
 
 
 /**
@@ -1131,6 +1216,145 @@ function UnderstandingTest_validateVersion2Update() {
   );
 
 }
+
+
+
+/**
+ * 保圧力P1 UpdateのResultを検証する。
+ */
+function UnderstandingTest_validateVersion2HoldingPressureP1Update() {
+
+  const result = {
+
+    schemaVersion:
+      "2.0",
+
+    resultType:
+      "understanding_result",
+
+    input: {
+
+      originalText:
+        "ワンワンのP1を30MPaにして",
+
+      language:
+        "ja"
+
+    },
+
+    communication: {
+
+      type:
+        "none"
+
+    },
+
+    intent: {
+
+      type:
+        "update"
+
+    },
+
+    knowledgeBoundary: {
+
+      type:
+        "company_knowledge"
+
+    },
+
+    conversation: {
+
+      action:
+        "continue"
+
+    },
+
+    entity: {
+
+      query:
+        "ワンワン",
+
+      entityTypeHint:
+        "product"
+
+    },
+
+    view: {
+
+      name:
+        null
+
+    },
+
+    resolution: {
+
+      required:
+        true
+
+    },
+
+    change: {
+
+      field:
+        "holding_pressure_p1",
+
+      operation:
+        "set",
+
+      value:
+        30,
+
+      unit:
+        "megapascal"
+
+    },
+
+    missingFields: [],
+
+    memory: {
+
+      decision:
+        "none"
+
+    }
+
+  };
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.field,
+    "holding_pressure_p1",
+    "Holding Pressure P1 Change Field"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.value,
+    30,
+    "Holding Pressure P1 Change Value"
+  );
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.unit,
+    "megapascal",
+    "Holding Pressure P1 Change Unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Pressure P1 Update"
+  );
+
+}
+
+
+
 
 
 /**
@@ -2467,6 +2691,90 @@ function UnderstandingTest_validateVersion2CoolingTimeUpdateAdapterReady() {
   );
 
 }
+
+
+
+
+
+/**
+ * 保圧力P1の完全なUpdate Resultが、
+ * 既存Update Intentへ正しく変換されることを確認する。
+ */
+function UnderstandingTest_validateVersion2HoldingPressureP1UpdateAdapterReady() {
+
+  const result =
+    UnderstandingTest_createVersion2StandardConditionUpdateResult(
+      "ワンワンのP1を30MPaにして",
+      "ワンワン",
+      "holding_pressure_p1",
+      30,
+      "megapascal",
+      []
+    );
+
+  result.view.name =
+    null;
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.status,
+    "ready",
+    "Holding Pressure P1 Update Adapter Ready status"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.intentType,
+    "update",
+    "Holding Pressure P1 Update Adapter Ready intentType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.updateType,
+    "holding_pressure_p1",
+    "Holding Pressure P1 Update Adapter Ready updateType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.targetField,
+    "保圧力:P1",
+    "Holding Pressure P1 Update Adapter Ready targetField"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.newValue,
+    30,
+    "Holding Pressure P1 Update Adapter Ready newValue"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.unit,
+    "megapascal",
+    "Holding Pressure P1 Update Adapter Ready unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Pressure P1 Update Adapter Ready"
+  );
+
+}
+
+
+
+
+
+
 
 
 

@@ -610,33 +610,55 @@ function addUpdateConfirmationCard(
                     ).trim();
 
 
-                const before =
-                    change.before ===
-                        null ||
-                    change.before ===
-                        undefined
-                        ? "未設定"
-                        : String(
-                            change.before
-                        );
-
-
-                const after =
-                    change.after ===
-                        null ||
-                    change.after ===
-                        undefined
-                        ? "未設定"
-                        : String(
-                            change.after
-                        );
-
-
                 const unit =
                     String(
                         change.unit ||
                         ""
                     ).trim();
+
+
+                const beforeIsUnregistered =
+                    change.before ===
+                        null ||
+                    change.before ===
+                        undefined ||
+                    (
+                        typeof change.before ===
+                            "string" &&
+                        change.before.trim() ===
+                            ""
+                    );
+
+
+                const afterIsUnregistered =
+                    change.after ===
+                        null ||
+                    change.after ===
+                        undefined ||
+                    (
+                        typeof change.after ===
+                            "string" &&
+                        change.after.trim() ===
+                            ""
+                    );
+
+
+                const before =
+                    beforeIsUnregistered
+                        ? "未登録"
+                        : String(
+                            change.before
+                        ) +
+                        unit;
+
+
+                const after =
+                    afterIsUnregistered
+                        ? "未登録"
+                        : String(
+                            change.after
+                        ) +
+                        unit;
 
 
                 const changeElement =
@@ -670,10 +692,9 @@ function addUpdateConfirmationCard(
 
                 valueElement.textContent =
                     before +
-                    unit +
                     " → " +
-                    after +
-                    unit;
+                    after;
+
 
 
                 changeElement.appendChild(

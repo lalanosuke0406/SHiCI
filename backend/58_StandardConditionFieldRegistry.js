@@ -186,7 +186,266 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
     enabled:
       true
 
-  }
+  },
+
+  holding_time_t1: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_time_t1",
+
+  path:
+    "standard_condition.holding_time_t1",
+
+  spreadsheetHeader:
+    "保圧時間:T1",
+
+  label:
+    "保圧時間 T1",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "second",
+
+  displayUnit:
+    "秒",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+},
+
+holding_pressure_p2: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_pressure_p2",
+
+  path:
+    "standard_condition.holding_pressure_p2",
+
+  spreadsheetHeader:
+    "保圧力:P2",
+
+  label:
+    "保圧力 P2",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "megapascal",
+
+  displayUnit:
+    "MPa",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+},
+
+holding_time_t2: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_time_t2",
+
+  path:
+    "standard_condition.holding_time_t2",
+
+  spreadsheetHeader:
+    "保圧時間:T2",
+
+  label:
+    "保圧時間 T2",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "second",
+
+  displayUnit:
+    "秒",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+},
+
+holding_pressure_p3: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_pressure_p3",
+
+  path:
+    "standard_condition.holding_pressure_p3",
+
+  spreadsheetHeader:
+    "保圧力:P3",
+
+  label:
+    "保圧力 P3",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "megapascal",
+
+  displayUnit:
+    "MPa",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+},
+
+holding_time_t3: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_time_t3",
+
+  path:
+    "standard_condition.holding_time_t3",
+
+  spreadsheetHeader:
+    "保圧時間:T3",
+
+  label:
+    "保圧時間 T3",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "second",
+
+  displayUnit:
+    "秒",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+},
+
+holding_pressure_p4: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_pressure_p4",
+
+  path:
+    "standard_condition.holding_pressure_p4",
+
+  spreadsheetHeader:
+    "保圧力:P4",
+
+  label:
+    "保圧力 P4",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "megapascal",
+
+  displayUnit:
+    "MPa",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+},
+
+holding_time_t4: {
+
+  registryVersion:
+    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+  changeField:
+    "holding_time_t4",
+
+  path:
+    "standard_condition.holding_time_t4",
+
+  spreadsheetHeader:
+    "保圧時間:T4",
+
+  label:
+    "保圧時間 T4",
+
+  valueType:
+    "number",
+
+  canonicalUnit:
+    "second",
+
+  displayUnit:
+    "秒",
+
+  preservationPolicy:
+    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+  group:
+    "standard_condition",
+
+  enabled:
+    true
+
+}
 
 };
 

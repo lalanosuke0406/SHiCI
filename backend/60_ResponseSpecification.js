@@ -7,13 +7,22 @@
  * この層は回答を生成しない。
  * Promptも生成しない。
  */
-function ResponseSpecification_build(userText, snapshot) {
+function ResponseSpecification_build(
+  userText,
+  snapshot,
+  viewSpecification
+) {
 
   if (!snapshot || snapshot.status !== "success") {
     throw new Error(
       "正常なSnapshotがないため、AI Contractを構築できません。"
     );
   }
+
+  const knowledgeConditionDetail =
+    viewSpecification
+      ? undefined
+      : snapshot.conditionDetail;
 
   return {
     schemaVersion: "1.0",
@@ -60,16 +69,36 @@ function ResponseSpecification_build(userText, snapshot) {
     },
 
     context: {
-      entityType: "product",
+      entityType:
+        "product",
 
-      knowledge: ResponseSpecification_compact({
-        product: snapshot.product,
-        material: snapshot.material,
-        machine: snapshot.machine,
-        mold: snapshot.mold,
-        condition: snapshot.condition,
-        conditionDetail: snapshot.conditionDetail
-      })
+      knowledge:
+        ResponseSpecification_compact({
+          product:
+            snapshot.product,
+
+          material:
+            snapshot.material,
+
+          machine:
+            snapshot.machine,
+
+          mold:
+            snapshot.mold,
+
+          condition:
+            snapshot.condition,
+
+          conditionDetail:
+            knowledgeConditionDetail
+        }),
+
+      viewSpecification:
+        viewSpecification
+          ? ResponseSpecification_compact(
+              viewSpecification
+            )
+          : undefined
     },
 
     userQuestion:

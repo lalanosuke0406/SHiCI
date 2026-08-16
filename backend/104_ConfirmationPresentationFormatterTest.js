@@ -57,6 +57,13 @@ function ConfirmationPresentationFormatterTest_runAll() {
     },
 
     {
+        name:
+            "formatHoldingTimeT1Change",
+        run:
+            ConfirmationPresentationFormatterTest_formatHoldingTimeT1Change
+    },
+
+    {
       name:
         "buildMessageWithDrawingNumber",
       run:
@@ -496,6 +503,120 @@ function ConfirmationPresentationFormatterTest_formatHoldingPressureP1Change() {
   ConfirmationPresentationFormatterTest_assertEqual(
     change.unit,
     "MPa",
+    "change.unit"
+  );
+
+}
+
+
+
+/**
+ * 保圧時間T1変更が
+ * Registry定義に基づいて表示用情報へ
+ * 変換されることを確認する。
+ */
+function ConfirmationPresentationFormatterTest_formatHoldingTimeT1Change() {
+
+  const changePlan =
+    ConfirmationPresentationFormatterTest_createChangePlan();
+
+
+  changePlan.changes = [
+
+    {
+
+      changeType:
+        "state",
+
+      path:
+        "standard_condition.holding_time_t1",
+
+      before:
+        null,
+
+      after:
+        9,
+
+      unit:
+        "second",
+
+      preservationPolicy:
+        "create_new_version"
+
+    }
+
+  ];
+
+
+  const presentation =
+    ConfirmationPresentationFormatter_format(
+      changePlan
+    );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    presentation.proposalType,
+    "standard_condition_change",
+    "proposalType"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    presentation.title,
+    "標準成形条件の変更",
+    "title"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    presentation.message,
+    "LEVER, CLAMP（KLW-M374C-000）の標準成形条件を変更します。",
+    "message"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    presentation.changes.length,
+    1,
+    "changes.length"
+  );
+
+
+  const change =
+    presentation.changes[0];
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    change.path,
+    "standard_condition.holding_time_t1",
+    "change.path"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    change.label,
+    "保圧時間 T1",
+    "change.label"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    change.before,
+    null,
+    "change.before"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    change.after,
+    9,
+    "change.after"
+  );
+
+
+  ConfirmationPresentationFormatterTest_assertEqual(
+    change.unit,
+    "秒",
     "change.unit"
   );
 

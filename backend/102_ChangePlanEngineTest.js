@@ -50,6 +50,13 @@ function ChangePlanEngineTest_runAll() {
     },
 
     {
+        name:
+            "buildHoldingTimeT1ChangePlan",
+        run:
+            ChangePlanEngineTest_buildHoldingTimeT1ChangePlan
+    },
+
+    {
       name:
         "proposedSnapshotCreatesNextVersion",
       run:
@@ -383,6 +390,211 @@ function ChangePlanEngineTest_buildHoldingPressureP1ChangePlan() {
   ChangePlanContract_validate(
     changePlan
   );
+
+}
+
+
+
+/**
+ * ワンワンの保圧時間T1を
+ * 未登録から9秒へ変更する
+ * Change Planが生成されることを確認する。
+ */
+function ChangePlanEngineTest_buildHoldingTimeT1ChangePlan() {
+
+  const resolutionResult =
+    ChangePlanEngineTest_createHoldingTimeT1ResolvedMutation();
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.status,
+    "ready_for_confirmation",
+    "status"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.changes.length,
+    1,
+    "changes.length"
+  );
+
+
+  const change =
+    changePlan.changes[0];
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.path,
+    "standard_condition.holding_time_t1",
+    "change.path"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.before,
+    null,
+    "change.before"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.after,
+    9,
+    "change.after"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.unit,
+    "second",
+    "change.unit"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.proposedSnapshot
+      .conditionDetail["保圧時間:T1"],
+    9,
+    "proposedSnapshot.conditionDetail.保圧時間:T1"
+  );
+
+
+  ChangePlanContract_validate(
+    changePlan
+  );
+
+}
+
+
+
+function ChangePlanEngineTest_createHoldingTimeT1ResolvedMutation() {
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_CHANGE_PLAN_TEST_HT_T1";
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      "standard_condition.holding_time_t1",
+
+    currentValue:
+      null,
+
+    proposedValue:
+      9,
+
+    unit:
+      "second",
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        "holding_time_t1",
+
+      currentValue:
+        null,
+
+      proposedValue:
+        9,
+
+      unit:
+        "second"
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "ワンワンのT1を9秒にして";
+
+
+  mutation.metadata.source =
+    "understanding_result";
+
+  mutation.metadata.requestedBy =
+    "USER_TEST_001";
+
+  mutation.metadata.requestedAt =
+    "2026-08-10T20:00:00+09:00";
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    resolutionResult.status,
+    "resolved",
+    "resolutionResult.status"
+  );
+
+
+  return resolutionResult;
 
 }
 
@@ -979,6 +1191,9 @@ function ChangePlanEngineTest_setSnapshotOverride() {
 
           "保圧力:P1":
             30,
+
+          "保圧時間:T1":
+            null,
 
           "最終更新日":
             "2026-08-01T00:00:00.000Z"

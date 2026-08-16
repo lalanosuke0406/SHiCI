@@ -1529,6 +1529,9 @@ function ExecutionPlanEngineTest_setSnapshotOverride() {
           "保圧力:P1":
             30,
 
+          "保圧時間:T1":
+            "",
+
           "最終更新日":
             "2026-08-01T00:00:00.000Z"
 
@@ -1878,6 +1881,201 @@ function ExecutionPlanEngineTest_createHoldingPressureP1ConfirmationExecution() 
 
 
 
+function ExecutionPlanEngineTest_createHoldingTimeT1ConfirmationExecution() {
+
+  ExecutionPlanEngineTest_setSnapshotOverride();
+
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_EXECUTION_PLAN_ENGINE_HT_T1_" +
+    Utilities
+      .getUuid()
+      .replace(
+        /-/g,
+        ""
+      )
+      .toUpperCase();
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      "standard_condition.holding_time_t1",
+
+    currentValue:
+      null,
+
+    proposedValue:
+      9,
+
+    unit:
+      "second",
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        "holding_time_t1",
+
+      currentValue:
+        null,
+
+      proposedValue:
+        9,
+
+      unit:
+        "second"
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "ワンワンのT1を9秒にして";
+
+
+  mutation.metadata.source =
+    "understanding_result";
+
+  mutation.metadata.requestedBy =
+    "USER_TEST_001";
+
+  mutation.metadata.requestedAt =
+    new Date()
+      .toISOString();
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "resolved",
+    resolutionResult.status,
+    "resolutionResult.status"
+  );
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "ready_for_confirmation",
+    changePlan.status,
+    "changePlan.status"
+  );
+
+
+  const proposal =
+    ConfirmationProposalEngine_build(
+      changePlan
+    );
+
+
+  PendingChangeStore_save(
+    changePlan,
+    proposal
+  );
+
+
+  const confirmationExecution =
+    ConfirmationExecutionEngine_confirm(
+      proposal.proposalId,
+      changePlan.changePlanId,
+      {
+
+        source:
+          "execution_plan_engine_test",
+
+        decidedBy:
+          "USER_TEST_001",
+
+        requestId:
+          "REQUEST_EXECUTION_PLAN_ENGINE_HT_T1"
+
+      }
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "confirmed",
+    confirmationExecution.status,
+    "confirmationExecution.status"
+  );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "confirm",
+    confirmationExecution.actionType,
+    "confirmationExecution.actionType"
+  );
+
+
+  return confirmationExecution;
+
+}
+
+
+
 
 function test_ExecutionPlanEngine_build_holdingPressureP1() {
 
@@ -1923,6 +2121,62 @@ function test_ExecutionPlanEngine_build_holdingPressureP1() {
 
     console.log(
       "[PASS] buildHoldingPressureP1"
+    );
+
+  } finally {
+
+    ExecutionPlanEngineTest_clearSnapshotOverride();
+
+  }
+
+}
+
+
+
+function test_ExecutionPlanEngine_build_holdingTimeT1() {
+
+  const confirmationExecution =
+    ExecutionPlanEngineTest_createHoldingTimeT1ConfirmationExecution();
+
+
+  try {
+
+    const executionPlan =
+      ExecutionPlanEngine_build(
+        confirmationExecution
+      );
+
+
+    const insertDetailOperation =
+      executionPlan.operations.find(
+        function(operation) {
+
+          return (
+            operation.operationId ===
+            "INSERT_NEW_CONDITION_DETAIL"
+          );
+
+        }
+      );
+
+
+    ExecutionPlanEngineTest_assertTrue(
+      !!insertDetailOperation,
+      "INSERT_NEW_CONDITION_DETAILがありません。"
+    );
+
+
+    ExecutionPlanEngineTest_assertEquals(
+      9,
+      insertDetailOperation
+        .payload
+        .values["保圧時間:T1"],
+      "payload.values.保圧時間:T1"
+    );
+
+
+    console.log(
+      "[PASS] buildHoldingTimeT1"
     );
 
   } finally {

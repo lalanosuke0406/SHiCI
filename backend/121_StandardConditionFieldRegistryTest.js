@@ -713,7 +713,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    3,
+    10,
     definitions.length,
     "definitions.length"
   );
@@ -733,9 +733,16 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
   StandardConditionFieldRegistryTest_assertDeepEquals(
     [
-      "cooling_time",
-      "holding_pressure_p1",
-      "mold_temperature"
+        "cooling_time",
+        "holding_pressure_p1",
+        "holding_pressure_p2",
+        "holding_pressure_p3",
+        "holding_pressure_p4",
+        "holding_time_t1",
+        "holding_time_t2",
+        "holding_time_t3",
+        "holding_time_t4",
+        "mold_temperature"
     ],
     fields,
     "definition fields"
@@ -770,9 +777,16 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
 
   StandardConditionFieldRegistryTest_assertDeepEquals(
     [
-      "cooling_time",
-      "holding_pressure_p1",
-      "mold_temperature"
+        "cooling_time",
+        "holding_pressure_p1",
+        "holding_pressure_p2",
+        "holding_pressure_p3",
+        "holding_pressure_p4",
+        "holding_time_t1",
+        "holding_time_t2",
+        "holding_time_t3",
+        "holding_time_t4",
+        "mold_temperature"
     ],
     fields,
     "change fields"

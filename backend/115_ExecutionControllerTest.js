@@ -62,7 +62,14 @@ function test_ExecutionController_runAll() {
         "pendingConsumed",
       run:
         test_ExecutionController_pendingConsumed
-    }
+    },
+
+    {
+        name:
+            "holdingTimeT1Success",
+        run:
+            test_ExecutionController_holdingTimeT1Success
+    },
 
   ];
 
@@ -2935,3 +2942,300 @@ function ExecutionControllerTest_assertThrows(
 
 }
 
+
+
+function test_ExecutionController_holdingTimeT1Success() {
+
+  const fixture =
+    ExecutionControllerTest_createHoldingTimeT1SuccessFixture();
+
+
+  try {
+
+    const result =
+      ExecutionController_confirmAndExecute(
+        fixture.proposal.proposalId,
+        fixture.changePlan.changePlanId,
+        {
+
+          source:
+            "execution_controller_test",
+
+          decidedBy:
+            "USER_EXECUTION_CONTROLLER_TEST",
+
+          requestId:
+            "REQUEST_EXECUTION_CONTROLLER_TEST_HT_T1"
+
+        }
+      );
+
+
+    ExecutionControllerTest_validateResult(
+      result
+    );
+
+
+    ExecutionControllerTest_assertEquals(
+      EXECUTION_CONTROLLER_STATUS_COMPLETED,
+      result.status,
+      "result.status"
+    );
+
+
+    const detailRows =
+      fixture.spreadsheet
+        .getSheetByName(
+          "成形条件詳細マスター"
+        )
+        .getAllValues();
+
+
+    const detailHeaderMap =
+      ExecutionControllerTest_createHeaderMap(
+        detailRows[0]
+      );
+
+
+    ExecutionControllerTest_assertEquals(
+      3,
+      detailRows.length,
+      "detailRows.length"
+    );
+
+
+    ExecutionControllerTest_assertEquals(
+      9,
+      Number(
+        detailRows[2][
+          detailHeaderMap["保圧時間:T1"]
+        ]
+      ),
+      "newConditionDetail.保圧時間:T1"
+    );
+
+
+    console.log(
+      "[PASS] holdingTimeT1Success"
+    );
+
+  } finally {
+
+    ExecutionControllerTest_clearEnvironment();
+
+  }
+
+}
+
+
+
+function ExecutionControllerTest_createHoldingTimeT1SuccessFixture() {
+
+  const pendingFixture =
+    ExecutionControllerTest_createHoldingTimeT1PendingChangeFixture();
+
+
+  const spreadsheet =
+    ExecutionControllerTest_createSpreadsheetForChangePlan(
+      pendingFixture.changePlan
+    );
+
+
+  ExecutionControllerTest_prepareEnvironment(
+    spreadsheet
+  );
+
+
+  return {
+
+    mutation:
+      pendingFixture.mutation,
+
+    resolutionResult:
+      pendingFixture.resolutionResult,
+
+    changePlan:
+      pendingFixture.changePlan,
+
+    proposal:
+      pendingFixture.proposal,
+
+    spreadsheet:
+      spreadsheet
+
+  };
+
+}
+
+
+
+function ExecutionControllerTest_createHoldingTimeT1PendingChangeFixture() {
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_EXECUTION_CONTROLLER_HT_T1_" +
+    Utilities
+      .getUuid()
+      .replace(
+        /-/g,
+        ""
+      )
+      .toUpperCase();
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      "standard_condition.holding_time_t1",
+
+    currentValue:
+      "",
+
+    proposedValue:
+      9,
+
+    unit:
+      "second",
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        "holding_time_t1",
+
+      currentValue:
+        "",
+
+      proposedValue:
+        9,
+
+      unit:
+        "second"
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "ワンワンのT1を9秒にして";
+
+
+  mutation.metadata.source =
+    "execution_controller_test";
+
+  mutation.metadata.requestedBy =
+    "USER_EXECUTION_CONTROLLER_TEST";
+
+  mutation.metadata.requestedAt =
+    new Date()
+      .toISOString();
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ExecutionControllerTest_assertEquals(
+    "resolved",
+    resolutionResult.status,
+    "resolutionResult.status"
+  );
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ExecutionControllerTest_assertEquals(
+    "ready_for_confirmation",
+    changePlan.status,
+    "changePlan.status"
+  );
+
+
+  const proposal =
+    ConfirmationProposalEngine_build(
+      changePlan
+    );
+
+
+  PendingChangeStore_save(
+    changePlan,
+    proposal
+  );
+
+
+  return {
+
+    mutation:
+      mutation,
+
+    resolutionResult:
+      resolutionResult,
+
+    changePlan:
+      changePlan,
+
+    proposal:
+      proposal
+
+  };
+
+}

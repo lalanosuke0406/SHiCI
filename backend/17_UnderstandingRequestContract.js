@@ -196,6 +196,7 @@ function UnderstandingRequestContract_create(
         "drying_condition",
         "mold_temperature",
         "cooling_time",
+        "holding_condition",
         "cavity_count",
         "gate",
         "machine",
@@ -220,7 +221,8 @@ function UnderstandingRequestContract_create(
 
         "mold_temperature",
         "cooling_time",
-        "holding_pressure_p1"
+        "holding_pressure_p1",
+        "holding_time_t1"
 
       ],
 

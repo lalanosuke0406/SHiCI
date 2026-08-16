@@ -688,9 +688,21 @@ function UnderstandingTest_validateVersion2RequestContract() {
   );
 
   UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_time_t1",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
     request.policy.allowedChangeUnits,
     "megapascal",
     "allowedChangeUnits"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedViewNames,
+    "holding_condition",
+    "allowedViewNames"
   );
 
 
@@ -839,6 +851,17 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
 
   UnderstandingTest_assertArrayIncludesV2(
     schema.properties
+        .view
+        .properties
+        .name
+        .anyOf[0]
+        .enum,
+    "holding_condition",
+    "Schema view.name enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
         .change
         .properties
         .field
@@ -857,6 +880,17 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
         .enum,
     "megapascal",
     "Schema change.unit enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .change
+        .properties
+        .field
+        .anyOf[0]
+        .enum,
+    "holding_time_t1",
+    "Schema change.field enum"
   );
 
 
@@ -914,149 +948,52 @@ function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingPressureP1()
 
 
 
-
-
-
-
 /**
- * 社内Knowledge質問のResultを検証する。
+ * OpenAI Understanding Instructionsに
+ * 保圧時間T1のCanonical変換規則が
+ * 含まれていることを確認する。
+ *
+ * OpenAI APIは呼ばない。
  */
-function UnderstandingTest_validateVersion2CompanyKnowledgeQuestion() {
+function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingTimeT1() {
 
-  const result = {
-
-    schemaVersion:
-      "2.0",
-
-    resultType:
-      "understanding_result",
-
-    input: {
-
-      originalText:
-        "ワンワンの型温は？",
-
-      language:
-        "ja"
-
-    },
-
-    communication: {
-
-      type:
-        "none"
-
-    },
-
-    intent: {
-
-      type:
-        "question"
-
-    },
-
-    knowledgeBoundary: {
-
-      type:
-        "company_knowledge"
-
-    },
-
-    conversation: {
-
-      action:
-        "new"
-
-    },
-
-    entity: {
-
-      query:
-        "ワンワン",
-
-      entityTypeHint:
-        "product"
-
-    },
-
-    view: {
-
-      name:
-        "mold_temperature"
-
-    },
-
-    resolution: {
-
-      required:
-        true
-
-    },
-
-    change: {
-
-      field:
-        null,
-
-      operation:
-        null,
-
-      value:
-        null,
-
-      unit:
-        null
-
-    },
-
-    missingFields: [],
-
-    memory: {
-
-      decision:
-        "none"
-
-    }
-
-  };
-
-
-  const validated =
-    UnderstandingResultContract_validate(
-      result
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンのT1を9秒にして"
     );
 
 
-  UnderstandingTest_assertEqualV2(
-    validated.knowledgeBoundary.type,
-    "company_knowledge",
-    "Company Knowledge Boundary"
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  UnderstandingTest_assertTrueV2(
+    instructions.indexOf(
+      "holding_time_t1"
+    ) !== -1,
+    "Instructionsにholding_time_t1がありません。"
   );
 
-  UnderstandingTest_assertEqualV2(
-    validated.entity.query,
-    "ワンワン",
-    "Company Knowledge Entity Query"
-  );
 
-  UnderstandingTest_assertEqualV2(
-    validated.view.name,
-    "mold_temperature",
-    "Company Knowledge View"
-  );
-
-  UnderstandingTest_assertEqualV2(
-    validated.resolution.required,
-    true,
-    "Company Knowledge Resolution"
+  UnderstandingTest_assertTrueV2(
+    instructions.indexOf(
+      "second"
+    ) !== -1,
+    "Instructionsにsecondがありません。"
   );
 
 
   Logger.log(
-    "[Passed] Version 2.0 Company Knowledge Question"
+    "[Passed] Version 2.0 OpenAI Instructions Holding Time T1"
   );
 
 }
+
+
+
+
 
 
 /**
@@ -1349,6 +1286,61 @@ function UnderstandingTest_validateVersion2HoldingPressureP1Update() {
 
   Logger.log(
     "[Passed] Version 2.0 Holding Pressure P1 Update"
+  );
+
+}
+
+
+
+/**
+ * 保圧時間T1 UpdateのResultを検証する。
+ */
+function UnderstandingTest_validateVersion2HoldingTimeT1Update() {
+
+  const result =
+    UnderstandingTest_createVersion2StandardConditionUpdateResult(
+      "ワンワンのT1を9秒にして",
+      "ワンワン",
+      "holding_time_t1",
+      9,
+      "second",
+      []
+    );
+
+
+  result.view.name =
+    null;
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.field,
+    "holding_time_t1",
+    "Holding Time T1 Change Field"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.value,
+    9,
+    "Holding Time T1 Change Value"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.unit,
+    "second",
+    "Holding Time T1 Change Unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Time T1 Update"
   );
 
 }
@@ -2772,7 +2764,80 @@ function UnderstandingTest_validateVersion2HoldingPressureP1UpdateAdapterReady()
 
 
 
+/**
+ * 保圧時間T1の完全なUpdate Resultが、
+ * 既存Update Intentへ正しく変換されることを確認する。
+ */
+function UnderstandingTest_validateVersion2HoldingTimeT1UpdateAdapterReady() {
 
+  const result =
+    UnderstandingTest_createVersion2StandardConditionUpdateResult(
+      "ワンワンのT1を9秒にして",
+      "ワンワン",
+      "holding_time_t1",
+      9,
+      "second",
+      []
+    );
+
+
+  result.view.name =
+    "holding_condition";
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.status,
+    "ready",
+    "Holding Time T1 Update Adapter Ready status"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.intentType,
+    "update",
+    "Holding Time T1 Update Adapter Ready intentType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.updateType,
+    "holding_time_t1",
+    "Holding Time T1 Update Adapter Ready updateType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.targetField,
+    "保圧時間:T1",
+    "Holding Time T1 Update Adapter Ready targetField"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.newValue,
+    9,
+    "Holding Time T1 Update Adapter Ready newValue"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.unit,
+    "second",
+    "Holding Time T1 Update Adapter Ready unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Time T1 Update Adapter Ready"
+  );
+
+}
 
 
 
@@ -3466,3 +3531,298 @@ function UnderstandingTest_runVersion2HandleRoutingCase(
 }
 
 
+
+/**
+ * 保圧条件ViewのResultを検証する。
+ */
+function UnderstandingTest_validateVersion2HoldingConditionView() {
+
+  const result =
+    UnderstandingResultContract_create(
+      "ワンワンの保圧条件は？"
+    );
+
+
+  result.communication.type =
+    "none";
+
+  result.intent.type =
+    "question";
+
+  result.knowledgeBoundary.type =
+    "company_knowledge";
+
+  result.conversation.action =
+    "new";
+
+  result.entity.query =
+    "ワンワン";
+
+  result.entity.entityTypeHint =
+    "product";
+
+  result.view.name =
+    "holding_condition";
+
+  result.resolution.required =
+    true;
+
+  result.change.field =
+    null;
+
+  result.change.operation =
+    null;
+
+  result.change.value =
+    null;
+
+  result.change.unit =
+    null;
+
+  result.missingFields =
+    [];
+
+  result.memory.decision =
+    "none";
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.view.name,
+    "holding_condition",
+    "Holding Condition View"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Condition View"
+  );
+
+}
+
+
+/**
+ * OpenAI Understanding Instructionsに
+ * 保圧条件ViewのCanonical変換規則が
+ * 含まれていることを確認する。
+ *
+ * OpenAI APIは呼ばない。
+ */
+function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingCondition() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの保圧条件は？"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  UnderstandingTest_assertTrueV2(
+    instructions.indexOf(
+      "holding_condition"
+    ) !== -1,
+    "Instructionsにholding_conditionがありません。"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Instructions Holding Condition"
+  );
+
+}
+
+
+
+/**
+ * 保圧条件Viewを
+ * OpenAIが実際に理解できることを確認する。
+ *
+ * 実際にOpenAI APIを1回呼び出す。
+ */
+function UnderstandingTest_runVersion2OpenAIHoldingCondition() {
+
+  const inputText =
+    "ワンワンの保圧は？";
+
+
+  const request =
+    UnderstandingRequestContract_create(
+      inputText
+    );
+
+
+  const result =
+    OpenAIAdapter_understand(
+      request
+    );
+
+
+  Logger.log(
+    "[OpenAI Holding Condition Result]\n" +
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+
+  UnderstandingResultContract_validate(
+    result
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.intent.type,
+    "question",
+    "Holding Condition intent.type"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.knowledgeBoundary.type,
+    "company_knowledge",
+    "Holding Condition knowledgeBoundary.type"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.entity.query,
+    "ワンワン",
+    "Holding Condition entity.query"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.entity.entityTypeHint,
+    "product",
+    "Holding Condition entity.entityTypeHint"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.view.name,
+    "holding_condition",
+    "Holding Condition view.name"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.field,
+    null,
+    "Holding Condition change.field"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Holding Condition"
+  );
+
+}
+
+
+
+
+/**
+ * 保圧時間T1 Updateを
+ * OpenAIが実際に理解できることを確認する。
+ *
+ * 実際にOpenAI APIを1回呼び出す。
+ */
+function UnderstandingTest_runVersion2OpenAIHoldingTimeT1Update() {
+
+  const inputText =
+    "ワンワンのT1を9秒にして";
+
+
+  const request =
+    UnderstandingRequestContract_create(
+      inputText
+    );
+
+
+  const result =
+    OpenAIAdapter_understand(
+      request
+    );
+
+
+  Logger.log(
+    "[OpenAI Holding Time T1 Result]\n" +
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+
+  UnderstandingResultContract_validate(
+    result
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.intent.type,
+    "update",
+    "Holding Time T1 intent.type"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.knowledgeBoundary.type,
+    "company_knowledge",
+    "Holding Time T1 knowledgeBoundary.type"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.entity.query,
+    "ワンワン",
+    "Holding Time T1 entity.query"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.field,
+    "holding_time_t1",
+    "Holding Time T1 change.field"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.operation,
+    "set",
+    "Holding Time T1 change.operation"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.value,
+    9,
+    "Holding Time T1 change.value"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.unit,
+    "second",
+    "Holding Time T1 change.unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Holding Time T1 Update"
+  );
+
+}

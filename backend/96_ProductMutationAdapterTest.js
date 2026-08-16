@@ -956,3 +956,100 @@ function ProductMutationAdapterTest_validHoldingPressureP1() {
   );
 
 }
+
+
+
+/**
+ * 保圧時間T1変更要求が
+ * change_state Mutationへ変換されることを確認する。
+ */
+function ProductMutationAdapterTest_validHoldingTimeT1() {
+
+  const understandingResult =
+    ProductMutationAdapterTest_createUnderstandingResult(
+      "ワンワンのT1を9秒にして",
+      "ワンワン",
+      9,
+      "second"
+    );
+
+
+  /*
+   * 既存Fixtureは金型温度用なので、
+   * 今回のViewとFieldだけ明示的に上書きする。
+   */
+  understandingResult.view.name =
+    "holding_condition";
+
+  understandingResult.change.field =
+    "holding_time_t1";
+
+
+  const mutation =
+    ProductMutationAdapter_convert(
+      understandingResult
+    );
+
+
+  ProductMutationAdapterTest_assertNotNull(
+    mutation,
+    "mutation"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.mutationType,
+    "change_state",
+    "mutationType"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.stateChanges.length,
+    1,
+    "stateChanges.length"
+  );
+
+
+  const stateChange =
+    mutation.stateChanges[0];
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.path,
+    "standard_condition.holding_time_t1",
+    "stateChange.path"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.proposedValue,
+    9,
+    "stateChange.proposedValue"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.unit,
+    "second",
+    "stateChange.unit"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.preservationPolicy,
+    "create_new_version",
+    "stateChange.preservationPolicy"
+  );
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  Logger.log(
+    "[Passed] Product Mutation Adapter Holding Time T1"
+  );
+
+}

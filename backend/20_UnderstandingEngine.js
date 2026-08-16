@@ -369,7 +369,11 @@ function UnderstandingEngine_handle(
     state.candidateEntities = [];
     saveConversationState(sessionId, state);
 
-    return UnderstandingEngine_respond(text, selected);
+    return UnderstandingEngine_respond(
+      text,
+      selected,
+      understandingViewName
+    );
   }
 
   // 3. 新規Entity解決
@@ -383,7 +387,11 @@ function UnderstandingEngine_handle(
   if (candidates.length === 0) {
 
     if (state.currentEntity) {
-      return UnderstandingEngine_respond(text, state.currentEntity);
+      return UnderstandingEngine_respond(
+        text,
+        state.currentEntity,
+        understandingViewName
+      );
     }
 
     return "現在のEntity Resolution Knowledgeでは、該当する候補が見つかりませんでした。";
@@ -397,7 +405,11 @@ function UnderstandingEngine_handle(
     state.candidateEntities = [];
     saveConversationState(sessionId, state);
 
-    return UnderstandingEngine_respond(text, entity);
+    return UnderstandingEngine_respond(
+      text,
+      entity,
+      understandingViewName
+    );
   }
 
   // 5. 複数候補なら保存して提示
@@ -1164,7 +1176,11 @@ function UnderstandingEngine_buildUpdateTargetResult(
 
 
 
-function UnderstandingEngine_respond(userText, entity) {
+function UnderstandingEngine_respond(
+  userText,
+  entity,
+  viewName
+) {
 
   if (!entity) {
     return "Entityが特定できませんでした。";
@@ -1198,15 +1214,60 @@ function UnderstandingEngine_respond(userText, entity) {
 
     }
 
+        /*
+     * Canonical Viewが
+     * View Specification Registryに
+     * 登録されている場合は、
+     * View Specificationを生成する。
+     */
+    const normalizedViewName =
+      String(
+        viewName || ""
+      ).trim();
+
+
+    let viewSpecification =
+      null;
+
+
+    if (
+      normalizedViewName
+    ) {
+
+      const viewDefinition =
+        ViewSpecificationRegistry_find(
+          normalizedViewName
+        );
+
+
+      if (
+        viewDefinition !==
+          null
+      ) {
+
+        viewSpecification =
+          ViewSpecificationEngine_build(
+            normalizedViewName,
+            snapshot
+          );
+
+      }
+
+    }
+
+
     /*
-     * それ以外はAI Contractを構築し、
+     * AI Contractを構築し、
      * LLMへ渡す。
      */
     const aiContract =
       ResponseSpecification_build(
         userText,
-        snapshot
+        snapshot,
+        viewSpecification
       );
+
+
 
     return LLMInterface_generate(
       aiContract

@@ -102,6 +102,13 @@ function UnderstandingTest_runAll() {
 
     {
         name:
+            "ResinTemperatureUpdateFields",
+        run:
+            UnderstandingTest_validateVersion2ResinTemperatureUpdateFields
+    },
+
+    {
+        name:
             "OpenAIInstructionsInjectionStages",
         run:
             UnderstandingTest_validateVersion2OpenAIInstructionsInjectionStages
@@ -4685,6 +4692,211 @@ function UnderstandingTest_validateVersion2InjectionStagesUpdateFields() {
 
   Logger.log(
     "[Passed] Version 2.0 Injection Stages Update Fields"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2ResinTemperatureUpdateFields() {
+
+  const cases = [
+
+    {
+      text: "ワンワンのZ0を200℃にして",
+      field: "resin_temperature_z0",
+      value: 200,
+      unit: "celsius",
+      targetField: "樹脂温:Z0"
+    },
+
+    {
+      text: "ワンワンのZ1を195℃にして",
+      field: "resin_temperature_z1",
+      value: 195,
+      unit: "celsius",
+      targetField: "樹脂温:Z1"
+    },
+
+    {
+      text: "ワンワンのZ2を190℃にして",
+      field: "resin_temperature_z2",
+      value: 190,
+      unit: "celsius",
+      targetField: "樹脂温:Z2"
+    },
+
+    {
+      text: "ワンワンのZPを185℃にして",
+      field: "resin_temperature_zp",
+      value: 185,
+      unit: "celsius",
+      targetField: "樹脂温:ZP"
+    },
+
+    {
+      text: "ワンワンのZJを180℃にして",
+      field: "resin_temperature_zj",
+      value: 180,
+      unit: "celsius",
+      targetField: "樹脂温:ZJ"
+    },
+
+    {
+      text: "ワンワンのZ4を175℃にして",
+      field: "resin_temperature_z4",
+      value: 175,
+      unit: "celsius",
+      targetField: "樹脂温:Z4"
+    },
+
+    {
+      text: "ワンワンのZ5を170℃にして",
+      field: "resin_temperature_z5",
+      value: 170,
+      unit: "celsius",
+      targetField: "樹脂温:Z5"
+    },
+
+    {
+      text: "ワンワンのZ6を165℃にして",
+      field: "resin_temperature_z6",
+      value: 165,
+      unit: "celsius",
+      targetField: "樹脂温:Z6"
+    },
+
+    {
+      text: "ワンワンのZHを160℃にして",
+      field: "resin_temperature_zh",
+      value: 160,
+      unit: "celsius",
+      targetField: "樹脂温:ZH"
+    }
+
+  ];
+
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンのZ1を195℃にして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  cases.forEach(
+    function(testCase) {
+
+      UnderstandingTest_assertArrayIncludesV2(
+        request.policy.allowedChangeFields,
+        testCase.field,
+        "allowedChangeFields"
+      );
+
+
+      UnderstandingTest_assertArrayIncludesV2(
+        UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS,
+        testCase.field,
+        "UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS"
+      );
+
+
+      UnderstandingTest_assertTrueV2(
+        instructions.indexOf(
+          testCase.field
+        ) !== -1,
+        "Instructionsに" +
+          testCase.field +
+          "がありません。"
+      );
+
+
+      const result =
+        UnderstandingTest_createVersion2StandardConditionUpdateResult(
+          testCase.text,
+          "ワンワン",
+          testCase.field,
+          testCase.value,
+          testCase.unit,
+          []
+        );
+
+
+      result.view.name =
+        null;
+
+
+      const validated =
+        UnderstandingResultContract_validate(
+          result
+        );
+
+
+      const updateIntent =
+        UpdateUnderstandingAdapter_convert(
+          validated
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.status,
+        "ready",
+        testCase.field + " updateIntent.status"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.intentType,
+        "update",
+        testCase.field + " updateIntent.intentType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.updateType,
+        testCase.field,
+        testCase.field + " updateIntent.updateType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.targetField,
+        testCase.targetField,
+        testCase.field + " updateIntent.targetField"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.newValue,
+        testCase.value,
+        testCase.field + " updateIntent.newValue"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.unit,
+        "℃",
+        testCase.field + " updateIntent.unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Resin Temperature Update Fields"
   );
 
 }

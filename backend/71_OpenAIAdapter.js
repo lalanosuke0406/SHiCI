@@ -1962,6 +1962,35 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
 
 
+    "- 標準成形条件の樹脂温Z0を変更する場合は、change.fieldをresin_temperature_z0としてください。",
+    "- 樹脂温Z0の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温Z1を変更する場合は、change.fieldをresin_temperature_z1としてください。",
+    "- 樹脂温Z1の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温Z2を変更する場合は、change.fieldをresin_temperature_z2としてください。",
+    "- 樹脂温Z2の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温ZPを変更する場合は、change.fieldをresin_temperature_zpとしてください。",
+    "- 樹脂温ZPの単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温ZJを変更する場合は、change.fieldをresin_temperature_zjとしてください。",
+    "- 樹脂温ZJの単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温Z4を変更する場合は、change.fieldをresin_temperature_z4としてください。",
+    "- 樹脂温Z4の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温Z5を変更する場合は、change.fieldをresin_temperature_z5としてください。",
+    "- 樹脂温Z5の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温Z6を変更する場合は、change.fieldをresin_temperature_z6としてください。",
+    "- 樹脂温Z6の単位は、change.unitをcelsiusとしてください。",
+
+    "- 標準成形条件の樹脂温ZHを変更する場合は、change.fieldをresin_temperature_zhとしてください。",
+    "- 樹脂温ZHの単位は、change.unitをcelsiusとしてください。",
+
+
+
     "- 標準成形条件の射出速度V1を変更する場合は、change.fieldをinjection_speed_v1としてください。",
 
     "- 射出速度V1の単位は、change.unitをmillimeter_per_secondとしてください。",

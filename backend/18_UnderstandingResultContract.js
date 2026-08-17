@@ -113,28 +113,38 @@ const UNDERSTANDING_RESULT_ALLOWED_VIEW_NAMES = [
 const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
 
   null,
-  "mold_temperature",
-  "cooling_time",
+    "mold_temperature",
+    "cooling_time",
 
-  "injection_speed_v1",
-  "injection_stroke_s1",
-  "injection_speed_v2",
-  "injection_stroke_s2",
-  "injection_speed_v3",
-  "injection_stroke_s3",
-  "injection_speed_v4",
-  "injection_stroke_s4",
-  "injection_speed_v5",
-  "injection_stroke_s5",
+    "resin_temperature_z0",
+    "resin_temperature_z1",
+    "resin_temperature_z2",
+    "resin_temperature_zp",
+    "resin_temperature_zj",
+    "resin_temperature_z4",
+    "resin_temperature_z5",
+    "resin_temperature_z6",
+    "resin_temperature_zh",
 
-  "holding_pressure_p1",
-  "holding_time_t1",
-  "holding_pressure_p2",
-  "holding_time_t2",
-  "holding_pressure_p3",
-  "holding_time_t3",
-  "holding_pressure_p4",
-  "holding_time_t4"
+    "injection_speed_v1",
+    "injection_stroke_s1",
+    "injection_speed_v2",
+    "injection_stroke_s2",
+    "injection_speed_v3",
+    "injection_stroke_s3",
+    "injection_speed_v4",
+    "injection_stroke_s4",
+    "injection_speed_v5",
+    "injection_stroke_s5",
+
+    "holding_pressure_p1",
+    "holding_time_t1",
+    "holding_pressure_p2",
+    "holding_time_t2",
+    "holding_pressure_p3",
+    "holding_time_t3",
+    "holding_pressure_p4",
+    "holding_time_t4"
 
 ];
 

@@ -85,6 +85,13 @@ function test_ExecutionController_runAll() {
             test_ExecutionController_injectionStagesSuccess
     },
 
+    {
+        name:
+            "resinTemperatureSuccess",
+        run:
+            test_ExecutionController_resinTemperatureSuccess
+    },
+
   ];
 
 
@@ -3902,6 +3909,116 @@ function test_ExecutionController_injectionStagesSuccess() {
 
   console.log(
     "[PASS] injectionStagesSuccess"
+  );
+
+}
+
+
+
+function test_ExecutionController_resinTemperatureSuccess() {
+
+  const testCase = {
+
+    field:
+      "resin_temperature_z1",
+
+    path:
+      "standard_condition.resin_temperature_z1",
+
+    spreadsheetHeader:
+      "樹脂温:Z1",
+
+    value:
+      195,
+
+    unit:
+      "celsius"
+
+  };
+
+
+  const fixture =
+    ExecutionControllerTest_createHoldingStageSuccessFixture(
+      testCase
+    );
+
+
+  try {
+
+    const result =
+      ExecutionController_confirmAndExecute(
+        fixture.proposal.proposalId,
+        fixture.changePlan.changePlanId,
+        {
+
+          source:
+            "execution_controller_test",
+
+          decidedBy:
+            "USER_EXECUTION_CONTROLLER_TEST",
+
+          requestId:
+            "REQUEST_EXECUTION_CONTROLLER_RESIN_TEMPERATURE_Z1"
+
+        }
+      );
+
+
+    ExecutionControllerTest_validateResult(
+      result
+    );
+
+
+    ExecutionControllerTest_assertEquals(
+      EXECUTION_CONTROLLER_STATUS_COMPLETED,
+      result.status,
+      "resin_temperature_z1 result.status"
+    );
+
+
+    const detailRows =
+      fixture.spreadsheet
+        .getSheetByName(
+          "成形条件詳細マスター"
+        )
+        .getAllValues();
+
+
+    const detailHeaderMap =
+      ExecutionControllerTest_createHeaderMap(
+        detailRows[0]
+      );
+
+
+    ExecutionControllerTest_assertEquals(
+      3,
+      detailRows.length,
+      "resin_temperature_z1 detailRows.length"
+    );
+
+
+    ExecutionControllerTest_assertEquals(
+      testCase.value,
+      Number(
+        detailRows[2][
+          detailHeaderMap[
+            testCase.spreadsheetHeader
+          ]
+        ]
+      ),
+      "resin_temperature_z1 newConditionDetail." +
+        testCase.spreadsheetHeader
+    );
+
+  } finally {
+
+    ExecutionControllerTest_clearEnvironment();
+
+  }
+
+
+  console.log(
+    "[PASS] resinTemperatureSuccess"
   );
 
 }

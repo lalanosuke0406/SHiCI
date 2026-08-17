@@ -150,7 +150,344 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
-    injection_speed_v1: {
+
+
+  resin_temperature_z0: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_z0",
+
+    path:
+      "standard_condition.resin_temperature_z0",
+
+    spreadsheetHeader:
+      "樹脂温:Z0",
+
+    label:
+      "樹脂温 Z0",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_z1: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_z1",
+
+    path:
+      "standard_condition.resin_temperature_z1",
+
+    spreadsheetHeader:
+      "樹脂温:Z1",
+
+    label:
+      "樹脂温 Z1",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_z2: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_z2",
+
+    path:
+      "standard_condition.resin_temperature_z2",
+
+    spreadsheetHeader:
+      "樹脂温:Z2",
+
+    label:
+      "樹脂温 Z2",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_zp: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_zp",
+
+    path:
+      "standard_condition.resin_temperature_zp",
+
+    spreadsheetHeader:
+      "樹脂温:ZP",
+
+    label:
+      "樹脂温 ZP",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_zj: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_zj",
+
+    path:
+      "standard_condition.resin_temperature_zj",
+
+    spreadsheetHeader:
+      "樹脂温:ZJ",
+
+    label:
+      "樹脂温 ZJ",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_z4: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_z4",
+
+    path:
+      "standard_condition.resin_temperature_z4",
+
+    spreadsheetHeader:
+      "樹脂温:Z4",
+
+    label:
+      "樹脂温 Z4",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_z5: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_z5",
+
+    path:
+      "standard_condition.resin_temperature_z5",
+
+    spreadsheetHeader:
+      "樹脂温:Z5",
+
+    label:
+      "樹脂温 Z5",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_z6: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_z6",
+
+    path:
+      "standard_condition.resin_temperature_z6",
+
+    spreadsheetHeader:
+      "樹脂温:Z6",
+
+    label:
+      "樹脂温 Z6",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  resin_temperature_zh: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "resin_temperature_zh",
+
+    path:
+      "standard_condition.resin_temperature_zh",
+
+    spreadsheetHeader:
+      "樹脂温:ZH",
+
+    label:
+      "樹脂温 ZH",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "celsius",
+
+    displayUnit:
+      "℃",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+
+  injection_speed_v1: {
 
     registryVersion:
       STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
@@ -186,7 +523,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
       true
 
   },
-
 
   injection_stroke_s1: {
 
@@ -225,7 +561,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
-
   injection_speed_v2: {
 
     registryVersion:
@@ -262,7 +597,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
       true
 
   },
-
 
   injection_stroke_s2: {
 
@@ -301,7 +635,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
-
   injection_speed_v3: {
 
     registryVersion:
@@ -338,7 +671,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
       true
 
   },
-
 
   injection_stroke_s3: {
 
@@ -377,7 +709,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
-
   injection_speed_v4: {
 
     registryVersion:
@@ -414,7 +745,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
       true
 
   },
-
 
   injection_stroke_s4: {
 
@@ -453,7 +783,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
-
   injection_speed_v5: {
 
     registryVersion:
@@ -491,7 +820,6 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
-
   injection_stroke_s5: {
 
     registryVersion:
@@ -528,6 +856,7 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
       true
 
   },
+
 
 
   holding_pressure_p1: {
@@ -569,262 +898,262 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   holding_time_t1: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_time_t1",
+    changeField:
+        "holding_time_t1",
 
-  path:
-    "standard_condition.holding_time_t1",
+    path:
+        "standard_condition.holding_time_t1",
 
-  spreadsheetHeader:
-    "保圧時間:T1",
+    spreadsheetHeader:
+        "保圧時間:T1",
 
-  label:
-    "保圧時間 T1",
+    label:
+        "保圧時間 T1",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "second",
+    canonicalUnit:
+        "second",
 
-  displayUnit:
-    "秒",
+    displayUnit:
+        "秒",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-},
+  },
 
-holding_pressure_p2: {
+  holding_pressure_p2: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_pressure_p2",
+    changeField:
+        "holding_pressure_p2",
 
-  path:
-    "standard_condition.holding_pressure_p2",
+    path:
+        "standard_condition.holding_pressure_p2",
 
-  spreadsheetHeader:
-    "保圧力:P2",
+    spreadsheetHeader:
+        "保圧力:P2",
 
-  label:
-    "保圧力 P2",
+    label:
+        "保圧力 P2",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "megapascal",
+    canonicalUnit:
+        "megapascal",
 
-  displayUnit:
-    "MPa",
+    displayUnit:
+        "MPa",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-},
+  },
 
-holding_time_t2: {
+  holding_time_t2: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_time_t2",
+    changeField:
+        "holding_time_t2",
 
-  path:
-    "standard_condition.holding_time_t2",
+    path:
+        "standard_condition.holding_time_t2",
 
-  spreadsheetHeader:
-    "保圧時間:T2",
+    spreadsheetHeader:
+        "保圧時間:T2",
 
-  label:
-    "保圧時間 T2",
+    label:
+        "保圧時間 T2",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "second",
+    canonicalUnit:
+        "second",
 
-  displayUnit:
-    "秒",
+    displayUnit:
+        "秒",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-},
+  },
 
-holding_pressure_p3: {
+  holding_pressure_p3: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_pressure_p3",
+    changeField:
+        "holding_pressure_p3",
 
-  path:
-    "standard_condition.holding_pressure_p3",
+    path:
+        "standard_condition.holding_pressure_p3",
 
-  spreadsheetHeader:
-    "保圧力:P3",
+    spreadsheetHeader:
+        "保圧力:P3",
 
-  label:
-    "保圧力 P3",
+    label:
+        "保圧力 P3",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "megapascal",
+    canonicalUnit:
+        "megapascal",
 
-  displayUnit:
-    "MPa",
+    displayUnit:
+        "MPa",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-},
+  },
 
-holding_time_t3: {
+  holding_time_t3: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_time_t3",
+    changeField:
+        "holding_time_t3",
 
-  path:
-    "standard_condition.holding_time_t3",
+    path:
+        "standard_condition.holding_time_t3",
 
-  spreadsheetHeader:
-    "保圧時間:T3",
+    spreadsheetHeader:
+        "保圧時間:T3",
 
-  label:
-    "保圧時間 T3",
+    label:
+        "保圧時間 T3",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "second",
+    canonicalUnit:
+        "second",
 
-  displayUnit:
-    "秒",
+    displayUnit:
+        "秒",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-},
+  },
 
-holding_pressure_p4: {
+  holding_pressure_p4: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_pressure_p4",
+    changeField:
+        "holding_pressure_p4",
 
-  path:
-    "standard_condition.holding_pressure_p4",
+    path:
+        "standard_condition.holding_pressure_p4",
 
-  spreadsheetHeader:
-    "保圧力:P4",
+    spreadsheetHeader:
+        "保圧力:P4",
 
-  label:
-    "保圧力 P4",
+    label:
+        "保圧力 P4",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "megapascal",
+    canonicalUnit:
+        "megapascal",
 
-  displayUnit:
-    "MPa",
+    displayUnit:
+        "MPa",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-},
+  },
 
-holding_time_t4: {
+  holding_time_t4: {
 
-  registryVersion:
-    STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+    registryVersion:
+        STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
 
-  changeField:
-    "holding_time_t4",
+    changeField:
+        "holding_time_t4",
 
-  path:
-    "standard_condition.holding_time_t4",
+    path:
+        "standard_condition.holding_time_t4",
 
-  spreadsheetHeader:
-    "保圧時間:T4",
+    spreadsheetHeader:
+        "保圧時間:T4",
 
-  label:
-    "保圧時間 T4",
+    label:
+        "保圧時間 T4",
 
-  valueType:
-    "number",
+    valueType:
+        "number",
 
-  canonicalUnit:
-    "second",
+    canonicalUnit:
+        "second",
 
-  displayUnit:
-    "秒",
+    displayUnit:
+        "秒",
 
-  preservationPolicy:
-    STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+    preservationPolicy:
+        STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
 
-  group:
-    "standard_condition",
+    group:
+        "standard_condition",
 
-  enabled:
-    true
+    enabled:
+        true
 
-}
+  }
 
 };
 

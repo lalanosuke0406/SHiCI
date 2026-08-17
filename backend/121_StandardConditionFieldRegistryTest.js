@@ -713,7 +713,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    20,
+    29,
     definitions.length,
     "definitions.length"
   );
@@ -757,7 +757,17 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
         "injection_stroke_s4",
         "injection_stroke_s5",
 
-        "mold_temperature"
+        "mold_temperature",
+
+        "resin_temperature_z0",
+        "resin_temperature_z1",
+        "resin_temperature_z2",
+        "resin_temperature_z4",
+        "resin_temperature_z5",
+        "resin_temperature_z6",
+        "resin_temperature_zh",
+        "resin_temperature_zj",
+        "resin_temperature_zp"
     ],
     fields,
     "definition fields"
@@ -816,7 +826,17 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
         "injection_stroke_s4",
         "injection_stroke_s5",
 
-        "mold_temperature"
+        "mold_temperature",
+
+        "resin_temperature_z0",
+        "resin_temperature_z1",
+        "resin_temperature_z2",
+        "resin_temperature_z4",
+        "resin_temperature_z5",
+        "resin_temperature_z6",
+        "resin_temperature_zh",
+        "resin_temperature_zj",
+        "resin_temperature_zp"
     ],
     fields,
     "change fields"

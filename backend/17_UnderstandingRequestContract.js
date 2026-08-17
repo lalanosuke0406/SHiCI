@@ -222,6 +222,16 @@ function UnderstandingRequestContract_create(
         "mold_temperature",
         "cooling_time",
 
+        "resin_temperature_z0",
+        "resin_temperature_z1",
+        "resin_temperature_z2",
+        "resin_temperature_zp",
+        "resin_temperature_zj",
+        "resin_temperature_z4",
+        "resin_temperature_z5",
+        "resin_temperature_z6",
+        "resin_temperature_zh",
+
         "injection_speed_v1",
         "injection_stroke_s1",
         "injection_speed_v2",

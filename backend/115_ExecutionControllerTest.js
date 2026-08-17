@@ -71,6 +71,13 @@ function test_ExecutionController_runAll() {
             test_ExecutionController_holdingTimeT1Success
     },
 
+    {
+        name:
+            "holdingStagesSuccess",
+        run:
+            test_ExecutionController_holdingStagesSuccess
+    },
+
   ];
 
 
@@ -3237,5 +3244,418 @@ function ExecutionControllerTest_createHoldingTimeT1PendingChangeFixture() {
       proposal
 
   };
+
+}
+
+
+
+function ExecutionControllerTest_createHoldingStagePendingChangeFixture(
+  testCase
+) {
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_EXECUTION_CONTROLLER_" +
+    String(
+      testCase.field
+    )
+      .toUpperCase() +
+    "_" +
+    Utilities
+      .getUuid()
+      .replace(
+        /-/g,
+        ""
+      )
+      .toUpperCase();
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      testCase.path,
+
+    currentValue:
+      "",
+
+    proposedValue:
+      testCase.value,
+
+    unit:
+      testCase.unit,
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        testCase.field,
+
+      currentValue:
+        "",
+
+      proposedValue:
+        testCase.value,
+
+      unit:
+        testCase.unit
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "Holding Stage Execution Controller Test";
+
+
+  mutation.metadata.source =
+    "execution_controller_test";
+
+  mutation.metadata.requestedBy =
+    "USER_EXECUTION_CONTROLLER_TEST";
+
+  mutation.metadata.requestedAt =
+    new Date()
+      .toISOString();
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ExecutionControllerTest_assertEquals(
+    "resolved",
+    resolutionResult.status,
+    testCase.field +
+      " resolutionResult.status"
+  );
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ExecutionControllerTest_assertEquals(
+    "ready_for_confirmation",
+    changePlan.status,
+    testCase.field +
+      " changePlan.status"
+  );
+
+
+  const proposal =
+    ConfirmationProposalEngine_build(
+      changePlan
+    );
+
+
+  PendingChangeStore_save(
+    changePlan,
+    proposal
+  );
+
+
+  return {
+
+    mutation:
+      mutation,
+
+    resolutionResult:
+      resolutionResult,
+
+    changePlan:
+      changePlan,
+
+    proposal:
+      proposal
+
+  };
+
+}
+
+
+
+function ExecutionControllerTest_createHoldingStageSuccessFixture(
+  testCase
+) {
+
+  const pendingFixture =
+    ExecutionControllerTest_createHoldingStagePendingChangeFixture(
+      testCase
+    );
+
+
+  const spreadsheet =
+    ExecutionControllerTest_createSpreadsheetForChangePlan(
+      pendingFixture.changePlan
+    );
+
+
+  ExecutionControllerTest_prepareEnvironment(
+    spreadsheet
+  );
+
+
+  return {
+
+    mutation:
+      pendingFixture.mutation,
+
+    resolutionResult:
+      pendingFixture.resolutionResult,
+
+    changePlan:
+      pendingFixture.changePlan,
+
+    proposal:
+      pendingFixture.proposal,
+
+    spreadsheet:
+      spreadsheet
+
+  };
+
+}
+
+
+
+function test_ExecutionController_holdingStagesSuccess() {
+
+  const cases = [
+
+    {
+      field:
+        "holding_pressure_p2",
+      path:
+        "standard_condition.holding_pressure_p2",
+      spreadsheetHeader:
+        "保圧力:P2",
+      value:
+        180,
+      unit:
+        "megapascal"
+    },
+
+    {
+      field:
+        "holding_time_t2",
+      path:
+        "standard_condition.holding_time_t2",
+      spreadsheetHeader:
+        "保圧時間:T2",
+      value:
+        2,
+      unit:
+        "second"
+    },
+
+    {
+      field:
+        "holding_pressure_p3",
+      path:
+        "standard_condition.holding_pressure_p3",
+      spreadsheetHeader:
+        "保圧力:P3",
+      value:
+        150,
+      unit:
+        "megapascal"
+    },
+
+    {
+      field:
+        "holding_time_t3",
+      path:
+        "standard_condition.holding_time_t3",
+      spreadsheetHeader:
+        "保圧時間:T3",
+      value:
+        3,
+      unit:
+        "second"
+    },
+
+    {
+      field:
+        "holding_pressure_p4",
+      path:
+        "standard_condition.holding_pressure_p4",
+      spreadsheetHeader:
+        "保圧力:P4",
+      value:
+        120,
+      unit:
+        "megapascal"
+    },
+
+    {
+      field:
+        "holding_time_t4",
+      path:
+        "standard_condition.holding_time_t4",
+      spreadsheetHeader:
+        "保圧時間:T4",
+      value:
+        4,
+      unit:
+        "second"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const fixture =
+        ExecutionControllerTest_createHoldingStageSuccessFixture(
+          testCase
+        );
+
+
+      try {
+
+        const result =
+          ExecutionController_confirmAndExecute(
+            fixture.proposal.proposalId,
+            fixture.changePlan.changePlanId,
+            {
+
+              source:
+                "execution_controller_test",
+
+              decidedBy:
+                "USER_EXECUTION_CONTROLLER_TEST",
+
+              requestId:
+                "REQUEST_EXECUTION_CONTROLLER_" +
+                String(
+                  testCase.field
+                )
+                  .toUpperCase()
+
+            }
+          );
+
+
+        ExecutionControllerTest_validateResult(
+          result
+        );
+
+
+        ExecutionControllerTest_assertEquals(
+          EXECUTION_CONTROLLER_STATUS_COMPLETED,
+          result.status,
+          testCase.field +
+            " result.status"
+        );
+
+
+        const detailRows =
+          fixture.spreadsheet
+            .getSheetByName(
+              "成形条件詳細マスター"
+            )
+            .getAllValues();
+
+
+        const detailHeaderMap =
+          ExecutionControllerTest_createHeaderMap(
+            detailRows[0]
+          );
+
+
+        ExecutionControllerTest_assertEquals(
+          3,
+          detailRows.length,
+          testCase.field +
+            " detailRows.length"
+        );
+
+
+        ExecutionControllerTest_assertEquals(
+          testCase.value,
+          Number(
+            detailRows[2][
+              detailHeaderMap[
+                testCase.spreadsheetHeader
+              ]
+            ]
+          ),
+          testCase.field +
+            " newConditionDetail." +
+            testCase.spreadsheetHeader
+        );
+
+
+      } finally {
+
+        ExecutionControllerTest_clearEnvironment();
+
+      }
+
+    }
+  );
+
+
+  console.log(
+    "[PASS] holdingStagesSuccess"
+  );
 
 }

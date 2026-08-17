@@ -73,6 +73,13 @@ function ConfirmationProposalEngineTest_runAll() {
     },
 
     {
+        name:
+            "holdingStagesPresentationIsGenerated",
+        run:
+            ConfirmationProposalEngineTest_holdingStagesPresentationIsGenerated
+    },
+
+    {
       name:
         "confirmationActionsAreEnabled",
       run:
@@ -966,6 +973,24 @@ function ConfirmationProposalEngineTest_setHoldingTimeT1SnapshotOverride() {
           "保圧時間:T1":
             "",
 
+          "保圧力:P2":
+            "",
+
+          "保圧時間:T2":
+            "",
+
+          "保圧力:P3":
+            "",
+
+          "保圧時間:T3":
+            "",
+
+          "保圧力:P4":
+            "",
+
+          "保圧時間:T4":
+            "",
+
           "最終更新日":
             "2026-08-01T00:00:00.000Z"
 
@@ -1214,5 +1239,295 @@ function ConfirmationProposalEngineTest_holdingTimeT1PresentationIsGenerated() {
   ConfirmationProposalContract_validate(
     proposal
   );
+
+}
+
+
+
+/**
+ * P2/T2～P4/T4のChange Planが
+ * Confirmation Proposalへ正しく変換されることを確認する。
+ */
+function ConfirmationProposalEngineTest_holdingStagesPresentationIsGenerated() {
+
+  const cases = [
+
+    {
+      field: "holding_pressure_p2",
+      path: "standard_condition.holding_pressure_p2",
+      label: "保圧力 P2",
+      value: 180,
+      unit: "megapascal",
+      displayUnit: "MPa"
+    },
+
+    {
+      field: "holding_time_t2",
+      path: "standard_condition.holding_time_t2",
+      label: "保圧時間 T2",
+      value: 2,
+      unit: "second",
+      displayUnit: "秒"
+    },
+
+    {
+      field: "holding_pressure_p3",
+      path: "standard_condition.holding_pressure_p3",
+      label: "保圧力 P3",
+      value: 150,
+      unit: "megapascal",
+      displayUnit: "MPa"
+    },
+
+    {
+      field: "holding_time_t3",
+      path: "standard_condition.holding_time_t3",
+      label: "保圧時間 T3",
+      value: 3,
+      unit: "second",
+      displayUnit: "秒"
+    },
+
+    {
+      field: "holding_pressure_p4",
+      path: "standard_condition.holding_pressure_p4",
+      label: "保圧力 P4",
+      value: 120,
+      unit: "megapascal",
+      displayUnit: "MPa"
+    },
+
+    {
+      field: "holding_time_t4",
+      path: "standard_condition.holding_time_t4",
+      label: "保圧時間 T4",
+      value: 4,
+      unit: "second",
+      displayUnit: "秒"
+    }
+
+  ];
+
+
+  cases.forEach(function(testCase) {
+
+    const changePlan =
+      ConfirmationProposalEngineTest_createHoldingStageChangePlan(
+        testCase
+      );
+
+
+    const proposal =
+      ConfirmationProposalEngine_build(
+        changePlan
+      );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      proposal.status,
+      "pending",
+      testCase.field + " proposal.status"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      proposal.changes.length,
+      1,
+      testCase.field + " proposal.changes.length"
+    );
+
+
+    const change =
+      proposal.changes[0];
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.path,
+      testCase.path,
+      testCase.field + " change.path"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.label,
+      testCase.label,
+      testCase.field + " change.label"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.before,
+      "",
+      testCase.field + " change.before"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.after,
+      testCase.value,
+      testCase.field + " change.after"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.unit,
+      testCase.displayUnit,
+      testCase.field + " change.unit"
+    );
+
+  });
+
+}
+
+
+
+function ConfirmationProposalEngineTest_createHoldingStageChangePlan(
+  testCase
+) {
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_CONFIRMATION_PROPOSAL_TEST_" +
+    String(testCase.field).toUpperCase();
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      testCase.path,
+
+    currentValue:
+      null,
+
+    proposedValue:
+      testCase.value,
+
+    unit:
+      testCase.unit,
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        testCase.field,
+
+      currentValue:
+        null,
+
+      proposedValue:
+        testCase.value,
+
+      unit:
+        testCase.unit
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "Holding Stage Confirmation Proposal Test";
+
+
+  mutation.metadata.source =
+    "understanding_result";
+
+  mutation.metadata.requestedBy =
+    "USER_TEST_001";
+
+  mutation.metadata.requestedAt =
+    "2026-08-17T09:20:00+09:00";
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    resolutionResult.status,
+    "resolved",
+    testCase.field + " resolutionResult.status"
+  );
+
+
+  ConfirmationProposalEngineTest_setHoldingTimeT1SnapshotOverride();
+
+
+  try {
+
+    const changePlan =
+      ChangePlanEngine_build(
+        resolutionResult
+      );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      changePlan.status,
+      "ready_for_confirmation",
+      testCase.field + " changePlan.status"
+    );
+
+
+    return changePlan;
+
+  } finally {
+
+    ConfirmationProposalEngineTest_clearHoldingTimeT1SnapshotOverride();
+
+  }
 
 }

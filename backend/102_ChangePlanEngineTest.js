@@ -57,6 +57,13 @@ function ChangePlanEngineTest_runAll() {
     },
 
     {
+        name:
+            "buildHoldingStagesChangePlans",
+        run:
+            ChangePlanEngineTest_buildHoldingStagesChangePlans
+    },
+
+    {
       name:
         "proposedSnapshotCreatesNextVersion",
       run:
@@ -469,6 +476,328 @@ function ChangePlanEngineTest_buildHoldingTimeT1ChangePlan() {
   ChangePlanContract_validate(
     changePlan
   );
+
+}
+
+
+
+/**
+ * P2/T2～P4/T4の各保圧条件Fieldについて、
+ * 未登録から新しい値へのChange Planが
+ * 共通経路で生成されることを確認する。
+ */
+function ChangePlanEngineTest_buildHoldingStagesChangePlans() {
+
+  const cases = [
+
+    {
+      field:
+        "holding_pressure_p2",
+      path:
+        "standard_condition.holding_pressure_p2",
+      spreadsheetHeader:
+        "保圧力:P2",
+      value:
+        180,
+      unit:
+        "megapascal"
+    },
+
+    {
+      field:
+        "holding_time_t2",
+      path:
+        "standard_condition.holding_time_t2",
+      spreadsheetHeader:
+        "保圧時間:T2",
+      value:
+        2,
+      unit:
+        "second"
+    },
+
+    {
+      field:
+        "holding_pressure_p3",
+      path:
+        "standard_condition.holding_pressure_p3",
+      spreadsheetHeader:
+        "保圧力:P3",
+      value:
+        150,
+      unit:
+        "megapascal"
+    },
+
+    {
+      field:
+        "holding_time_t3",
+      path:
+        "standard_condition.holding_time_t3",
+      spreadsheetHeader:
+        "保圧時間:T3",
+      value:
+        3,
+      unit:
+        "second"
+    },
+
+    {
+      field:
+        "holding_pressure_p4",
+      path:
+        "standard_condition.holding_pressure_p4",
+      spreadsheetHeader:
+        "保圧力:P4",
+      value:
+        120,
+      unit:
+        "megapascal"
+    },
+
+    {
+      field:
+        "holding_time_t4",
+      path:
+        "standard_condition.holding_time_t4",
+      spreadsheetHeader:
+        "保圧時間:T4",
+      value:
+        4,
+      unit:
+        "second"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const resolutionResult =
+        ChangePlanEngineTest_createHoldingStageResolvedMutation(
+          testCase
+        );
+
+
+      const changePlan =
+        ChangePlanEngine_build(
+          resolutionResult
+        );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan.status,
+        "ready_for_confirmation",
+        testCase.field + " status"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan.changes.length,
+        1,
+        testCase.field + " changes.length"
+      );
+
+
+      const change =
+        changePlan.changes[0];
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.path,
+        testCase.path,
+        testCase.field + " change.path"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.before,
+        null,
+        testCase.field + " change.before"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.after,
+        testCase.value,
+        testCase.field + " change.after"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan
+          .proposedSnapshot
+          .conditionDetail[
+            testCase.spreadsheetHeader
+          ],
+        testCase.value,
+        testCase.field +
+          " proposedSnapshot"
+      );
+
+
+      /*
+       * Current Snapshotは変更されない。
+       */
+      ChangePlanEngineTest_assertEqual(
+        changePlan
+          .currentSnapshot
+          .conditionDetail[
+            testCase.spreadsheetHeader
+          ],
+        null,
+        testCase.field +
+          " currentSnapshot"
+      );
+
+
+      ChangePlanContract_validate(
+        changePlan
+      );
+
+    }
+  );
+
+}
+
+
+
+function ChangePlanEngineTest_createHoldingStageResolvedMutation(
+  testCase
+) {
+
+  const mutation =
+    EntityMutationContract_createEmpty();
+
+
+  mutation.mutationId =
+    "MUTATION_CHANGE_PLAN_TEST_" +
+    String(
+      testCase.field
+    )
+      .toUpperCase();
+
+
+  mutation.mutationType =
+    "change_state";
+
+
+  mutation.subject.entityType =
+    "product";
+
+  mutation.subject.entityId =
+    null;
+
+  mutation.subject.entityQuery =
+    "ワンワン";
+
+
+  mutation.stateChanges.push({
+
+    path:
+      testCase.path,
+
+    currentValue:
+      null,
+
+    proposedValue:
+      testCase.value,
+
+    unit:
+      testCase.unit,
+
+    preservationPolicy:
+      "create_new_version"
+
+  });
+
+
+  mutation.snapshotChange = {
+
+    snapshotType:
+      "condition",
+
+    currentSnapshotId:
+      null,
+
+    proposedSnapshotId:
+      null,
+
+    preservationPolicy:
+      "create_new_version"
+
+  };
+
+
+  mutation.events.push({
+
+    eventType:
+      "condition_change_requested",
+
+    occurredAt:
+      null,
+
+    details: {
+
+      field:
+        testCase.field,
+
+      currentValue:
+        null,
+
+      proposedValue:
+        testCase.value,
+
+      unit:
+        testCase.unit
+
+    }
+
+  });
+
+
+  mutation.reason =
+    "Holding Stage Change Plan Test";
+
+
+  mutation.metadata.source =
+    "understanding_result";
+
+  mutation.metadata.requestedBy =
+    "USER_TEST_001";
+
+  mutation.metadata.requestedAt =
+    "2026-08-16T15:20:00+09:00";
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  const resolutionResult =
+    EntityMutationResolutionEngine_resolve(
+      mutation
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    resolutionResult.status,
+    "resolved",
+    testCase.field +
+      " resolutionResult.status"
+  );
+
+
+  return resolutionResult;
 
 }
 
@@ -1193,6 +1522,24 @@ function ChangePlanEngineTest_setSnapshotOverride() {
             30,
 
           "保圧時間:T1":
+            null,
+
+          "保圧力:P2":
+            null,
+
+          "保圧時間:T2":
+            null,
+
+          "保圧力:P3":
+            null,
+
+          "保圧時間:T3":
+            null,
+
+          "保圧力:P4":
+            null,
+
+          "保圧時間:T4":
             null,
 
           "最終更新日":

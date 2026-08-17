@@ -64,6 +64,13 @@ function ConfirmationPresentationFormatterTest_runAll() {
     },
 
     {
+        name:
+            "formatHoldingStagesChanges",
+        run:
+            ConfirmationPresentationFormatterTest_formatHoldingStagesChanges
+    },
+
+    {
       name:
         "buildMessageWithDrawingNumber",
       run:
@@ -624,7 +631,176 @@ function ConfirmationPresentationFormatterTest_formatHoldingTimeT1Change() {
 
 
 
+/**
+ * P2/T2～P4/T4変更が
+ * Registry定義に基づいて表示用情報へ
+ * 変換されることを確認する。
+ */
+function ConfirmationPresentationFormatterTest_formatHoldingStagesChanges() {
 
+  const cases = [
+
+    {
+      path:
+        "standard_condition.holding_pressure_p2",
+      label:
+        "保圧力 P2",
+      after:
+        180,
+      unit:
+        "megapascal",
+      displayUnit:
+        "MPa"
+    },
+
+    {
+      path:
+        "standard_condition.holding_time_t2",
+      label:
+        "保圧時間 T2",
+      after:
+        2,
+      unit:
+        "second",
+      displayUnit:
+        "秒"
+    },
+
+    {
+      path:
+        "standard_condition.holding_pressure_p3",
+      label:
+        "保圧力 P3",
+      after:
+        150,
+      unit:
+        "megapascal",
+      displayUnit:
+        "MPa"
+    },
+
+    {
+      path:
+        "standard_condition.holding_time_t3",
+      label:
+        "保圧時間 T3",
+      after:
+        3,
+      unit:
+        "second",
+      displayUnit:
+        "秒"
+    },
+
+    {
+      path:
+        "standard_condition.holding_pressure_p4",
+      label:
+        "保圧力 P4",
+      after:
+        120,
+      unit:
+        "megapascal",
+      displayUnit:
+        "MPa"
+    },
+
+    {
+      path:
+        "standard_condition.holding_time_t4",
+      label:
+        "保圧時間 T4",
+      after:
+        4,
+      unit:
+        "second",
+      displayUnit:
+        "秒"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const changePlan =
+        ConfirmationPresentationFormatterTest_createChangePlan();
+
+
+      changePlan.changes = [
+
+        {
+          changeType:
+            "state",
+
+          path:
+            testCase.path,
+
+          before:
+            null,
+
+          after:
+            testCase.after,
+
+          unit:
+            testCase.unit,
+
+          preservationPolicy:
+            "create_new_version"
+        }
+
+      ];
+
+
+      const presentation =
+        ConfirmationPresentationFormatter_format(
+          changePlan
+        );
+
+
+      const change =
+        presentation.changes[0];
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.path,
+        testCase.path,
+        testCase.path + " change.path"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.label,
+        testCase.label,
+        testCase.path + " change.label"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.before,
+        null,
+        testCase.path + " change.before"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.after,
+        testCase.after,
+        testCase.path + " change.after"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.unit,
+        testCase.displayUnit,
+        testCase.path + " change.unit"
+      );
+
+    }
+  );
+
+}
 
 
 

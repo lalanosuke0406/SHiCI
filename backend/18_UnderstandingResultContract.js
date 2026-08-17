@@ -116,7 +116,13 @@ const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
   "mold_temperature",
   "cooling_time",
   "holding_pressure_p1",
-    "holding_time_t1"
+  "holding_time_t1",
+  "holding_pressure_p2",
+  "holding_time_t2",
+  "holding_pressure_p3",
+  "holding_time_t3",
+  "holding_pressure_p4",
+  "holding_time_t4"
 
 ];
 

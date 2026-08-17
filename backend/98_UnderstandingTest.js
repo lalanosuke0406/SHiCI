@@ -694,6 +694,47 @@ function UnderstandingTest_validateVersion2RequestContract() {
   );
 
   UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_pressure_p2",
+    "allowedChangeFields"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_time_t2",
+    "allowedChangeFields"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_pressure_p3",
+    "allowedChangeFields"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_time_t3",
+    "allowedChangeFields"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_pressure_p4",
+    "allowedChangeFields"
+  );
+
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "holding_time_t4",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
     request.policy.allowedChangeUnits,
     "megapascal",
     "allowedChangeUnits"
@@ -891,6 +932,31 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
         .enum,
     "holding_time_t1",
     "Schema change.field enum"
+  );
+
+
+  [
+    "holding_pressure_p2",
+    "holding_time_t2",
+    "holding_pressure_p3",
+    "holding_time_t3",
+    "holding_pressure_p4",
+    "holding_time_t4"
+  ].forEach(
+    function(field) {
+
+        UnderstandingTest_assertArrayIncludesV2(
+        schema.properties
+            .change
+            .properties
+            .field
+            .anyOf[0]
+            .enum,
+        field,
+        "Schema change.field enum"
+        );
+
+    }
   );
 
 
@@ -3823,6 +3889,484 @@ function UnderstandingTest_runVersion2OpenAIHoldingTimeT1Update() {
 
   Logger.log(
     "[Passed] Version 2.0 OpenAI Holding Time T1 Update"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2HoldingStagesUpdateFields() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンのP2を20MPaにして",
+      field:
+        "holding_pressure_p2",
+      value:
+        20,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンのT2を2秒にして",
+      field:
+        "holding_time_t2",
+      value:
+        2,
+      unit:
+        "second"
+    },
+
+    {
+      text:
+        "ワンワンのP3を15MPaにして",
+      field:
+        "holding_pressure_p3",
+      value:
+        15,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンのT3を3秒にして",
+      field:
+        "holding_time_t3",
+      value:
+        3,
+      unit:
+        "second"
+    },
+
+    {
+      text:
+        "ワンワンのP4を10MPaにして",
+      field:
+        "holding_pressure_p4",
+      value:
+        10,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンのT4を4秒にして",
+      field:
+        "holding_time_t4",
+      value:
+        4,
+      unit:
+        "second"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const result =
+        UnderstandingTest_createVersion2StandardConditionUpdateResult(
+          testCase.text,
+          "ワンワン",
+          testCase.field,
+          testCase.value,
+          testCase.unit,
+          []
+        );
+
+
+      result.view.name =
+        "holding_condition";
+
+
+      const validated =
+        UnderstandingResultContract_validate(
+          result
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.field,
+        testCase.field,
+        testCase.field + " change.field"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Stages Update Fields"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingStages() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンのP2を20MPaにして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  [
+    "holding_pressure_p2",
+    "holding_time_t2",
+    "holding_pressure_p3",
+    "holding_time_t3",
+    "holding_pressure_p4",
+    "holding_time_t4"
+  ].forEach(
+    function(field) {
+
+      UnderstandingTest_assertTrueV2(
+        instructions.indexOf(
+          field
+        ) !== -1,
+        "Instructionsに" +
+          field +
+          "がありません。"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Instructions Holding Stages"
+  );
+
+}
+
+
+
+function UnderstandingTest_runVersion2OpenAIHoldingStagesUpdate() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンのP2を180MPaにして",
+      field:
+        "holding_pressure_p2",
+      value:
+        180,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンのT2を2秒にして",
+      field:
+        "holding_time_t2",
+      value:
+        2,
+      unit:
+        "second"
+    },
+
+    {
+      text:
+        "ワンワンのP3を150MPaにして",
+      field:
+        "holding_pressure_p3",
+      value:
+        150,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンのT3を3秒にして",
+      field:
+        "holding_time_t3",
+      value:
+        3,
+      unit:
+        "second"
+    },
+
+    {
+      text:
+        "ワンワンのP4を120MPaにして",
+      field:
+        "holding_pressure_p4",
+      value:
+        120,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンのT4を4秒にして",
+      field:
+        "holding_time_t4",
+      value:
+        4,
+      unit:
+        "second"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+        const request =
+        UnderstandingRequestContract_create(
+            testCase.text
+        );
+
+
+        const result =
+        OpenAIAdapter_understand(
+            request
+        );
+
+
+        Logger.log(
+        "[OpenAI Holding Stage Result] " +
+        JSON.stringify(
+            result,
+            null,
+            2
+        )
+        );
+
+
+        UnderstandingResultContract_validate(
+        result
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+        result.intent.type,
+        "update",
+        testCase.field + " intent.type"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+        result.view.name,
+        "holding_condition",
+        testCase.field + " view.name"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+        result.change.field,
+        testCase.field,
+        testCase.field + " change.field"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+        result.change.operation,
+        "set",
+        testCase.field + " change.operation"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+        result.change.value,
+        testCase.value,
+        testCase.field + " change.value"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+        result.change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+        );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Holding Stages Update"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2HoldingStagesUpdateAdapterReady() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンのP2を180MPaにして",
+      field:
+        "holding_pressure_p2",
+      value:
+        180,
+      unit:
+        "megapascal",
+      targetField:
+        "保圧力:P2"
+    },
+
+    {
+      text:
+        "ワンワンのT2を2秒にして",
+      field:
+        "holding_time_t2",
+      value:
+        2,
+      unit:
+        "second",
+      targetField:
+        "保圧時間:T2"
+    },
+
+    {
+      text:
+        "ワンワンのP3を150MPaにして",
+      field:
+        "holding_pressure_p3",
+      value:
+        150,
+      unit:
+        "megapascal",
+      targetField:
+        "保圧力:P3"
+    },
+
+    {
+      text:
+        "ワンワンのT3を3秒にして",
+      field:
+        "holding_time_t3",
+      value:
+        3,
+      unit:
+        "second",
+      targetField:
+        "保圧時間:T3"
+    },
+
+    {
+      text:
+        "ワンワンのP4を120MPaにして",
+      field:
+        "holding_pressure_p4",
+      value:
+        120,
+      unit:
+        "megapascal",
+      targetField:
+        "保圧力:P4"
+    },
+
+    {
+      text:
+        "ワンワンのT4を4秒にして",
+      field:
+        "holding_time_t4",
+      value:
+        4,
+      unit:
+        "second",
+      targetField:
+        "保圧時間:T4"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const result =
+        UnderstandingTest_createVersion2StandardConditionUpdateResult(
+          testCase.text,
+          "ワンワン",
+          testCase.field,
+          testCase.value,
+          testCase.unit,
+          []
+        );
+
+
+      result.view.name =
+        "holding_condition";
+
+
+      const updateIntent =
+        UpdateUnderstandingAdapter_convert(
+          result
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.status,
+        "ready",
+        testCase.field + " status"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.intentType,
+        "update",
+        testCase.field + " intentType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.updateType,
+        testCase.field,
+        testCase.field + " updateType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.targetField,
+        testCase.targetField,
+        testCase.field + " targetField"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.newValue,
+        testCase.value,
+        testCase.field + " newValue"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.unit,
+        testCase.unit,
+        testCase.field + " unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Holding Stages Update Adapter Ready"
   );
 
 }

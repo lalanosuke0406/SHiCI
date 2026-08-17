@@ -1972,6 +1972,30 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- 保圧時間T1の単位は、change.unitをsecondとしてください。",
 
+    "- 標準成形条件の保圧力P2を変更する場合は、change.fieldをholding_pressure_p2としてください。",
+
+    "- 保圧力P2の単位は、change.unitをmegapascalとしてください。",
+
+    "- 標準成形条件の保圧時間T2を変更する場合は、change.fieldをholding_time_t2としてください。",
+
+    "- 保圧時間T2の単位は、change.unitをsecondとしてください。",
+
+    "- 標準成形条件の保圧力P3を変更する場合は、change.fieldをholding_pressure_p3としてください。",
+
+    "- 保圧力P3の単位は、change.unitをmegapascalとしてください。",
+
+    "- 標準成形条件の保圧時間T3を変更する場合は、change.fieldをholding_time_t3としてください。",
+
+    "- 保圧時間T3の単位は、change.unitをsecondとしてください。",
+
+    "- 標準成形条件の保圧力P4を変更する場合は、change.fieldをholding_pressure_p4としてください。",
+
+    "- 保圧力P4の単位は、change.unitをmegapascalとしてください。",
+
+    "- 標準成形条件の保圧時間T4を変更する場合は、change.fieldをholding_time_t4としてください。",
+
+    "- 保圧時間T4の単位は、change.unitをsecondとしてください。",
+
     "- 温度記号や単位表記に揺れがあっても、値と単位を意味に基づいて分離してください。",
 
     "- ユーザーが設定値を伝えていない場合は、change.valueをnullとしてください。",

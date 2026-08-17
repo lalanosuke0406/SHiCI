@@ -1053,3 +1053,181 @@ function ProductMutationAdapterTest_validHoldingTimeT1() {
   );
 
 }
+
+
+
+function ProductMutationAdapterTest_validHoldingStages() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンのP2を180MPaにして",
+      field:
+        "holding_pressure_p2",
+      value:
+        180,
+      unit:
+        "megapascal",
+      path:
+        "standard_condition.holding_pressure_p2"
+    },
+
+    {
+      text:
+        "ワンワンのT2を2秒にして",
+      field:
+        "holding_time_t2",
+      value:
+        2,
+      unit:
+        "second",
+      path:
+        "standard_condition.holding_time_t2"
+    },
+
+    {
+      text:
+        "ワンワンのP3を150MPaにして",
+      field:
+        "holding_pressure_p3",
+      value:
+        150,
+      unit:
+        "megapascal",
+      path:
+        "standard_condition.holding_pressure_p3"
+    },
+
+    {
+      text:
+        "ワンワンのT3を3秒にして",
+      field:
+        "holding_time_t3",
+      value:
+        3,
+      unit:
+        "second",
+      path:
+        "standard_condition.holding_time_t3"
+    },
+
+    {
+      text:
+        "ワンワンのP4を120MPaにして",
+      field:
+        "holding_pressure_p4",
+      value:
+        120,
+      unit:
+        "megapascal",
+      path:
+        "standard_condition.holding_pressure_p4"
+    },
+
+    {
+      text:
+        "ワンワンのT4を4秒にして",
+      field:
+        "holding_time_t4",
+      value:
+        4,
+      unit:
+        "second",
+      path:
+        "standard_condition.holding_time_t4"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const understandingResult =
+        ProductMutationAdapterTest_createUnderstandingResult(
+          testCase.text,
+          "ワンワン",
+          testCase.value,
+          testCase.unit
+        );
+
+
+      understandingResult.view.name =
+        "holding_condition";
+
+      understandingResult.change.field =
+        testCase.field;
+
+
+      const mutation =
+        ProductMutationAdapter_convert(
+          understandingResult
+        );
+
+
+      ProductMutationAdapterTest_assertNotNull(
+        mutation,
+        testCase.field + " mutation"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        mutation.mutationType,
+        "change_state",
+        testCase.field + " mutationType"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        mutation.stateChanges.length,
+        1,
+        testCase.field + " stateChanges.length"
+      );
+
+
+      const stateChange =
+        mutation.stateChanges[0];
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.path,
+        testCase.path,
+        testCase.field + " stateChange.path"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.proposedValue,
+        testCase.value,
+        testCase.field + " proposedValue"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.unit,
+        testCase.unit,
+        testCase.field + " unit"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.preservationPolicy,
+        "create_new_version",
+        testCase.field + " preservationPolicy"
+      );
+
+
+      EntityMutationContract_validate(
+        mutation
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Product Mutation Adapter Holding Stages"
+  );
+
+}

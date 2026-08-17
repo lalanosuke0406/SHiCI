@@ -85,6 +85,20 @@ function ProductMutationAdapterTest_runAll() {
         ProductMutationAdapterTest_nonProductReturnsNull
     },
 
+    {
+        name:
+            "validHoldingStages",
+        run:
+            ProductMutationAdapterTest_validHoldingStages
+    },
+
+    {
+        name:
+            "validInjectionStages",
+        run:
+            ProductMutationAdapterTest_validInjectionStages
+    },
+
 
   ];
 
@@ -1228,6 +1242,236 @@ function ProductMutationAdapterTest_validHoldingStages() {
 
   Logger.log(
     "[Passed] Product Mutation Adapter Holding Stages"
+  );
+
+}
+
+
+
+function ProductMutationAdapterTest_validInjectionStages() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンのV1を100mm/sにして",
+      field:
+        "injection_speed_v1",
+      value:
+        100,
+      unit:
+        "millimeter_per_second",
+      path:
+        "standard_condition.injection_speed_v1"
+    },
+
+    {
+      text:
+        "ワンワンのS1を20mmにして",
+      field:
+        "injection_stroke_s1",
+      value:
+        20,
+      unit:
+        "millimeter",
+      path:
+        "standard_condition.injection_stroke_s1"
+    },
+
+    {
+      text:
+        "ワンワンのV2を90mm/sにして",
+      field:
+        "injection_speed_v2",
+      value:
+        90,
+      unit:
+        "millimeter_per_second",
+      path:
+        "standard_condition.injection_speed_v2"
+    },
+
+    {
+      text:
+        "ワンワンのS2を30mmにして",
+      field:
+        "injection_stroke_s2",
+      value:
+        30,
+      unit:
+        "millimeter",
+      path:
+        "standard_condition.injection_stroke_s2"
+    },
+
+    {
+      text:
+        "ワンワンのV3を80mm/sにして",
+      field:
+        "injection_speed_v3",
+      value:
+        80,
+      unit:
+        "millimeter_per_second",
+      path:
+        "standard_condition.injection_speed_v3"
+    },
+
+    {
+      text:
+        "ワンワンのS3を40mmにして",
+      field:
+        "injection_stroke_s3",
+      value:
+        40,
+      unit:
+        "millimeter",
+      path:
+        "standard_condition.injection_stroke_s3"
+    },
+
+    {
+      text:
+        "ワンワンのV4を70mm/sにして",
+      field:
+        "injection_speed_v4",
+      value:
+        70,
+      unit:
+        "millimeter_per_second",
+      path:
+        "standard_condition.injection_speed_v4"
+    },
+
+    {
+      text:
+        "ワンワンのS4を50mmにして",
+      field:
+        "injection_stroke_s4",
+      value:
+        50,
+      unit:
+        "millimeter",
+      path:
+        "standard_condition.injection_stroke_s4"
+    },
+
+    {
+      text:
+        "ワンワンのV5を60mm/sにして",
+      field:
+        "injection_speed_v5",
+      value:
+        60,
+      unit:
+        "millimeter_per_second",
+      path:
+        "standard_condition.injection_speed_v5"
+    },
+
+    {
+      text:
+        "ワンワンのS5を60mmにして",
+      field:
+        "injection_stroke_s5",
+      value:
+        60,
+      unit:
+        "millimeter",
+      path:
+        "standard_condition.injection_stroke_s5"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const understandingResult =
+        ProductMutationAdapterTest_createUnderstandingResult(
+          testCase.text,
+          "ワンワン",
+          testCase.value,
+          testCase.unit
+        );
+
+
+      understandingResult.view.name =
+        null;
+
+      understandingResult.change.field =
+        testCase.field;
+
+
+      const mutation =
+        ProductMutationAdapter_convert(
+          understandingResult
+        );
+
+
+      ProductMutationAdapterTest_assertNotNull(
+        mutation,
+        testCase.field + " mutation"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        mutation.mutationType,
+        "change_state",
+        testCase.field + " mutationType"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        mutation.stateChanges.length,
+        1,
+        testCase.field + " stateChanges.length"
+      );
+
+
+      const stateChange =
+        mutation.stateChanges[0];
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.path,
+        testCase.path,
+        testCase.field + " stateChange.path"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.proposedValue,
+        testCase.value,
+        testCase.field + " proposedValue"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.unit,
+        testCase.unit,
+        testCase.field + " unit"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.preservationPolicy,
+        "create_new_version",
+        testCase.field + " preservationPolicy"
+      );
+
+
+      EntityMutationContract_validate(
+        mutation
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Product Mutation Adapter Injection Stages"
   );
 
 }

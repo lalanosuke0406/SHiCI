@@ -80,6 +80,13 @@ function ConfirmationProposalEngineTest_runAll() {
     },
 
     {
+        name:
+            "injectionStagesPresentationIsGenerated",
+        run:
+            ConfirmationProposalEngineTest_injectionStagesPresentationIsGenerated
+    },
+
+    {
       name:
         "confirmationActionsAreEnabled",
       run:
@@ -991,6 +998,36 @@ function ConfirmationProposalEngineTest_setHoldingTimeT1SnapshotOverride() {
           "保圧時間:T4":
             "",
 
+          "射出速度:V1":
+            "",
+
+          "射出ストローク:S1":
+            "",
+
+          "射出速度:V2":
+            "",
+
+          "射出ストローク:S2":
+            "",
+
+          "射出速度:V3":
+            "",
+
+          "射出ストローク:S3":
+            "",
+
+          "射出速度:V4":
+            "",
+
+          "射出ストローク:S4":
+            "",
+
+          "射出速度:V5":
+            "",
+
+          "射出ストローク:S5":
+            "",
+
           "最終更新日":
             "2026-08-01T00:00:00.000Z"
 
@@ -1373,6 +1410,184 @@ function ConfirmationProposalEngineTest_holdingStagesPresentationIsGenerated() {
       change.unit,
       testCase.displayUnit,
       testCase.field + " change.unit"
+    );
+
+  });
+
+}
+
+
+
+/**
+ * V1/S1～V5/S5のChange Planが
+ * Confirmation Proposalへ正しく変換されることを確認する。
+ */
+function ConfirmationProposalEngineTest_injectionStagesPresentationIsGenerated() {
+
+  const cases = [
+
+    {
+      field: "injection_speed_v1",
+      path: "standard_condition.injection_speed_v1",
+      label: "射出速度 V1",
+      value: 100,
+      unit: "millimeter_per_second",
+      displayUnit: "mm/s"
+    },
+
+    {
+      field: "injection_stroke_s1",
+      path: "standard_condition.injection_stroke_s1",
+      label: "射出ストローク S1",
+      value: 20,
+      unit: "millimeter",
+      displayUnit: "mm"
+    },
+
+    {
+      field: "injection_speed_v2",
+      path: "standard_condition.injection_speed_v2",
+      label: "射出速度 V2",
+      value: 90,
+      unit: "millimeter_per_second",
+      displayUnit: "mm/s"
+    },
+
+    {
+      field: "injection_stroke_s2",
+      path: "standard_condition.injection_stroke_s2",
+      label: "射出ストローク S2",
+      value: 30,
+      unit: "millimeter",
+      displayUnit: "mm"
+    },
+
+    {
+      field: "injection_speed_v3",
+      path: "standard_condition.injection_speed_v3",
+      label: "射出速度 V3",
+      value: 80,
+      unit: "millimeter_per_second",
+      displayUnit: "mm/s"
+    },
+
+    {
+      field: "injection_stroke_s3",
+      path: "standard_condition.injection_stroke_s3",
+      label: "射出ストローク S3",
+      value: 40,
+      unit: "millimeter",
+      displayUnit: "mm"
+    },
+
+    {
+      field: "injection_speed_v4",
+      path: "standard_condition.injection_speed_v4",
+      label: "射出速度 V4",
+      value: 70,
+      unit: "millimeter_per_second",
+      displayUnit: "mm/s"
+    },
+
+    {
+      field: "injection_stroke_s4",
+      path: "standard_condition.injection_stroke_s4",
+      label: "射出ストローク S4",
+      value: 50,
+      unit: "millimeter",
+      displayUnit: "mm"
+    },
+
+    {
+      field: "injection_speed_v5",
+      path: "standard_condition.injection_speed_v5",
+      label: "射出速度 V5",
+      value: 60,
+      unit: "millimeter_per_second",
+      displayUnit: "mm/s"
+    },
+
+    {
+      field: "injection_stroke_s5",
+      path: "standard_condition.injection_stroke_s5",
+      label: "射出ストローク S5",
+      value: 60,
+      unit: "millimeter",
+      displayUnit: "mm"
+    }
+
+  ];
+
+
+  cases.forEach(function(testCase) {
+
+    const changePlan =
+      ConfirmationProposalEngineTest_createHoldingStageChangePlan(
+        testCase
+      );
+
+
+    const proposal =
+      ConfirmationProposalEngine_build(
+        changePlan
+      );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      proposal.status,
+      "pending",
+      testCase.field + " proposal.status"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      proposal.changes.length,
+      1,
+      testCase.field + " proposal.changes.length"
+    );
+
+
+    const change =
+      proposal.changes[0];
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.path,
+      testCase.path,
+      testCase.field + " change.path"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.label,
+      testCase.label,
+      testCase.field + " change.label"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.before,
+      "",
+      testCase.field + " change.before"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.after,
+      testCase.value,
+      testCase.field + " change.after"
+    );
+
+
+    ConfirmationProposalEngineTest_assertEqual(
+      change.unit,
+      testCase.displayUnit,
+      testCase.field + " change.unit"
+    );
+
+
+    ConfirmationProposalContract_validate(
+      proposal
     );
 
   });

@@ -150,6 +150,385 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
   },
 
+    injection_speed_v1: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_v1",
+
+    path:
+      "standard_condition.injection_speed_v1",
+
+    spreadsheetHeader:
+      "射出速度:V1",
+
+    label:
+      "射出速度 V1",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter_per_second",
+
+    displayUnit:
+      "mm/s",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_stroke_s1: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_stroke_s1",
+
+    path:
+      "standard_condition.injection_stroke_s1",
+
+    spreadsheetHeader:
+      "射出ストローク:S1",
+
+    label:
+      "射出ストローク S1",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter",
+
+    displayUnit:
+      "mm",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_v2: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_v2",
+
+    path:
+      "standard_condition.injection_speed_v2",
+
+    spreadsheetHeader:
+      "射出速度:V2",
+
+    label:
+      "射出速度 V2",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter_per_second",
+
+    displayUnit:
+      "mm/s",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_stroke_s2: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_stroke_s2",
+
+    path:
+      "standard_condition.injection_stroke_s2",
+
+    spreadsheetHeader:
+      "射出ストローク:S2",
+
+    label:
+      "射出ストローク S2",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter",
+
+    displayUnit:
+      "mm",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_v3: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_v3",
+
+    path:
+      "standard_condition.injection_speed_v3",
+
+    spreadsheetHeader:
+      "射出速度:V3",
+
+    label:
+      "射出速度 V3",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter_per_second",
+
+    displayUnit:
+      "mm/s",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_stroke_s3: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_stroke_s3",
+
+    path:
+      "standard_condition.injection_stroke_s3",
+
+    spreadsheetHeader:
+      "射出ストローク:S3",
+
+    label:
+      "射出ストローク S3",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter",
+
+    displayUnit:
+      "mm",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_v4: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_v4",
+
+    path:
+      "standard_condition.injection_speed_v4",
+
+    spreadsheetHeader:
+      "射出速度:V4",
+
+    label:
+      "射出速度 V4",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter_per_second",
+
+    displayUnit:
+      "mm/s",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_stroke_s4: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_stroke_s4",
+
+    path:
+      "standard_condition.injection_stroke_s4",
+
+    spreadsheetHeader:
+      "射出ストローク:S4",
+
+    label:
+      "射出ストローク S4",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter",
+
+    displayUnit:
+      "mm",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_v5: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_v5",
+
+    path:
+      "standard_condition.injection_speed_v5",
+
+    spreadsheetHeader:
+      "射出速度:V5",
+
+    label:
+      "射出速度 V5",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter_per_second",
+
+    displayUnit:
+      "mm/s",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_stroke_s5: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_stroke_s5",
+
+    path:
+      "standard_condition.injection_stroke_s5",
+
+    spreadsheetHeader:
+      "射出ストローク:S5",
+
+    label:
+      "射出ストローク S5",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter",
+
+    displayUnit:
+      "mm",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
 
   holding_pressure_p1: {
 

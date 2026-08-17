@@ -44,6 +44,13 @@ function ConfirmationPresentationFormatterTest_runAll() {
 
     {
         name:
+            "formatInjectionStagesChanges",
+        run:
+            ConfirmationPresentationFormatterTest_formatInjectionStagesChanges
+    },
+
+    {
+        name:
             "formatCoolingTimeChange",
         run:
             ConfirmationPresentationFormatterTest_formatCoolingTimeChange
@@ -716,6 +723,231 @@ function ConfirmationPresentationFormatterTest_formatHoldingStagesChanges() {
         "second",
       displayUnit:
         "秒"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const changePlan =
+        ConfirmationPresentationFormatterTest_createChangePlan();
+
+
+      changePlan.changes = [
+
+        {
+          changeType:
+            "state",
+
+          path:
+            testCase.path,
+
+          before:
+            null,
+
+          after:
+            testCase.after,
+
+          unit:
+            testCase.unit,
+
+          preservationPolicy:
+            "create_new_version"
+        }
+
+      ];
+
+
+      const presentation =
+        ConfirmationPresentationFormatter_format(
+          changePlan
+        );
+
+
+      const change =
+        presentation.changes[0];
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.path,
+        testCase.path,
+        testCase.path + " change.path"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.label,
+        testCase.label,
+        testCase.path + " change.label"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.before,
+        null,
+        testCase.path + " change.before"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.after,
+        testCase.after,
+        testCase.path + " change.after"
+      );
+
+
+      ConfirmationPresentationFormatterTest_assertEqual(
+        change.unit,
+        testCase.displayUnit,
+        testCase.path + " change.unit"
+      );
+
+    }
+  );
+
+}
+
+
+
+/**
+ * V1/S1～V5/S5変更が
+ * Registry定義に基づいて表示用情報へ
+ * 変換されることを確認する。
+ */
+function ConfirmationPresentationFormatterTest_formatInjectionStagesChanges() {
+
+  const cases = [
+
+    {
+      path:
+        "standard_condition.injection_speed_v1",
+      label:
+        "射出速度 V1",
+      after:
+        100,
+      unit:
+        "millimeter_per_second",
+      displayUnit:
+        "mm/s"
+    },
+
+    {
+      path:
+        "standard_condition.injection_stroke_s1",
+      label:
+        "射出ストローク S1",
+      after:
+        20,
+      unit:
+        "millimeter",
+      displayUnit:
+        "mm"
+    },
+
+    {
+      path:
+        "standard_condition.injection_speed_v2",
+      label:
+        "射出速度 V2",
+      after:
+        90,
+      unit:
+        "millimeter_per_second",
+      displayUnit:
+        "mm/s"
+    },
+
+    {
+      path:
+        "standard_condition.injection_stroke_s2",
+      label:
+        "射出ストローク S2",
+      after:
+        30,
+      unit:
+        "millimeter",
+      displayUnit:
+        "mm"
+    },
+
+    {
+      path:
+        "standard_condition.injection_speed_v3",
+      label:
+        "射出速度 V3",
+      after:
+        80,
+      unit:
+        "millimeter_per_second",
+      displayUnit:
+        "mm/s"
+    },
+
+    {
+      path:
+        "standard_condition.injection_stroke_s3",
+      label:
+        "射出ストローク S3",
+      after:
+        40,
+      unit:
+        "millimeter",
+      displayUnit:
+        "mm"
+    },
+
+    {
+      path:
+        "standard_condition.injection_speed_v4",
+      label:
+        "射出速度 V4",
+      after:
+        70,
+      unit:
+        "millimeter_per_second",
+      displayUnit:
+        "mm/s"
+    },
+
+    {
+      path:
+        "standard_condition.injection_stroke_s4",
+      label:
+        "射出ストローク S4",
+      after:
+        50,
+      unit:
+        "millimeter",
+      displayUnit:
+        "mm"
+    },
+
+    {
+      path:
+        "standard_condition.injection_speed_v5",
+      label:
+        "射出速度 V5",
+      after:
+        60,
+      unit:
+        "millimeter_per_second",
+      displayUnit:
+        "mm/s"
+    },
+
+    {
+      path:
+        "standard_condition.injection_stroke_s5",
+      label:
+        "射出ストローク S5",
+      after:
+        60,
+      unit:
+        "millimeter",
+      displayUnit:
+        "mm"
     }
 
   ];

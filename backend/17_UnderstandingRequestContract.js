@@ -221,6 +221,18 @@ function UnderstandingRequestContract_create(
 
         "mold_temperature",
         "cooling_time",
+
+        "injection_speed_v1",
+        "injection_stroke_s1",
+        "injection_speed_v2",
+        "injection_stroke_s2",
+        "injection_speed_v3",
+        "injection_stroke_s3",
+        "injection_speed_v4",
+        "injection_stroke_s4",
+        "injection_speed_v5",
+        "injection_stroke_s5",
+
         "holding_pressure_p1",
         "holding_time_t1",
         "holding_pressure_p2",
@@ -260,6 +272,8 @@ function UnderstandingRequestContract_create(
       allowedChangeUnits: [
 
         "celsius",
+        "millimeter",
+        "millimeter_per_second",
         "second",
         "megapascal"
 

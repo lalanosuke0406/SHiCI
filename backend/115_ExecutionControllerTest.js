@@ -78,6 +78,13 @@ function test_ExecutionController_runAll() {
             test_ExecutionController_holdingStagesSuccess
     },
 
+    {
+        name:
+            "injectionStagesSuccess",
+        run:
+            test_ExecutionController_injectionStagesSuccess
+    },
+
   ];
 
 
@@ -3656,6 +3663,245 @@ function test_ExecutionController_holdingStagesSuccess() {
 
   console.log(
     "[PASS] holdingStagesSuccess"
+  );
+
+}
+
+
+
+function test_ExecutionController_injectionStagesSuccess() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_v1",
+      path:
+        "standard_condition.injection_speed_v1",
+      spreadsheetHeader:
+        "射出速度:V1",
+      value:
+        100,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s1",
+      path:
+        "standard_condition.injection_stroke_s1",
+      spreadsheetHeader:
+        "射出ストローク:S1",
+      value:
+        20,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v2",
+      path:
+        "standard_condition.injection_speed_v2",
+      spreadsheetHeader:
+        "射出速度:V2",
+      value:
+        90,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s2",
+      path:
+        "standard_condition.injection_stroke_s2",
+      spreadsheetHeader:
+        "射出ストローク:S2",
+      value:
+        30,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v3",
+      path:
+        "standard_condition.injection_speed_v3",
+      spreadsheetHeader:
+        "射出速度:V3",
+      value:
+        80,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s3",
+      path:
+        "standard_condition.injection_stroke_s3",
+      spreadsheetHeader:
+        "射出ストローク:S3",
+      value:
+        40,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v4",
+      path:
+        "standard_condition.injection_speed_v4",
+      spreadsheetHeader:
+        "射出速度:V4",
+      value:
+        70,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s4",
+      path:
+        "standard_condition.injection_stroke_s4",
+      spreadsheetHeader:
+        "射出ストローク:S4",
+      value:
+        50,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v5",
+      path:
+        "standard_condition.injection_speed_v5",
+      spreadsheetHeader:
+        "射出速度:V5",
+      value:
+        60,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s5",
+      path:
+        "standard_condition.injection_stroke_s5",
+      spreadsheetHeader:
+        "射出ストローク:S5",
+      value:
+        60,
+      unit:
+        "millimeter"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const fixture =
+        ExecutionControllerTest_createHoldingStageSuccessFixture(
+          testCase
+        );
+
+
+      try {
+
+        const result =
+          ExecutionController_confirmAndExecute(
+            fixture.proposal.proposalId,
+            fixture.changePlan.changePlanId,
+            {
+
+              source:
+                "execution_controller_test",
+
+              decidedBy:
+                "USER_EXECUTION_CONTROLLER_TEST",
+
+              requestId:
+                "REQUEST_EXECUTION_CONTROLLER_" +
+                String(
+                  testCase.field
+                )
+                  .toUpperCase()
+
+            }
+          );
+
+
+        ExecutionControllerTest_validateResult(
+          result
+        );
+
+
+        ExecutionControllerTest_assertEquals(
+          EXECUTION_CONTROLLER_STATUS_COMPLETED,
+          result.status,
+          testCase.field +
+            " result.status"
+        );
+
+
+        const detailRows =
+          fixture.spreadsheet
+            .getSheetByName(
+              "成形条件詳細マスター"
+            )
+            .getAllValues();
+
+
+        const detailHeaderMap =
+          ExecutionControllerTest_createHeaderMap(
+            detailRows[0]
+          );
+
+
+        ExecutionControllerTest_assertEquals(
+          3,
+          detailRows.length,
+          testCase.field +
+            " detailRows.length"
+        );
+
+
+        ExecutionControllerTest_assertEquals(
+          testCase.value,
+          Number(
+            detailRows[2][
+              detailHeaderMap[
+                testCase.spreadsheetHeader
+              ]
+            ]
+          ),
+          testCase.field +
+            " newConditionDetail." +
+            testCase.spreadsheetHeader
+        );
+
+
+      } finally {
+
+        ExecutionControllerTest_clearEnvironment();
+
+      }
+
+    }
+  );
+
+
+  console.log(
+    "[PASS] injectionStagesSuccess"
   );
 
 }

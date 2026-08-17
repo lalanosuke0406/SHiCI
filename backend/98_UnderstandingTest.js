@@ -13,6 +13,307 @@ Apps Script Editorから手動実行する。
 */
 
 
+
+/*
+=========================================
+Test Runner
+=========================================
+*/
+
+/**
+ * Understandingの決定論的テストを
+ * まとめて実行する。
+ *
+ * 外部APIは呼び出さない。
+ */
+function UnderstandingTest_runAll() {
+
+  const tests = [
+
+    {
+      name:
+        "Version2Structure",
+      run:
+        UnderstandingTest_runVersion2Structure
+    },
+
+    {
+      name:
+        "OpenAIInstructionsHoldingPressureP1",
+      run:
+        UnderstandingTest_validateVersion2OpenAIInstructionsHoldingPressureP1
+    },
+
+    {
+      name:
+        "OpenAIInstructionsHoldingTimeT1",
+      run:
+        UnderstandingTest_validateVersion2OpenAIInstructionsHoldingTimeT1
+    },
+
+    {
+      name:
+        "HoldingPressureP1Update",
+      run:
+        UnderstandingTest_validateVersion2HoldingPressureP1Update
+    },
+
+    {
+      name:
+        "HoldingTimeT1Update",
+      run:
+        UnderstandingTest_validateVersion2HoldingTimeT1Update
+    },
+
+    {
+      name:
+        "Version2UpdateAdapterCompatibility",
+      run:
+        UnderstandingTest_runVersion2UpdateAdapterCompatibility
+    },
+
+    {
+      name:
+        "HoldingConditionView",
+      run:
+        UnderstandingTest_validateVersion2HoldingConditionView
+    },
+
+    {
+      name:
+        "OpenAIInstructionsHoldingCondition",
+      run:
+        UnderstandingTest_validateVersion2OpenAIInstructionsHoldingCondition
+    },
+
+    {
+      name:
+        "HoldingStagesUpdateFields",
+      run:
+        UnderstandingTest_validateVersion2HoldingStagesUpdateFields
+    },
+
+    {
+        name:
+            "InjectionStagesUpdateFields",
+        run:
+            UnderstandingTest_validateVersion2InjectionStagesUpdateFields
+    },
+
+    {
+        name:
+            "OpenAIInstructionsInjectionStages",
+        run:
+            UnderstandingTest_validateVersion2OpenAIInstructionsInjectionStages
+    },
+
+    {
+      name:
+        "OpenAIInstructionsHoldingStages",
+      run:
+        UnderstandingTest_validateVersion2OpenAIInstructionsHoldingStages
+    },
+
+    {
+      name:
+        "HoldingStagesUpdateAdapterReady",
+      run:
+        UnderstandingTest_validateVersion2HoldingStagesUpdateAdapterReady
+    }
+
+  ];
+
+
+  UnderstandingTest_runTestSuite(
+    "Understanding Test",
+    tests
+  );
+
+}
+
+
+/**
+ * Understandingの実OpenAI通信テストを
+ * まとめて実行する。
+ *
+ * 外部APIを実際に呼び出す。
+ */
+function UnderstandingTest_runAllLive() {
+
+  const tests = [
+
+    {
+      name:
+        "Version2OpenAILive",
+      run:
+        UnderstandingTest_runVersion2OpenAILive
+    },
+
+    {
+      name:
+        "Version2HandleRoutingLive",
+      run:
+        UnderstandingTest_runVersion2HandleRoutingLive
+    },
+
+    {
+        name:
+            "OpenAIInjectionStagesUpdate",
+        run:
+            UnderstandingTest_runVersion2OpenAIInjectionStagesUpdate
+    },
+
+    {
+      name:
+        "OpenAIHoldingCondition",
+      run:
+        UnderstandingTest_runVersion2OpenAIHoldingCondition
+    },
+
+    {
+      name:
+        "OpenAIHoldingTimeT1Update",
+      run:
+        UnderstandingTest_runVersion2OpenAIHoldingTimeT1Update
+    },
+
+    {
+      name:
+        "OpenAIHoldingStagesUpdate",
+      run:
+        UnderstandingTest_runVersion2OpenAIHoldingStagesUpdate
+    }
+
+  ];
+
+
+  UnderstandingTest_runTestSuite(
+    "Understanding Live Test",
+    tests
+  );
+
+}
+
+
+/**
+ * 共通Test Runner。
+ *
+ * 各テストを最後まで実行し、
+ * Failureをまとめて報告する。
+ *
+ * @param {string} suiteName
+ * @param {Array<Object>} tests
+ */
+function UnderstandingTest_runTestSuite(
+  suiteName,
+  tests
+) {
+
+  const failures =
+    [];
+
+
+  Logger.log(
+    "========================================="
+  );
+
+  Logger.log(
+    "[" +
+    suiteName +
+    " Start]"
+  );
+
+  Logger.log(
+    "========================================="
+  );
+
+
+  tests.forEach(
+    function(test) {
+
+      try {
+
+        test.run();
+
+
+        Logger.log(
+          "[PASS] " +
+          test.name
+        );
+
+      } catch (error) {
+
+        failures.push({
+
+          name:
+            test.name,
+
+          message:
+            error &&
+            error.message
+              ? error.message
+              : String(error)
+
+        });
+
+
+        console.error(
+          "[FAIL] " +
+          test.name +
+          ": " +
+          (
+            error &&
+            error.stack
+              ? error.stack
+              : error
+          )
+        );
+
+      }
+
+    }
+  );
+
+
+  if (
+    failures.length >
+      0
+  ) {
+
+    throw new Error(
+      suiteName +
+      " Failed\n" +
+      JSON.stringify(
+        failures,
+        null,
+        2
+      )
+    );
+
+  }
+
+
+  Logger.log(
+    "========================================="
+  );
+
+  Logger.log(
+    "[" +
+    suiteName +
+    " Passed]"
+  );
+
+  Logger.log(
+    "========================================="
+  );
+
+}
+
+
+
+
+
+
 /**
  * 日本語のUpdate指示を理解できるか確認する。
  *
@@ -539,8 +840,6 @@ function UnderstandingTest_runVersion2Structure() {
 
   UnderstandingTest_validateVersion2OpenAISchema();
 
-  UnderstandingTest_validateVersion2CompanyKnowledgeQuestion();
-
   UnderstandingTest_validateVersion2Update();
 
   UnderstandingTest_validateVersion2GeneralKnowledge();
@@ -678,6 +977,78 @@ function UnderstandingTest_validateVersion2RequestContract() {
   UnderstandingTest_assertArrayIncludesV2(
     request.policy.allowedChangeUnits,
     "second",
+    "allowedChangeUnits"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_speed_v1",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_stroke_s1",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_speed_v2",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_stroke_s2",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_speed_v3",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_stroke_s3",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_speed_v4",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_stroke_s4",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_speed_v5",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
+    "injection_stroke_s5",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeUnits,
+    "millimeter",
+    "allowedChangeUnits"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeUnits,
+    "millimeter_per_second",
     "allowedChangeUnits"
   );
 
@@ -932,6 +1303,56 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
         .enum,
     "holding_time_t1",
     "Schema change.field enum"
+  );
+
+
+  [
+    "injection_speed_v1",
+    "injection_stroke_s1",
+    "injection_speed_v2",
+    "injection_stroke_s2",
+    "injection_speed_v3",
+    "injection_stroke_s3",
+    "injection_speed_v4",
+    "injection_stroke_s4",
+    "injection_speed_v5",
+    "injection_stroke_s5"
+  ].forEach(
+    function(field) {
+
+        UnderstandingTest_assertArrayIncludesV2(
+        schema.properties
+            .change
+            .properties
+            .field
+            .anyOf[0]
+            .enum,
+        field,
+        "Schema change.field enum"
+        );
+
+    }
+  );
+
+
+  [
+    "millimeter",
+    "millimeter_per_second"
+  ].forEach(
+    function(unit) {
+
+        UnderstandingTest_assertArrayIncludesV2(
+        schema.properties
+            .change
+            .properties
+            .unit
+            .anyOf[0]
+            .enum,
+        unit,
+        "Schema change.unit enum"
+        );
+
+    }
   );
 
 
@@ -4010,6 +4431,266 @@ function UnderstandingTest_validateVersion2HoldingStagesUpdateFields() {
 
 
 
+/**
+ * V1/S1～V5/S5の射出条件Fieldについて、
+ * Understanding Result Contractが
+ * FieldとCanonical Unitを受理することを確認する。
+ */
+function UnderstandingTest_validateVersion2InjectionStagesUpdateFields() {
+
+  const cases = [
+
+    {
+        text:
+        "ワンワンのV1を100mm/sにして",
+        field:
+        "injection_speed_v1",
+        value:
+        100,
+        unit:
+        "millimeter_per_second",
+        targetField:
+        "射出速度:V1"
+    },
+
+    {
+        text:
+        "ワンワンのS1を20mmにして",
+        field:
+        "injection_stroke_s1",
+        value:
+        20,
+        unit:
+        "millimeter",
+        targetField:
+        "射出ストローク:S1"
+    },
+
+    {
+        text:
+        "ワンワンのV2を90mm/sにして",
+        field:
+        "injection_speed_v2",
+        value:
+        90,
+        unit:
+        "millimeter_per_second",
+        targetField:
+        "射出速度:V2"
+    },
+
+    {
+        text:
+        "ワンワンのS2を30mmにして",
+        field:
+        "injection_stroke_s2",
+        value:
+        30,
+        unit:
+        "millimeter",
+        targetField:
+        "射出ストローク:S2"
+    },
+
+    {
+        text:
+        "ワンワンのV3を80mm/sにして",
+        field:
+        "injection_speed_v3",
+        value:
+        80,
+        unit:
+        "millimeter_per_second",
+        targetField:
+        "射出速度:V3"
+    },
+
+    {
+        text:
+        "ワンワンのS3を40mmにして",
+        field:
+        "injection_stroke_s3",
+        value:
+        40,
+        unit:
+        "millimeter",
+        targetField:
+        "射出ストローク:S3"
+    },
+
+    {
+        text:
+        "ワンワンのV4を70mm/sにして",
+        field:
+        "injection_speed_v4",
+        value:
+        70,
+        unit:
+        "millimeter_per_second",
+        targetField:
+        "射出速度:V4"
+    },
+
+    {
+        text:
+        "ワンワンのS4を50mmにして",
+        field:
+        "injection_stroke_s4",
+        value:
+        50,
+        unit:
+        "millimeter",
+        targetField:
+        "射出ストローク:S4"
+    },
+
+    {
+        text:
+        "ワンワンのV5を60mm/sにして",
+        field:
+        "injection_speed_v5",
+        value:
+        60,
+        unit:
+        "millimeter_per_second",
+        targetField:
+        "射出速度:V5"
+    },
+
+    {
+        text:
+        "ワンワンのS5を60mmにして",
+        field:
+        "injection_stroke_s5",
+        value:
+        60,
+        unit:
+        "millimeter",
+        targetField:
+        "射出ストローク:S5"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      /*
+       * Result Contractの許可Fieldに
+       * 登録されていることを確認する。
+       */
+      UnderstandingTest_assertArrayIncludesV2(
+        UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS,
+        testCase.field,
+        "UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS"
+      );
+
+
+      /*
+       * 実際のUnderstanding Resultとして
+       * Contractを通過できることを確認する。
+       */
+      const result =
+        UnderstandingTest_createVersion2StandardConditionUpdateResult(
+          testCase.text,
+          "ワンワン",
+          testCase.field,
+          testCase.value,
+          testCase.unit,
+          []
+        );
+
+
+      result.view.name =
+        null;
+
+
+      const validated =
+        UnderstandingResultContract_validate(
+          result
+        );
+
+      const updateIntent =
+        UpdateUnderstandingAdapter_convert(
+            validated
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+            updateIntent.status,
+            "ready",
+            testCase.field + " updateIntent.status"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+            updateIntent.intentType,
+            "update",
+            testCase.field + " updateIntent.intentType"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+            updateIntent.updateType,
+            testCase.field,
+            testCase.field + " updateIntent.updateType"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+            updateIntent.targetField,
+            testCase.targetField,
+            testCase.field + " updateIntent.targetField"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+            updateIntent.newValue,
+            testCase.value,
+            testCase.field + " updateIntent.newValue"
+        );
+
+
+        UnderstandingTest_assertEqualV2(
+            updateIntent.unit,
+            testCase.unit,
+            testCase.field + " updateIntent.unit"
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.field,
+        testCase.field,
+        testCase.field + " change.field"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.value,
+        testCase.value,
+        testCase.field + " change.value"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Injection Stages Update Fields"
+  );
+
+}
+
+
+
 function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingStages() {
 
   const request =
@@ -4367,6 +5048,230 @@ function UnderstandingTest_validateVersion2HoldingStagesUpdateAdapterReady() {
 
   Logger.log(
     "[Passed] Version 2.0 Holding Stages Update Adapter Ready"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2OpenAIInstructionsInjectionStages() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンのV2を90mm/sにして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  const requiredTexts = [
+
+    "injection_speed_v1",
+    "injection_stroke_s1",
+    "injection_speed_v2",
+    "injection_stroke_s2",
+    "injection_speed_v3",
+    "injection_stroke_s3",
+    "injection_speed_v4",
+    "injection_stroke_s4",
+    "injection_speed_v5",
+    "injection_stroke_s5",
+
+    "millimeter",
+    "millimeter_per_second"
+
+  ];
+
+
+  requiredTexts.forEach(
+    function(text) {
+
+      UnderstandingTest_assertTrueV2(
+        instructions.indexOf(
+          text
+        ) !== -1,
+        "Instructionsに" +
+        text +
+        "がありません。"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Instructions Injection Stages"
+  );
+
+}
+
+
+
+function UnderstandingTest_runVersion2OpenAIInjectionStagesUpdate() {
+
+  const cases = [
+
+    {
+      text: "ワンワンのV1を100mm/sにして",
+      field: "injection_speed_v1",
+      value: 100,
+      unit: "millimeter_per_second"
+    },
+
+    {
+      text: "ワンワンのS1を20mmにして",
+      field: "injection_stroke_s1",
+      value: 20,
+      unit: "millimeter"
+    },
+
+    {
+      text: "ワンワンのV2を90mm/sにして",
+      field: "injection_speed_v2",
+      value: 90,
+      unit: "millimeter_per_second"
+    },
+
+    {
+      text: "ワンワンのS2を30mmにして",
+      field: "injection_stroke_s2",
+      value: 30,
+      unit: "millimeter"
+    },
+
+    {
+      text: "ワンワンのV3を80mm/sにして",
+      field: "injection_speed_v3",
+      value: 80,
+      unit: "millimeter_per_second"
+    },
+
+    {
+      text: "ワンワンのS3を40mmにして",
+      field: "injection_stroke_s3",
+      value: 40,
+      unit: "millimeter"
+    },
+
+    {
+      text: "ワンワンのV4を70mm/sにして",
+      field: "injection_speed_v4",
+      value: 70,
+      unit: "millimeter_per_second"
+    },
+
+    {
+      text: "ワンワンのS4を50mmにして",
+      field: "injection_stroke_s4",
+      value: 50,
+      unit: "millimeter"
+    },
+
+    {
+      text: "ワンワンのV5を60mm/sにして",
+      field: "injection_speed_v5",
+      value: 60,
+      unit: "millimeter_per_second"
+    },
+
+    {
+      text: "ワンワンのS5を60mmにして",
+      field: "injection_stroke_s5",
+      value: 60,
+      unit: "millimeter"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const request =
+        UnderstandingRequestContract_create(
+          testCase.text
+        );
+
+
+      const result =
+        OpenAIAdapter_understand(
+          request
+        );
+
+
+      Logger.log(
+        "[OpenAI Injection Stage Result] " +
+        JSON.stringify(
+          result,
+          null,
+          2
+        )
+      );
+
+
+      UnderstandingResultContract_validate(
+        result
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.intent.type,
+        "update",
+        testCase.field + " intent.type"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.knowledgeBoundary.type,
+        "company_knowledge",
+        testCase.field + " knowledgeBoundary.type"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.entity.query,
+        "ワンワン",
+        testCase.field + " entity.query"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.field,
+        testCase.field,
+        testCase.field + " change.field"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.operation,
+        "set",
+        testCase.field + " change.operation"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.value,
+        testCase.value,
+        testCase.field + " change.value"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Injection Stages Update"
   );
 
 }

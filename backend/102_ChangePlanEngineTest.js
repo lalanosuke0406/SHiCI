@@ -64,6 +64,13 @@ function ChangePlanEngineTest_runAll() {
     },
 
     {
+        name:
+            "buildInjectionStagesChangePlans",
+        run:
+            ChangePlanEngineTest_buildInjectionStagesChangePlans
+    },
+
+    {
       name:
         "proposedSnapshotCreatesNextVersion",
       run:
@@ -667,6 +674,245 @@ function ChangePlanEngineTest_buildHoldingStagesChangePlans() {
   );
 
 }
+
+
+
+/**
+ * V1/S1～V5/S5の各射出条件Fieldについて、
+ * 未登録から新しい値へのChange Planが
+ * 共通経路で生成されることを確認する。
+ */
+function ChangePlanEngineTest_buildInjectionStagesChangePlans() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_v1",
+      path:
+        "standard_condition.injection_speed_v1",
+      spreadsheetHeader:
+        "射出速度:V1",
+      value:
+        100,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s1",
+      path:
+        "standard_condition.injection_stroke_s1",
+      spreadsheetHeader:
+        "射出ストローク:S1",
+      value:
+        20,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v2",
+      path:
+        "standard_condition.injection_speed_v2",
+      spreadsheetHeader:
+        "射出速度:V2",
+      value:
+        90,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s2",
+      path:
+        "standard_condition.injection_stroke_s2",
+      spreadsheetHeader:
+        "射出ストローク:S2",
+      value:
+        30,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v3",
+      path:
+        "standard_condition.injection_speed_v3",
+      spreadsheetHeader:
+        "射出速度:V3",
+      value:
+        80,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s3",
+      path:
+        "standard_condition.injection_stroke_s3",
+      spreadsheetHeader:
+        "射出ストローク:S3",
+      value:
+        40,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v4",
+      path:
+        "standard_condition.injection_speed_v4",
+      spreadsheetHeader:
+        "射出速度:V4",
+      value:
+        70,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s4",
+      path:
+        "standard_condition.injection_stroke_s4",
+      spreadsheetHeader:
+        "射出ストローク:S4",
+      value:
+        50,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v5",
+      path:
+        "standard_condition.injection_speed_v5",
+      spreadsheetHeader:
+        "射出速度:V5",
+      value:
+        60,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s5",
+      path:
+        "standard_condition.injection_stroke_s5",
+      spreadsheetHeader:
+        "射出ストローク:S5",
+      value:
+        60,
+      unit:
+        "millimeter"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const resolutionResult =
+        ChangePlanEngineTest_createHoldingStageResolvedMutation(
+          testCase
+        );
+
+
+      const changePlan =
+        ChangePlanEngine_build(
+          resolutionResult
+        );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan.status,
+        "ready_for_confirmation",
+        testCase.field + " status"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan.changes.length,
+        1,
+        testCase.field + " changes.length"
+      );
+
+
+      const change =
+        changePlan.changes[0];
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.path,
+        testCase.path,
+        testCase.field + " change.path"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.before,
+        null,
+        testCase.field + " change.before"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.after,
+        testCase.value,
+        testCase.field + " change.after"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan
+          .proposedSnapshot
+          .conditionDetail[
+            testCase.spreadsheetHeader
+          ],
+        testCase.value,
+        testCase.field +
+          " proposedSnapshot"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan
+          .currentSnapshot
+          .conditionDetail[
+            testCase.spreadsheetHeader
+          ],
+        null,
+        testCase.field +
+          " currentSnapshot"
+      );
+
+
+      ChangePlanContract_validate(
+        changePlan
+      );
+
+    }
+  );
+
+}
+
 
 
 
@@ -1518,6 +1764,38 @@ function ChangePlanEngineTest_setSnapshotOverride() {
           "冷却時間":
             8,
 
+
+          "射出速度:V1":
+            null,
+
+          "射出ストローク:S1":
+            null,
+
+          "射出速度:V2":
+            null,
+
+          "射出ストローク:S2":
+            null,
+
+          "射出速度:V3":
+            null,
+
+          "射出ストローク:S3":
+            null,
+
+          "射出速度:V4":
+            null,
+
+          "射出ストローク:S4":
+            null,
+
+          "射出速度:V5":
+            null,
+
+          "射出ストローク:S5":
+            null,
+
+
           "保圧力:P1":
             30,
 
@@ -1685,5 +1963,3 @@ function ChangePlanEngineTest_assertThrows(
   }
 
 }
-
-

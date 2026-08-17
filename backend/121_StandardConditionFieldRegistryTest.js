@@ -713,7 +713,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    10,
+    20,
     definitions.length,
     "definitions.length"
   );
@@ -734,14 +734,29 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
   StandardConditionFieldRegistryTest_assertDeepEquals(
     [
         "cooling_time",
+
         "holding_pressure_p1",
         "holding_pressure_p2",
         "holding_pressure_p3",
         "holding_pressure_p4",
+
         "holding_time_t1",
         "holding_time_t2",
         "holding_time_t3",
         "holding_time_t4",
+
+        "injection_speed_v1",
+        "injection_speed_v2",
+        "injection_speed_v3",
+        "injection_speed_v4",
+        "injection_speed_v5",
+
+        "injection_stroke_s1",
+        "injection_stroke_s2",
+        "injection_stroke_s3",
+        "injection_stroke_s4",
+        "injection_stroke_s5",
+
         "mold_temperature"
     ],
     fields,
@@ -778,14 +793,29 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
   StandardConditionFieldRegistryTest_assertDeepEquals(
     [
         "cooling_time",
+
         "holding_pressure_p1",
         "holding_pressure_p2",
         "holding_pressure_p3",
         "holding_pressure_p4",
+
         "holding_time_t1",
         "holding_time_t2",
         "holding_time_t3",
         "holding_time_t4",
+
+        "injection_speed_v1",
+        "injection_speed_v2",
+        "injection_speed_v3",
+        "injection_speed_v4",
+        "injection_speed_v5",
+
+        "injection_stroke_s1",
+        "injection_stroke_s2",
+        "injection_stroke_s3",
+        "injection_stroke_s4",
+        "injection_stroke_s5",
+
         "mold_temperature"
     ],
     fields,

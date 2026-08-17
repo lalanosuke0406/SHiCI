@@ -1960,6 +1960,50 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- 冷却時間の単位は、change.unitをsecondとしてください。",
 
+
+
+    "- 標準成形条件の射出速度V1を変更する場合は、change.fieldをinjection_speed_v1としてください。",
+
+    "- 射出速度V1の単位は、change.unitをmillimeter_per_secondとしてください。",
+
+    "- 標準成形条件の射出ストロークS1を変更する場合は、change.fieldをinjection_stroke_s1としてください。",
+
+    "- 射出ストロークS1の単位は、change.unitをmillimeterとしてください。",
+
+    "- 標準成形条件の射出速度V2を変更する場合は、change.fieldをinjection_speed_v2としてください。",
+
+    "- 射出速度V2の単位は、change.unitをmillimeter_per_secondとしてください。",
+
+    "- 標準成形条件の射出ストロークS2を変更する場合は、change.fieldをinjection_stroke_s2としてください。",
+
+    "- 射出ストロークS2の単位は、change.unitをmillimeterとしてください。",
+
+    "- 標準成形条件の射出速度V3を変更する場合は、change.fieldをinjection_speed_v3としてください。",
+
+    "- 射出速度V3の単位は、change.unitをmillimeter_per_secondとしてください。",
+
+    "- 標準成形条件の射出ストロークS3を変更する場合は、change.fieldをinjection_stroke_s3としてください。",
+
+    "- 射出ストロークS3の単位は、change.unitをmillimeterとしてください。",
+
+    "- 標準成形条件の射出速度V4を変更する場合は、change.fieldをinjection_speed_v4としてください。",
+
+    "- 射出速度V4の単位は、change.unitをmillimeter_per_secondとしてください。",
+
+    "- 標準成形条件の射出ストロークS4を変更する場合は、change.fieldをinjection_stroke_s4としてください。",
+
+    "- 射出ストロークS4の単位は、change.unitをmillimeterとしてください。",
+
+    "- 標準成形条件の射出速度V5を変更する場合は、change.fieldをinjection_speed_v5としてください。",
+
+    "- 射出速度V5の単位は、change.unitをmillimeter_per_secondとしてください。",
+
+    "- 標準成形条件の射出ストロークS5を変更する場合は、change.fieldをinjection_stroke_s5としてください。",
+
+    "- 射出ストロークS5の単位は、change.unitをmillimeterとしてください。",
+
+
+
     "- 標準成形条件の保圧または保圧条件について質問された場合は、view.nameをholding_conditionとしてください。",
 
     "- holding_conditionは保圧力P1～P4と保圧時間T1～T4を組み合わせて表示するViewであり、change.fieldには使用しないでください。",
@@ -1995,6 +2039,8 @@ function OpenAIAdapter_buildUnderstandingInstructions(
     "- 標準成形条件の保圧時間T4を変更する場合は、change.fieldをholding_time_t4としてください。",
 
     "- 保圧時間T4の単位は、change.unitをsecondとしてください。",
+
+
 
     "- 温度記号や単位表記に揺れがあっても、値と単位を意味に基づいて分離してください。",
 
@@ -2353,6 +2399,3 @@ function OpenAIAdapter_parseUnderstandingResult(
   }
 
 }
-
-
-

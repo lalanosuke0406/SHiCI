@@ -84,6 +84,20 @@ function test_ExecutionPlanEngine_runAll() {
             "buildHoldingPressureP1",
         run:
             test_ExecutionPlanEngine_build_holdingPressureP1
+    },
+
+    {
+        name:
+            "buildHoldingStages",
+        run:
+            test_ExecutionPlanEngine_build_holdingStages
+    },
+
+    {
+        name:
+            "buildInjectionStages",
+        run:
+            test_ExecutionPlanEngine_build_injectionStages
     }
 
 
@@ -1526,6 +1540,39 @@ function ExecutionPlanEngineTest_setSnapshotOverride() {
           "冷却時間":
             8,
 
+
+          "射出速度:V1":
+            "",
+
+          "射出ストローク:S1":
+            "",
+
+          "射出速度:V2":
+            "",
+
+          "射出ストローク:S2":
+            "",
+
+          "射出速度:V3":
+            "",
+
+          "射出ストローク:S3":
+            "",
+
+          "射出速度:V4":
+            "",
+
+          "射出ストローク:S4":
+            "",
+
+          "射出速度:V5":
+            "",
+
+          "射出ストローク:S5":
+            "",
+
+
+
           "保圧力:P1":
             30,
 
@@ -2563,6 +2610,210 @@ function test_ExecutionPlanEngine_build_holdingStages() {
 
   console.log(
     "[PASS] buildHoldingStages"
+  );
+
+}
+
+
+
+function test_ExecutionPlanEngine_build_injectionStages() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_v1",
+      path:
+        "standard_condition.injection_speed_v1",
+      spreadsheetHeader:
+        "射出速度:V1",
+      value:
+        100,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s1",
+      path:
+        "standard_condition.injection_stroke_s1",
+      spreadsheetHeader:
+        "射出ストローク:S1",
+      value:
+        20,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v2",
+      path:
+        "standard_condition.injection_speed_v2",
+      spreadsheetHeader:
+        "射出速度:V2",
+      value:
+        90,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s2",
+      path:
+        "standard_condition.injection_stroke_s2",
+      spreadsheetHeader:
+        "射出ストローク:S2",
+      value:
+        30,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v3",
+      path:
+        "standard_condition.injection_speed_v3",
+      spreadsheetHeader:
+        "射出速度:V3",
+      value:
+        80,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s3",
+      path:
+        "standard_condition.injection_stroke_s3",
+      spreadsheetHeader:
+        "射出ストローク:S3",
+      value:
+        40,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v4",
+      path:
+        "standard_condition.injection_speed_v4",
+      spreadsheetHeader:
+        "射出速度:V4",
+      value:
+        70,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s4",
+      path:
+        "standard_condition.injection_stroke_s4",
+      spreadsheetHeader:
+        "射出ストローク:S4",
+      value:
+        50,
+      unit:
+        "millimeter"
+    },
+
+    {
+      field:
+        "injection_speed_v5",
+      path:
+        "standard_condition.injection_speed_v5",
+      spreadsheetHeader:
+        "射出速度:V5",
+      value:
+        60,
+      unit:
+        "millimeter_per_second"
+    },
+
+    {
+      field:
+        "injection_stroke_s5",
+      path:
+        "standard_condition.injection_stroke_s5",
+      spreadsheetHeader:
+        "射出ストローク:S5",
+      value:
+        60,
+      unit:
+        "millimeter"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const confirmationExecution =
+        ExecutionPlanEngineTest_createHoldingStageConfirmationExecution(
+          testCase
+        );
+
+
+      try {
+
+        const executionPlan =
+          ExecutionPlanEngine_build(
+            confirmationExecution
+          );
+
+
+        const insertDetailOperation =
+          executionPlan.operations.find(
+            function(operation) {
+
+              return (
+                operation.operationId ===
+                "INSERT_NEW_CONDITION_DETAIL"
+              );
+
+            }
+          );
+
+
+        ExecutionPlanEngineTest_assertTrue(
+          !!insertDetailOperation,
+          testCase.field +
+            " INSERT_NEW_CONDITION_DETAIL がありません。"
+        );
+
+
+        ExecutionPlanEngineTest_assertEquals(
+          testCase.value,
+          insertDetailOperation
+            .payload
+            .values[
+              testCase.spreadsheetHeader
+            ],
+          testCase.field +
+            " payload.values." +
+            testCase.spreadsheetHeader
+        );
+
+      } finally {
+
+        ExecutionPlanEngineTest_clearSnapshotOverride();
+
+      }
+
+    }
+  );
+
+
+  console.log(
+    "[PASS] buildInjectionStages"
   );
 
 }

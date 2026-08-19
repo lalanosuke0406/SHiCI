@@ -137,6 +137,12 @@ const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
     "injection_speed_v5",
     "injection_stroke_s5",
 
+    "injection_speed_ramp_1",
+    "injection_speed_ramp_2",
+    "injection_speed_ramp_3",
+    "injection_speed_ramp_4",
+    "injection_speed_ramp_5",
+
     "holding_pressure_p1",
     "holding_time_t1",
     "holding_pressure_p2",
@@ -144,7 +150,12 @@ const UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS = [
     "holding_pressure_p3",
     "holding_time_t3",
     "holding_pressure_p4",
-    "holding_time_t4"
+    "holding_time_t4",
+
+    "holding_ramp_1",
+    "holding_ramp_2",
+    "holding_ramp_3",
+    "holding_ramp_4"
 
 ];
 

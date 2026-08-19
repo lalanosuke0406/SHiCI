@@ -212,7 +212,8 @@ function ProductMutationAdapter_convertStandardConditionField(
 
   const canonicalUnit =
     ProductMutationAdapter_getCanonicalUnit(
-      understandingResult
+        understandingResult,
+        fieldDefinition
     );
 
 
@@ -552,7 +553,8 @@ function ProductMutationAdapter_getChangeValue(
  * @return {string}
  */
 function ProductMutationAdapter_getCanonicalUnit(
-  understandingResult
+  understandingResult,
+  fieldDefinition
 ) {
 
   if (
@@ -571,7 +573,7 @@ function ProductMutationAdapter_getCanonicalUnit(
   }
 
 
-  return "celsius";
+  return fieldDefinition.canonicalUnit;
 
 }
 

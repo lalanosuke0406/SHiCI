@@ -81,6 +81,13 @@ function ConfirmationProposalEngineTest_runAll() {
 
     {
         name:
+            "rampPresentationIsGenerated",
+        run:
+            ConfirmationProposalEngineTest_rampPresentationIsGenerated
+    },
+
+    {
+        name:
             "injectionStagesPresentationIsGenerated",
         run:
             ConfirmationProposalEngineTest_injectionStagesPresentationIsGenerated
@@ -1028,6 +1035,34 @@ function ConfirmationProposalEngineTest_setHoldingTimeT1SnapshotOverride() {
           "射出ストローク:S5":
             "",
 
+          "速度徐変1(ON/OFF)":
+            "",
+
+          "速度徐変2(ON/OFF)":
+            "",
+
+          "速度徐変3(ON/OFF)":
+            "",
+
+          "速度徐変4(ON/OFF)":
+            "",
+
+          "速度徐変5(ON/OFF)":
+            "",
+
+
+          "保圧徐変1(ON/OFF)":
+            "",
+
+          "保圧徐変2(ON/OFF)":
+            "",
+
+          "保圧徐変3(ON/OFF)":
+            "",
+
+          "保圧徐変4(ON/OFF)":
+            "",
+
           "最終更新日":
             "2026-08-01T00:00:00.000Z"
 
@@ -1591,6 +1626,141 @@ function ConfirmationProposalEngineTest_injectionStagesPresentationIsGenerated()
     );
 
   });
+
+}
+
+
+
+function ConfirmationProposalEngineTest_rampPresentationIsGenerated() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_ramp_1",
+      path:
+        "standard_condition.injection_speed_ramp_1",
+      value:
+        true,
+      unit:
+        null,
+      spreadsheetHeader:
+        "速度徐変1(ON/OFF)"
+    },
+
+    {
+      field:
+        "injection_speed_ramp_2",
+      path:
+        "standard_condition.injection_speed_ramp_2",
+      value:
+        false,
+      unit:
+        null,
+      spreadsheetHeader:
+        "速度徐変2(ON/OFF)"
+    },
+
+    {
+      field:
+        "holding_ramp_1",
+      path:
+        "standard_condition.holding_ramp_1",
+      value:
+        true,
+      unit:
+        null,
+      spreadsheetHeader:
+        "保圧徐変1(ON/OFF)"
+    },
+
+    {
+      field:
+        "holding_ramp_2",
+      path:
+        "standard_condition.holding_ramp_2",
+      value:
+        false,
+      unit:
+        null,
+      spreadsheetHeader:
+        "保圧徐変2(ON/OFF)"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const changePlan =
+        ConfirmationProposalEngineTest_createHoldingStageChangePlan(
+          testCase
+        );
+
+
+      const proposal =
+        ConfirmationProposalEngine_build(
+          changePlan
+        );
+
+
+      ConfirmationProposalEngineTest_assertTrue(
+        proposal !== null,
+        testCase.field + " proposal"
+      );
+
+
+      ConfirmationProposalEngineTest_assertEqual(
+        proposal.status,
+        "pending",
+        testCase.field + " proposal.status"
+      );
+
+
+      ConfirmationProposalEngineTest_assertEqual(
+        proposal.changes.length,
+        1,
+        testCase.field + " proposal.changes.length"
+      );
+
+
+      const change =
+        proposal.changes[0];
+
+
+      ConfirmationProposalEngineTest_assertEqual(
+        change.path,
+        testCase.path,
+        testCase.field + " change.path"
+      );
+
+
+      ConfirmationProposalEngineTest_assertEqual(
+        change.after,
+        testCase.value,
+        testCase.field + " change.after"
+      );
+
+
+      ConfirmationProposalEngineTest_assertEqual(
+        change.unit,
+        null,
+        testCase.field + " change.unit"
+      );
+
+
+      ConfirmationProposalContract_validate(
+        proposal
+      );
+
+    }
+  );
+
+
+  console.log(
+    "[Passed] Confirmation Proposal Engine Ramp Presentation"
+  );
 
 }
 

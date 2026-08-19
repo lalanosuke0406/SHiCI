@@ -1087,22 +1087,36 @@ function UnderstandingEngine_buildUpdateTargetResult(
   =========================================
   */
 
+  const resolvedUnderstandingResult =
+    understandingResult ===
+      null ||
+    understandingResult ===
+      undefined
+      ? null
+      : JSON.parse(
+          JSON.stringify(
+            understandingResult
+          )
+        );
+
+
+  if (
+    resolvedUnderstandingResult &&
+    resolvedUnderstandingResult.entity
+  ) {
+
+    resolvedUnderstandingResult
+      .entity
+      .entityTypeHint =
+      entityType;
+
+  }
+
+
   return {
 
     messageType:
       "update_target_resolved",
-
-    understandingResult:
-      understandingResult ===
-        null ||
-      understandingResult ===
-        undefined
-        ? null
-        : JSON.parse(
-            JSON.stringify(
-              understandingResult
-            )
-          ),
 
     updateType:
       fieldDefinition.changeField,
@@ -1165,6 +1179,9 @@ function UnderstandingEngine_buildUpdateTargetResult(
         fieldDefinition.canonicalUnit
 
     },
+
+    understandingResult:
+      resolvedUnderstandingResult,
 
     message:
       "変更対象と変更内容を確認しました。"

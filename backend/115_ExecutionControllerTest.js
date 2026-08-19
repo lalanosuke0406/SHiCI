@@ -87,6 +87,13 @@ function test_ExecutionController_runAll() {
 
     {
         name:
+            "rampSuccess",
+        run:
+            test_ExecutionController_rampSuccess
+    },
+
+    {
+        name:
             "resinTemperatureSuccess",
         run:
             test_ExecutionController_resinTemperatureSuccess
@@ -3909,6 +3916,230 @@ function test_ExecutionController_injectionStagesSuccess() {
 
   console.log(
     "[PASS] injectionStagesSuccess"
+  );
+
+}
+
+
+
+function test_ExecutionController_rampSuccess() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_ramp_1",
+      path:
+        "standard_condition.injection_speed_ramp_1",
+      spreadsheetHeader:
+        "速度徐変1(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_2",
+      path:
+        "standard_condition.injection_speed_ramp_2",
+      spreadsheetHeader:
+        "速度徐変2(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_3",
+      path:
+        "standard_condition.injection_speed_ramp_3",
+      spreadsheetHeader:
+        "速度徐変3(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_4",
+      path:
+        "standard_condition.injection_speed_ramp_4",
+      spreadsheetHeader:
+        "速度徐変4(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_5",
+      path:
+        "standard_condition.injection_speed_ramp_5",
+      spreadsheetHeader:
+        "速度徐変5(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_1",
+      path:
+        "standard_condition.holding_ramp_1",
+      spreadsheetHeader:
+        "保圧徐変1(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_2",
+      path:
+        "standard_condition.holding_ramp_2",
+      spreadsheetHeader:
+        "保圧徐変2(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_3",
+      path:
+        "standard_condition.holding_ramp_3",
+      spreadsheetHeader:
+        "保圧徐変3(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_4",
+      path:
+        "standard_condition.holding_ramp_4",
+      spreadsheetHeader:
+        "保圧徐変4(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const fixture =
+        ExecutionControllerTest_createHoldingStageSuccessFixture(
+          testCase
+        );
+
+
+      try {
+
+        const result =
+          ExecutionController_confirmAndExecute(
+            fixture.proposal.proposalId,
+            fixture.changePlan.changePlanId,
+            {
+
+              source:
+                "execution_controller_test",
+
+              decidedBy:
+                "USER_EXECUTION_CONTROLLER_TEST",
+
+              requestId:
+                "REQUEST_EXECUTION_CONTROLLER_" +
+                String(
+                  testCase.field
+                )
+                  .toUpperCase()
+
+            }
+          );
+
+
+        ExecutionControllerTest_validateResult(
+          result
+        );
+
+
+        ExecutionControllerTest_assertEquals(
+          EXECUTION_CONTROLLER_STATUS_COMPLETED,
+          result.status,
+          testCase.field +
+            " result.status"
+        );
+
+
+        const detailRows =
+          fixture.spreadsheet
+            .getSheetByName(
+              "成形条件詳細マスター"
+            )
+            .getAllValues();
+
+
+        const detailHeaderMap =
+          ExecutionControllerTest_createHeaderMap(
+            detailRows[0]
+          );
+
+
+        ExecutionControllerTest_assertEquals(
+          3,
+          detailRows.length,
+          testCase.field +
+            " detailRows.length"
+        );
+
+
+        ExecutionControllerTest_assertEquals(
+          testCase.value,
+          detailRows[2][
+            detailHeaderMap[
+              testCase.spreadsheetHeader
+            ]
+          ],
+          testCase.field +
+            " newConditionDetail." +
+            testCase.spreadsheetHeader
+        );
+
+
+      } finally {
+
+        ExecutionControllerTest_clearEnvironment();
+
+      }
+
+    }
+  );
+
+
+  console.log(
+    "[PASS] rampSuccess"
   );
 
 }

@@ -859,6 +859,196 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
 
 
 
+  injection_speed_ramp_1: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_ramp_1",
+
+    path:
+      "standard_condition.injection_speed_ramp_1",
+
+    spreadsheetHeader:
+      "速度徐変1(ON/OFF)",
+
+    label:
+      "速度徐変1",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+  injection_speed_ramp_2: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_ramp_2",
+
+    path:
+      "standard_condition.injection_speed_ramp_2",
+
+    spreadsheetHeader:
+      "速度徐変2(ON/OFF)",
+
+    label:
+      "速度徐変2",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_ramp_3: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_ramp_3",
+
+    path:
+      "standard_condition.injection_speed_ramp_3",
+
+    spreadsheetHeader:
+      "速度徐変3(ON/OFF)",
+
+    label:
+      "速度徐変3",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_ramp_4: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_ramp_4",
+
+    path:
+      "standard_condition.injection_speed_ramp_4",
+
+    spreadsheetHeader:
+      "速度徐変4(ON/OFF)",
+
+    label:
+      "速度徐変4",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  injection_speed_ramp_5: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "injection_speed_ramp_5",
+
+    path:
+      "standard_condition.injection_speed_ramp_5",
+
+    spreadsheetHeader:
+      "速度徐変5(ON/OFF)",
+
+    label:
+      "速度徐変5",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+
   holding_pressure_p1: {
 
     registryVersion:
@@ -1153,9 +1343,164 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
     enabled:
         true
 
+  },
+
+
+
+  holding_ramp_1: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "holding_ramp_1",
+
+    path:
+      "standard_condition.holding_ramp_1",
+
+    spreadsheetHeader:
+      "保圧徐変1(ON/OFF)",
+
+    label:
+      "保圧徐変1",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  holding_ramp_2: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "holding_ramp_2",
+
+    path:
+      "standard_condition.holding_ramp_2",
+
+    spreadsheetHeader:
+      "保圧徐変2(ON/OFF)",
+
+    label:
+      "保圧徐変2",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  holding_ramp_3: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "holding_ramp_3",
+
+    path:
+      "standard_condition.holding_ramp_3",
+
+    spreadsheetHeader:
+      "保圧徐変3(ON/OFF)",
+
+    label:
+      "保圧徐変3",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  holding_ramp_4: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "holding_ramp_4",
+
+    path:
+      "standard_condition.holding_ramp_4",
+
+    spreadsheetHeader:
+      "保圧徐変4(ON/OFF)",
+
+    label:
+      "保圧徐変4",
+
+    valueType:
+      "boolean",
+
+    canonicalUnit:
+      null,
+
+    displayUnit:
+      null,
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
   }
 
 };
+
+
 
 
 /*
@@ -1519,16 +1864,51 @@ function StandardConditionFieldRegistry_validateDefinition(
   );
 
 
-  StandardConditionFieldRegistry_requireNonEmptyString(
-    definition.canonicalUnit,
-    "definition.canonicalUnit"
-  );
+    if (
+    definition.valueType ===
+      "number"
+  ) {
+
+    StandardConditionFieldRegistry_requireNonEmptyString(
+      definition.canonicalUnit,
+      "definition.canonicalUnit"
+    );
 
 
   StandardConditionFieldRegistry_requireNonEmptyString(
-    definition.displayUnit,
-    "definition.displayUnit"
-  );
+      definition.displayUnit,
+      "definition.displayUnit"
+    );
+
+  } else if (
+    definition.valueType ===
+      "boolean"
+  ) {
+
+    if (
+      definition.canonicalUnit !==
+        null
+    ) {
+
+      throw new Error(
+        "valueType=booleanの場合、canonicalUnitはnullである必要があります。"
+      );
+
+    }
+
+
+    if (
+      definition.displayUnit !==
+        null
+    ) {
+
+      throw new Error(
+        "valueType=booleanの場合、displayUnitはnullである必要があります。"
+      );
+
+    }
+
+  }
 
 
   StandardConditionFieldRegistry_requireNonEmptyString(
@@ -1545,12 +1925,14 @@ function StandardConditionFieldRegistry_validateDefinition(
 
   if (
     definition.valueType !==
-      "number"
+        "number" &&
+    definition.valueType !==
+        "boolean"
   ) {
 
     throw new Error(
-      "Standard Condition Field Ver.1.0では" +
-      "valueType=numberだけを扱います。"
+        "Standard Condition Field Ver.1.0では" +
+        "valueType=numberまたはbooleanだけを扱います。"
     );
 
   }

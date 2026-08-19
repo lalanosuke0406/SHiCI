@@ -72,6 +72,13 @@ function ChangePlanEngineTest_runAll() {
 
     {
       name:
+        "buildRampChangePlans",
+      run:
+        ChangePlanEngineTest_buildRampChangePlans
+    },
+
+    {
+      name:
         "proposedSnapshotCreatesNextVersion",
       run:
         ChangePlanEngineTest_proposedSnapshotCreatesNextVersion
@@ -89,6 +96,13 @@ function ChangePlanEngineTest_runAll() {
         "originalResolutionResultIsNotModified",
       run:
         ChangePlanEngineTest_originalResolutionResultIsNotModified
+    },
+
+    {
+      name:
+        "nonStandardCurrentConditionIsBlocked",
+      run:
+        ChangePlanEngineTest_nonStandardCurrentConditionIsBlocked
     },
 
     {
@@ -915,6 +929,231 @@ function ChangePlanEngineTest_buildInjectionStagesChangePlans() {
 
 
 
+/**
+ * 射出ランプ1～5、保圧ランプ1～4について、
+ * 未登録からBoolean値へのChange Planが
+ * 共通経路で生成されることを確認する。
+ */
+function ChangePlanEngineTest_buildRampChangePlans() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_ramp_1",
+      path:
+        "standard_condition.injection_speed_ramp_1",
+      spreadsheetHeader:
+        "速度徐変1(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_2",
+      path:
+        "standard_condition.injection_speed_ramp_2",
+      spreadsheetHeader:
+        "速度徐変2(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_3",
+      path:
+        "standard_condition.injection_speed_ramp_3",
+      spreadsheetHeader:
+        "速度徐変3(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_4",
+      path:
+        "standard_condition.injection_speed_ramp_4",
+      spreadsheetHeader:
+        "速度徐変4(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_5",
+      path:
+        "standard_condition.injection_speed_ramp_5",
+      spreadsheetHeader:
+        "速度徐変5(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_1",
+      path:
+        "standard_condition.holding_ramp_1",
+      spreadsheetHeader:
+        "保圧徐変1(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_2",
+      path:
+        "standard_condition.holding_ramp_2",
+      spreadsheetHeader:
+        "保圧徐変2(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_3",
+      path:
+        "standard_condition.holding_ramp_3",
+      spreadsheetHeader:
+        "保圧徐変3(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_4",
+      path:
+        "standard_condition.holding_ramp_4",
+      spreadsheetHeader:
+        "保圧徐変4(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const resolutionResult =
+        ChangePlanEngineTest_createHoldingStageResolvedMutation(
+          testCase
+        );
+
+
+      const changePlan =
+        ChangePlanEngine_build(
+          resolutionResult
+        );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan.status,
+        "ready_for_confirmation",
+        testCase.field + " status"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan.changes.length,
+        1,
+        testCase.field + " changes.length"
+      );
+
+
+      const change =
+        changePlan.changes[0];
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.path,
+        testCase.path,
+        testCase.field + " change.path"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.before,
+        null,
+        testCase.field + " change.before"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.after,
+        testCase.value,
+        testCase.field + " change.after"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan
+          .proposedSnapshot
+          .conditionDetail[
+            testCase.spreadsheetHeader
+          ],
+        testCase.value,
+        testCase.field +
+          " proposedSnapshot"
+      );
+
+
+      ChangePlanEngineTest_assertEqual(
+        changePlan
+          .currentSnapshot
+          .conditionDetail[
+            testCase.spreadsheetHeader
+          ],
+        null,
+        testCase.field +
+          " currentSnapshot"
+      );
+
+    }
+  );
+
+
+  console.log(
+    "[Passed] Change Plan Engine Ramp Fields"
+  );
+
+}
+
+
+
 
 function ChangePlanEngineTest_createHoldingStageResolvedMutation(
   testCase
@@ -1484,6 +1723,73 @@ function ChangePlanEngineTest_originalResolutionResultIsNotModified() {
 }
 
 
+
+/**
+ * 現在標準条件IDが指す条件の状態が
+ * 「標準」でない場合、
+ * Change Planがblockedになることを確認する。
+ */
+function ChangePlanEngineTest_nonStandardCurrentConditionIsBlocked() {
+
+  const currentSnapshotGetter =
+    SnapshotEngine_getProductSnapshot;
+
+
+  SnapshotEngine_getProductSnapshot =
+    function(productId) {
+
+      const snapshot =
+        currentSnapshotGetter(
+          productId
+        );
+
+
+      const modifiedSnapshot =
+        JSON.parse(
+          JSON.stringify(
+            snapshot
+          )
+        );
+
+
+      modifiedSnapshot
+        .condition["状態"] =
+        "試験";
+
+
+      return modifiedSnapshot;
+
+    };
+
+
+  const resolutionResult =
+    ChangePlanEngineTest_createResolvedMutation();
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.status,
+    "blocked",
+    "changePlan.status"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.missingFields.indexOf(
+      "snapshot.condition.状態.standard"
+    ) !== -1,
+    true,
+    "snapshot.condition.状態.standard"
+  );
+
+}
+
+
 /*
 =========================================
 異常系
@@ -1818,6 +2124,34 @@ function ChangePlanEngineTest_setSnapshotOverride() {
             null,
 
           "保圧時間:T4":
+            null,
+
+          "速度徐変1(ON/OFF)":
+            null,
+
+          "速度徐変2(ON/OFF)":
+            null,
+
+          "速度徐変3(ON/OFF)":
+            null,
+
+          "速度徐変4(ON/OFF)":
+            null,
+
+          "速度徐変5(ON/OFF)":
+            null,
+
+
+          "保圧徐変1(ON/OFF)":
+            null,
+
+          "保圧徐変2(ON/OFF)":
+            null,
+
+          "保圧徐変3(ON/OFF)":
+            null,
+
+          "保圧徐変4(ON/OFF)":
             null,
 
           "最終更新日":

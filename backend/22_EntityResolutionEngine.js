@@ -133,13 +133,216 @@ function loadEntityResolutionKnowledge() {
 
 
 
+/**
+ * 製品マスターのCanonical識別子から
+ * Product Entity候補を取得する。
+ *
+ * 現時点では、
+ * ・製品ID
+ * ・図番
+ * の完全一致だけを扱う。
+ *
+ * @param {string} query
+ * @return {Object|null}
+ */
+function EntityResolution_findCanonicalProduct(
+  query
+) {
+
+  const normalizedQuery =
+    String(
+      query || ""
+    ).trim();
+
+
+  if (
+    !normalizedQuery
+  ) {
+
+    return null;
+
+  }
+
+
+  /*
+  =========================================
+  製品ID完全一致
+  =========================================
+  */
+
+  const productById =
+    getProductById(
+      normalizedQuery
+    );
+
+
+  if (
+    productById
+  ) {
+
+    return {
+
+      originalText:
+        query,
+
+      keyword:
+        productById["製品名"],
+
+      alias:
+        productById["製品ID"],
+
+      entityType:
+        "product",
+
+      entityId:
+        productById["製品ID"],
+
+      priority:
+        0,
+
+      notes:
+        "製品マスター製品ID完全一致",
+
+      sources: [
+
+        {
+
+          alias:
+            productById["製品ID"],
+
+          keyword:
+            productById["製品名"],
+
+          notes:
+            "製品マスター製品ID完全一致",
+
+          priority:
+            0
+
+        }
+
+      ]
+
+    };
+
+  }
+
+
+  /*
+  =========================================
+  図番完全一致
+  =========================================
+  */
+
+  const productByDrawingNo =
+    getProductByDrawingNo(
+      normalizedQuery
+    );
+
+
+  if (
+    productByDrawingNo
+  ) {
+
+    return {
+
+      originalText:
+        query,
+
+      keyword:
+        productByDrawingNo["製品名"],
+
+      alias:
+        productByDrawingNo["図番"],
+
+      entityType:
+        "product",
+
+      entityId:
+        productByDrawingNo["製品ID"],
+
+      priority:
+        0,
+
+      notes:
+        "製品マスター図番完全一致",
+
+      sources: [
+
+        {
+
+          alias:
+            productByDrawingNo["図番"],
+
+          keyword:
+            productByDrawingNo["製品名"],
+
+          notes:
+            "製品マスター図番完全一致",
+
+          priority:
+            0
+
+        }
+
+      ]
+
+    };
+
+  }
+
+
+  return null;
+
+}
+
+
+
 function resolveEntityCandidates(question) {
-  
+
+  const extractedKeyword =
+    extractSearchKeyword(
+      question
+    );
+
+
+  /*
+  =========================================
+  Canonical Entity Resolution
+  =========================================
+  */
+
+  const canonicalProduct =
+    EntityResolution_findCanonicalProduct(
+      extractedKeyword
+    );
+
+
+  if (
+    canonicalProduct
+  ) {
+
+    return [
+      canonicalProduct
+    ];
+
+  }
+
+
+  /*
+  =========================================
+  Knowledge Entity Resolution
+  =========================================
+  */
+
   const keyword =
     EntityResolution_normalizeText(
-      extractSearchKeyword(question)
+      extractedKeyword
     );
-  const knowledge = loadEntityResolutionKnowledge();
+
+
+  const knowledge =
+    loadEntityResolutionKnowledge();
 
   const candidates = [];
 

@@ -98,6 +98,20 @@ function test_ExecutionPlanEngine_runAll() {
             "buildInjectionStages",
         run:
             test_ExecutionPlanEngine_build_injectionStages
+    },
+
+    {
+      name:
+        "archiveOldConditionPreservesBlankVersion",
+      run:
+        test_ExecutionPlanEngine_archiveOldConditionPreservesBlankVersion
+    },
+
+    {
+        name:
+            "buildRampFields",
+        run:
+            test_ExecutionPlanEngine_build_rampFields
     }
 
 
@@ -1597,6 +1611,35 @@ function ExecutionPlanEngineTest_setSnapshotOverride() {
           "保圧時間:T4":
             "",
 
+          "速度徐変1(ON/OFF)":
+            "",
+
+          "速度徐変2(ON/OFF)":
+            "",
+
+          "速度徐変3(ON/OFF)":
+            "",
+
+          "速度徐変4(ON/OFF)":
+            "",
+
+          "速度徐変5(ON/OFF)":
+            "",
+
+
+          "保圧徐変1(ON/OFF)":
+            "",
+
+          "保圧徐変2(ON/OFF)":
+            "",
+
+          "保圧徐変3(ON/OFF)":
+            "",
+
+          "保圧徐変4(ON/OFF)":
+            "",
+
+
           "最終更新日":
             "2026-08-01T00:00:00.000Z"
 
@@ -2814,6 +2857,618 @@ function test_ExecutionPlanEngine_build_injectionStages() {
 
   console.log(
     "[PASS] buildInjectionStages"
+  );
+
+}
+
+
+
+function test_ExecutionPlanEngine_build_rampFields() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_ramp_1",
+      path:
+        "standard_condition.injection_speed_ramp_1",
+      spreadsheetHeader:
+        "速度徐変1(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "injection_speed_ramp_2",
+      path:
+        "standard_condition.injection_speed_ramp_2",
+      spreadsheetHeader:
+        "速度徐変2(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_1",
+      path:
+        "standard_condition.holding_ramp_1",
+      spreadsheetHeader:
+        "保圧徐変1(ON/OFF)",
+      value:
+        true,
+      unit:
+        null
+    },
+
+    {
+      field:
+        "holding_ramp_2",
+      path:
+        "standard_condition.holding_ramp_2",
+      spreadsheetHeader:
+        "保圧徐変2(ON/OFF)",
+      value:
+        false,
+      unit:
+        null
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const confirmationExecution =
+        ExecutionPlanEngineTest_createHoldingStageConfirmationExecution(
+          testCase
+        );
+
+
+      try {
+
+        const executionPlan =
+          ExecutionPlanEngine_build(
+            confirmationExecution
+          );
+
+
+        const insertDetailOperation =
+          executionPlan.operations.find(
+            function(operation) {
+
+              return (
+                operation.operationId ===
+                "INSERT_NEW_CONDITION_DETAIL"
+              );
+
+            }
+          );
+
+
+        ExecutionPlanEngineTest_assertTrue(
+          !!insertDetailOperation,
+          testCase.field +
+            " INSERT_NEW_CONDITION_DETAILがありません。"
+        );
+
+
+        ExecutionPlanEngineTest_assertEquals(
+          testCase.value,
+          insertDetailOperation
+            .payload
+            .values[
+              testCase.spreadsheetHeader
+            ],
+          testCase.field +
+            " payload.values." +
+            testCase.spreadsheetHeader
+        );
+
+      } finally {
+
+        ExecutionPlanEngineTest_clearSnapshotOverride();
+
+      }
+
+    }
+  );
+
+
+  console.log(
+    "[PASS] buildRampFields"
+  );
+
+}
+
+
+
+/**
+ * P-000072 / KMV-MC16X-022 の
+ * Execution前提条件を実Spreadsheetから読み取り専用で確認する。
+ *
+ * Spreadsheetへの書き込みは行わない。
+ */
+function ExecutionPlanEngineTest_probeP000072ExecutionPreconditions() {
+
+  /*
+  =========================================
+  Target
+  =========================================
+  */
+
+  const productId =
+    "P-000072";
+
+  const targetHeader =
+    "射出ストローク:S1";
+
+  const proposedValue =
+    61.1;
+
+
+  /*
+  =========================================
+  Current Snapshot Source
+  =========================================
+  */
+
+  const product =
+    getProductById(
+      productId
+    );
+
+
+  if (
+    !product
+  ) {
+
+    throw new Error(
+      "P-000072が製品マスターに存在しません。"
+    );
+
+  }
+
+
+  const currentConditionId =
+    String(
+      product["現在標準条件ID"] || ""
+    ).trim();
+
+
+  if (
+    !currentConditionId
+  ) {
+
+    throw new Error(
+      "P-000072の現在標準条件IDが空です。"
+    );
+
+  }
+
+
+  const condition =
+    getConditionById(
+      currentConditionId
+    );
+
+
+  if (
+    !condition
+  ) {
+
+    throw new Error(
+      "現在標準条件IDが指す成形条件が存在しません。" +
+      " conditionId=" +
+      currentConditionId
+    );
+
+  }
+
+
+  const conditionDetail =
+    getConditionDetailByConditionId(
+      currentConditionId
+    );
+
+
+  if (
+    !conditionDetail
+  ) {
+
+    throw new Error(
+      "現在標準条件の詳細が存在しません。" +
+      " conditionId=" +
+      currentConditionId
+    );
+
+  }
+
+
+  /*
+  =========================================
+  Real Spreadsheet
+  =========================================
+  */
+
+  const spreadsheet =
+    SpreadsheetApp.openById(
+      SPREADSHEET_ID
+    );
+
+
+  const productSheet =
+    spreadsheet.getSheetByName(
+      "製品マスター"
+    );
+
+  const conditionSheet =
+    spreadsheet.getSheetByName(
+      "成形条件マスター"
+    );
+
+  const conditionDetailSheet =
+    spreadsheet.getSheetByName(
+      "成形条件詳細マスター"
+    );
+
+
+  if (
+    !productSheet ||
+    !conditionSheet ||
+    !conditionDetailSheet
+  ) {
+
+    throw new Error(
+      "必要なSpreadsheetが存在しません。"
+    );
+
+  }
+
+
+  const productHeaderInfo =
+    SpreadsheetRepository_getHeaderInfo(
+      productSheet
+    );
+
+  const conditionHeaderInfo =
+    SpreadsheetRepository_getHeaderInfo(
+      conditionSheet
+    );
+
+  const conditionDetailHeaderInfo =
+    SpreadsheetRepository_getHeaderInfo(
+      conditionDetailSheet
+    );
+
+
+  /*
+  =========================================
+  Operation 2
+  INSERT_NEW_CONDITION_DETAIL
+  =========================================
+  */
+
+  const proposedConditionDetail =
+    {};
+
+
+  Object.keys(
+    conditionDetail
+  ).forEach(
+    function(key) {
+
+      proposedConditionDetail[key] =
+        conditionDetail[key];
+
+    }
+  );
+
+
+  proposedConditionDetail[
+    targetHeader
+  ] =
+    proposedValue;
+
+
+  const missingDetailHeaders =
+    Object.keys(
+      proposedConditionDetail
+    ).filter(
+      function(fieldName) {
+
+        return !Object.prototype
+          .hasOwnProperty
+          .call(
+            conditionDetailHeaderInfo.headerMap,
+            fieldName
+          );
+
+      }
+    );
+
+
+  let operation2Buildable =
+    true;
+
+  let operation2Error =
+    null;
+
+
+  try {
+
+    SpreadsheetRepository_validateFieldsExist(
+      proposedConditionDetail,
+      conditionDetailHeaderInfo.headerMap,
+      "operation2.values"
+    );
+
+
+    SpreadsheetRepository_buildInsertRowValues(
+      conditionDetailHeaderInfo.headers,
+      proposedConditionDetail
+    );
+
+  } catch (error) {
+
+    operation2Buildable =
+      false;
+
+    operation2Error =
+      error &&
+      error.message
+        ? error.message
+        : String(
+            error
+          );
+
+  }
+
+
+  /*
+  =========================================
+  Operation 4
+  SWITCH_PRODUCT_CURRENT_CONDITION
+  =========================================
+  */
+
+  const operation4Criteria = {
+
+    "製品ID":
+      productId,
+
+    "現在標準条件ID":
+      currentConditionId
+
+  };
+
+
+  const operation4Matches =
+    SpreadsheetRepository_findMatchingRowNumbers(
+      productSheet,
+      productHeaderInfo,
+      operation4Criteria
+    );
+
+
+  /*
+  =========================================
+  Operation 5
+  ARCHIVE_OLD_STANDARD_CONDITION
+  =========================================
+  */
+
+  const operation5Criteria = {
+
+    "条件ID":
+      currentConditionId,
+
+    "製品ID":
+      productId,
+
+    "版数":
+      condition["版数"],
+
+    "状態":
+      "標準"
+
+  };
+
+
+  const operation5Matches =
+    SpreadsheetRepository_findMatchingRowNumbers(
+      conditionSheet,
+      conditionHeaderInfo,
+      operation5Criteria
+    );
+
+
+  /*
+  =========================================
+  Result
+  =========================================
+  */
+
+  const result = {
+
+    product: {
+
+      productId:
+        productId,
+
+      productName:
+        product["製品名"],
+
+      drawingNumber:
+        product["図番"],
+
+      currentConditionId:
+        currentConditionId
+
+    },
+
+    currentCondition: {
+
+      conditionId:
+        condition["条件ID"],
+
+      productId:
+        condition["製品ID"],
+
+      version:
+        condition["版数"],
+
+      versionType:
+        typeof condition["版数"],
+
+      status:
+        condition["状態"]
+
+    },
+
+    operation2: {
+
+      operationId:
+        "INSERT_NEW_CONDITION_DETAIL",
+
+      targetHeader:
+        targetHeader,
+
+      targetHeaderExists:
+        Object.prototype
+          .hasOwnProperty
+          .call(
+            conditionDetailHeaderInfo.headerMap,
+            targetHeader
+          ),
+
+      missingHeaders:
+        missingDetailHeaders,
+
+      buildable:
+        operation2Buildable,
+
+      error:
+        operation2Error
+
+    },
+
+    operation4: {
+
+      operationId:
+        "SWITCH_PRODUCT_CURRENT_CONDITION",
+
+      criteria:
+        operation4Criteria,
+
+      matchingRowNumbers:
+        operation4Matches,
+
+      matchingRowCount:
+        operation4Matches.length
+
+    },
+
+    operation5: {
+
+      operationId:
+        "ARCHIVE_OLD_STANDARD_CONDITION",
+
+      criteria:
+        operation5Criteria,
+
+      matchingRowNumbers:
+        operation5Matches,
+
+      matchingRowCount:
+        operation5Matches.length
+
+    }
+
+  };
+
+
+  Logger.log(
+    "[P-000072 Execution Preconditions Probe]\n" +
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+}
+
+
+
+/**
+ * 旧条件の版数が未登録("")の場合でも、
+ * Operation 5のcriteriaでは
+ * 元Snapshotの値をそのまま保持することを確認する。
+ */
+function test_ExecutionPlanEngine_archiveOldConditionPreservesBlankVersion() {
+
+  const confirmationExecution = {
+
+    decidedAt:
+      "2026-08-18T21:00:00.000Z"
+
+  };
+
+
+  const executionContext = {
+
+    productId:
+      "P-000072",
+
+    currentConditionId:
+      "COND-000066",
+
+    /*
+     * 算術上の版数。
+     * "" は0として扱われ、
+     * 次版は1となる。
+     */
+    currentVersion:
+      0,
+
+    /*
+     * Spreadsheet上の原値。
+     */
+    currentCondition: {
+
+      "版数":
+        ""
+
+    }
+
+  };
+
+
+  const operation =
+    ExecutionPlanEngine_createArchiveOldConditionOperation(
+      confirmationExecution,
+      executionContext
+    );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "",
+    operation.payload.criteria["版数"],
+    "operation5.payload.criteria.版数"
+  );
+
+
+  ExecutionPlanEngineTest_assertEquals(
+    "",
+    operation.rollback.payload.criteria["版数"],
+    "operation5.rollback.payload.criteria.版数"
   );
 
 }

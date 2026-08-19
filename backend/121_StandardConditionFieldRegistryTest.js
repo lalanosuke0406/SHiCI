@@ -713,7 +713,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    29,
+    38,
     definitions.length,
     "definitions.length"
   );
@@ -740,10 +740,21 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
         "holding_pressure_p3",
         "holding_pressure_p4",
 
+        "holding_ramp_1",
+        "holding_ramp_2",
+        "holding_ramp_3",
+        "holding_ramp_4",
+
         "holding_time_t1",
         "holding_time_t2",
         "holding_time_t3",
         "holding_time_t4",
+
+        "injection_speed_ramp_1",
+        "injection_speed_ramp_2",
+        "injection_speed_ramp_3",
+        "injection_speed_ramp_4",
+        "injection_speed_ramp_5",
 
         "injection_speed_v1",
         "injection_speed_v2",
@@ -809,10 +820,21 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
         "holding_pressure_p3",
         "holding_pressure_p4",
 
+        "holding_ramp_1",
+        "holding_ramp_2",
+        "holding_ramp_3",
+        "holding_ramp_4",
+
         "holding_time_t1",
         "holding_time_t2",
         "holding_time_t3",
         "holding_time_t4",
+
+        "injection_speed_ramp_1",
+        "injection_speed_ramp_2",
+        "injection_speed_ramp_3",
+        "injection_speed_ramp_4",
+        "injection_speed_ramp_5",
 
         "injection_speed_v1",
         "injection_speed_v2",

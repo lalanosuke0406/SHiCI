@@ -109,6 +109,13 @@ function UnderstandingTest_runAll() {
 
     {
         name:
+            "RampUpdateFields",
+        run:
+            UnderstandingTest_validateVersion2RampUpdateFields
+    },
+
+    {
+        name:
             "OpenAIInstructionsInjectionStages",
         run:
             UnderstandingTest_validateVersion2OpenAIInstructionsInjectionStages
@@ -168,6 +175,13 @@ function UnderstandingTest_runAllLive() {
             "OpenAIInjectionStagesUpdate",
         run:
             UnderstandingTest_runVersion2OpenAIInjectionStagesUpdate
+    },
+
+    {
+        name:
+            "OpenAIRampUpdate",
+        run:
+            UnderstandingTest_runVersion2OpenAIRampUpdate
     },
 
     {
@@ -4698,6 +4712,202 @@ function UnderstandingTest_validateVersion2InjectionStagesUpdateFields() {
 
 
 
+function UnderstandingTest_validateVersion2RampUpdateFields() {
+
+  const cases = [
+
+    {
+      text: "ワンワンの速度徐変1をONにして",
+      field: "injection_speed_ramp_1",
+      value: true,
+      targetField: "速度徐変1(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの速度徐変2をOFFにして",
+      field: "injection_speed_ramp_2",
+      value: false,
+      targetField: "速度徐変2(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの速度徐変3をONにして",
+      field: "injection_speed_ramp_3",
+      value: true,
+      targetField: "速度徐変3(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの速度徐変4をOFFにして",
+      field: "injection_speed_ramp_4",
+      value: false,
+      targetField: "速度徐変4(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの速度徐変5をONにして",
+      field: "injection_speed_ramp_5",
+      value: true,
+      targetField: "速度徐変5(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの保圧徐変1をONにして",
+      field: "holding_ramp_1",
+      value: true,
+      targetField: "保圧徐変1(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの保圧徐変2をOFFにして",
+      field: "holding_ramp_2",
+      value: false,
+      targetField: "保圧徐変2(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの保圧徐変3をONにして",
+      field: "holding_ramp_3",
+      value: true,
+      targetField: "保圧徐変3(ON/OFF)"
+    },
+
+    {
+      text: "ワンワンの保圧徐変4をOFFにして",
+      field: "holding_ramp_4",
+      value: false,
+      targetField: "保圧徐変4(ON/OFF)"
+    }
+
+  ];
+
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの速度徐変1をONにして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  cases.forEach(
+    function(testCase) {
+
+      UnderstandingTest_assertArrayIncludesV2(
+        request.policy.allowedChangeFields,
+        testCase.field,
+        "allowedChangeFields"
+      );
+
+
+      UnderstandingTest_assertArrayIncludesV2(
+        UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS,
+        testCase.field,
+        "UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS"
+      );
+
+
+      UnderstandingTest_assertTrueV2(
+        instructions.indexOf(
+          testCase.field
+        ) !== -1,
+        "Instructionsに" +
+          testCase.field +
+          "がありません。"
+      );
+
+
+      const result =
+        UnderstandingTest_createVersion2StandardConditionUpdateResult(
+          testCase.text,
+          "ワンワン",
+          testCase.field,
+          testCase.value,
+          null,
+          []
+        );
+
+
+      result.view.name =
+        null;
+
+
+      const validated =
+        UnderstandingResultContract_validate(
+          result
+        );
+
+
+      const updateIntent =
+        UpdateUnderstandingAdapter_convert(
+          validated
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.status,
+        "ready",
+        testCase.field + " updateIntent.status"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.intentType,
+        "update",
+        testCase.field + " updateIntent.intentType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.updateType,
+        testCase.field,
+        testCase.field + " updateIntent.updateType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.targetField,
+        testCase.targetField,
+        testCase.field + " updateIntent.targetField"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.newValue,
+        testCase.value,
+        testCase.field + " updateIntent.newValue"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.unit,
+        null,
+        testCase.field + " change.unit"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.unit,
+        null,
+        testCase.field + " updateIntent.unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Ramp Update Fields"
+  );
+
+}
+
+
+
 function UnderstandingTest_validateVersion2ResinTemperatureUpdateFields() {
 
   const cases = [
@@ -5484,6 +5694,262 @@ function UnderstandingTest_runVersion2OpenAIInjectionStagesUpdate() {
 
   Logger.log(
     "[Passed] Version 2.0 OpenAI Injection Stages Update"
+  );
+
+}
+
+
+
+function UnderstandingTest_runVersion2OpenAIRampUpdate() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンの速度徐変1をONにして",
+      field:
+        "injection_speed_ramp_1",
+      value:
+        true
+    },
+
+    {
+      text:
+        "ワンワンの保圧徐変1をOFFにして",
+      field:
+        "holding_ramp_1",
+      value:
+        false
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const request =
+        UnderstandingRequestContract_create(
+          testCase.text
+        );
+
+
+      const result =
+        OpenAIAdapter_understand(
+          request
+        );
+
+
+      Logger.log(
+        "[OpenAI Ramp Result]\n" +
+        JSON.stringify(
+          result,
+          null,
+          2
+        )
+      );
+
+
+      const validated =
+        UnderstandingResultContract_validate(
+          result
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.intent.type,
+        "update",
+        testCase.field +
+          " intent.type"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.field,
+        testCase.field,
+        testCase.field +
+          " change.field"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.value,
+        testCase.value,
+        testCase.field +
+          " change.value"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.unit,
+        null,
+        testCase.field +
+          " change.unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Ramp Update"
+  );
+
+}
+
+
+
+function UnderstandingTest_runKMVS1Probe() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "KMV-MC16X-022のS1を61.1mmにして"
+    );
+
+
+  const result =
+    OpenAIAdapter_understand(
+      request
+    );
+
+
+  Logger.log(
+    "[KMV S1 Understanding Probe]\n" +
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+}
+
+
+
+function UnderstandingTest_runKMVEntityCandidatesProbe() {
+
+  const candidates =
+    resolveEntityCandidates(
+      "KMV-MC16X-022"
+    );
+
+
+  Logger.log(
+    "[KMV Entity Candidates Probe]\n" +
+    JSON.stringify(
+      candidates,
+      null,
+      2
+    )
+  );
+
+}
+
+
+
+function UnderstandingTest_runKMVLocalEntityProbe() {
+
+  const question =
+    "KMV-MC16X-022";
+
+
+  const extractedKeyword =
+    extractSearchKeyword(
+      question
+    );
+
+
+  const normalizedKeyword =
+    EntityResolution_normalizeText(
+      extractedKeyword
+    );
+
+
+  const knowledge =
+    loadEntityResolutionKnowledge();
+
+
+  const matches =
+    knowledge
+      .map(
+        function(item) {
+
+          const normalizedAlias =
+            EntityResolution_normalizeText(
+              item.alias
+            );
+
+
+          return {
+
+            matched:
+              EntityResolution_isMatch(
+                normalizedKeyword,
+                normalizedAlias
+              ),
+
+            alias:
+              item.alias,
+
+            normalizedAlias:
+              normalizedAlias,
+
+            entityType:
+              item.entityType,
+
+            entityId:
+              item.entityId,
+
+            keyword:
+              item.keyword,
+
+            priority:
+              item.priority,
+
+            notes:
+              item.notes
+
+          };
+
+        }
+      )
+      .filter(
+        function(item) {
+
+          return item.matched;
+
+        }
+      );
+
+
+  Logger.log(
+    "[KMV Local Entity Probe]"
+  );
+
+
+  Logger.log(
+    JSON.stringify(
+      {
+
+        question:
+          question,
+
+        extractedKeyword:
+          extractedKeyword,
+
+        normalizedKeyword:
+          normalizedKeyword,
+
+        matchCount:
+          matches.length,
+
+        matches:
+          matches
+
+      },
+      null,
+      2
+    )
   );
 
 }

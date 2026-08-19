@@ -99,6 +99,13 @@ function ProductMutationAdapterTest_runAll() {
             ProductMutationAdapterTest_validInjectionStages
     },
 
+    {
+        name:
+            "validRampFields",
+        run:
+            ProductMutationAdapterTest_validRampFields
+    },
+
 
   ];
 
@@ -1472,6 +1479,182 @@ function ProductMutationAdapterTest_validInjectionStages() {
 
   Logger.log(
     "[Passed] Product Mutation Adapter Injection Stages"
+  );
+
+}
+
+
+
+function ProductMutationAdapterTest_validRampFields() {
+
+  const cases = [
+
+    {
+      field:
+        "injection_speed_ramp_1",
+      value:
+        true,
+      path:
+        "standard_condition.injection_speed_ramp_1"
+    },
+
+    {
+      field:
+        "injection_speed_ramp_2",
+      value:
+        false,
+      path:
+        "standard_condition.injection_speed_ramp_2"
+    },
+
+    {
+      field:
+        "injection_speed_ramp_3",
+      value:
+        true,
+      path:
+        "standard_condition.injection_speed_ramp_3"
+    },
+
+    {
+      field:
+        "injection_speed_ramp_4",
+      value:
+        false,
+      path:
+        "standard_condition.injection_speed_ramp_4"
+    },
+
+    {
+      field:
+        "injection_speed_ramp_5",
+      value:
+        true,
+      path:
+        "standard_condition.injection_speed_ramp_5"
+    },
+
+    {
+      field:
+        "holding_ramp_1",
+      value:
+        true,
+      path:
+        "standard_condition.holding_ramp_1"
+    },
+
+    {
+      field:
+        "holding_ramp_2",
+      value:
+        false,
+      path:
+        "standard_condition.holding_ramp_2"
+    },
+
+    {
+      field:
+        "holding_ramp_3",
+      value:
+        true,
+      path:
+        "standard_condition.holding_ramp_3"
+    },
+
+    {
+      field:
+        "holding_ramp_4",
+      value:
+        false,
+      path:
+        "standard_condition.holding_ramp_4"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const understandingResult =
+        ProductMutationAdapterTest_createUnderstandingResult(
+          "Ramp Field Update Test",
+          "ワンワン",
+          testCase.value,
+          null
+        );
+
+
+      understandingResult.view.name =
+        null;
+
+      understandingResult.change.field =
+        testCase.field;
+
+
+      const mutation =
+        ProductMutationAdapter_convert(
+          understandingResult
+        );
+
+
+      ProductMutationAdapterTest_assertNotNull(
+        mutation,
+        testCase.field + " mutation"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        mutation.mutationType,
+        "change_state",
+        testCase.field + " mutationType"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        mutation.stateChanges.length,
+        1,
+        testCase.field + " stateChanges.length"
+      );
+
+
+      const stateChange =
+        mutation.stateChanges[0];
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.path,
+        testCase.path,
+        testCase.field + " stateChange.path"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.proposedValue,
+        testCase.value,
+        testCase.field + " proposedValue"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.unit,
+        null,
+        testCase.field + " unit"
+      );
+
+
+      ProductMutationAdapterTest_assertEqual(
+        stateChange.preservationPolicy,
+        "create_new_version",
+        testCase.field + " preservationPolicy"
+      );
+
+
+      EntityMutationContract_validate(
+        mutation
+      );
+
+    }
   );
 
 }

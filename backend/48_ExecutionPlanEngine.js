@@ -1614,7 +1614,10 @@ function ExecutionPlanEngine_createArchiveOldConditionOperation(
       executionContext.productId,
 
     "版数":
-      executionContext.currentVersion,
+      executionContext
+        .currentCondition[
+          "版数"
+        ],
 
     "状態":
       "標準"
@@ -1665,7 +1668,10 @@ function ExecutionPlanEngine_createArchiveOldConditionOperation(
         executionContext.productId,
 
       "版数":
-        executionContext.currentVersion,
+        executionContext
+          .currentCondition[
+            "版数"
+          ],
 
       "状態":
         "旧版"

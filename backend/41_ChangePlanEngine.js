@@ -398,6 +398,25 @@ function ChangePlanEngine_findBlockingFields(
 
 
   /*
+  * 現在標準条件IDが指す条件は、
+  * 「標準」でなければならない。
+  */
+  if (
+    snapshot.condition &&
+    String(
+      snapshot.condition["状態"] || ""
+    ).trim() !==
+      "標準"
+  ) {
+
+    missingFields.push(
+      "snapshot.condition.状態.standard"
+    );
+
+  }
+
+
+  /*
   =========================================
   State Changes
   =========================================
@@ -472,21 +491,46 @@ function ChangePlanEngine_findBlockingFields(
 
 
         /*
-         * Ver.1.0では数値Fieldのみを扱う。
-         */
+        * RegistryのvalueTypeに従って
+        * proposedValueの型を確認する。
+        */
+        let isValidProposedValue =
+        false;
+
+
         if (
-          typeof stateChange.proposedValue !==
-            "number" ||
-          !isFinite(
-            stateChange.proposedValue
-          )
+        fieldDefinition.valueType ===
+            "number"
         ) {
 
-          missingFields.push(
+        isValidProposedValue =
+            typeof stateChange.proposedValue ===
+            "number" &&
+            Number.isFinite(
+            stateChange.proposedValue
+            );
+
+        } else if (
+        fieldDefinition.valueType ===
+            "boolean"
+        ) {
+
+        isValidProposedValue =
+            typeof stateChange.proposedValue ===
+            "boolean";
+
+        }
+
+
+        if (
+        !isValidProposedValue
+        ) {
+
+        missingFields.push(
             "mutation.stateChanges[" +
             index +
             "].proposedValue"
-          );
+        );
 
         }
 

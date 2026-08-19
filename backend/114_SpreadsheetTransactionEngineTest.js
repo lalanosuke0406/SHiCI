@@ -88,6 +88,13 @@ function test_SpreadsheetTransactionEngine_runAll() {
         "resultPassesContract",
       run:
         test_SpreadsheetTransactionEngine_resultPassesContract
+    },
+
+    {
+      name:
+        "booleanConditionDetailIsPersisted",
+      run:
+        test_SpreadsheetTransactionEngine_booleanConditionDetailIsPersisted
     }
 
   ];
@@ -2207,6 +2214,144 @@ function SpreadsheetTransactionEngineTest_deepCopy(
     JSON.stringify(
       value
     )
+  );
+
+}
+
+
+
+function test_SpreadsheetTransactionEngine_booleanConditionDetailIsPersisted() {
+
+  const spreadsheet =
+    SpreadsheetTransactionEngineTest_createSpreadsheet({
+
+      "成形条件マスター": [
+
+        [
+          "条件ID",
+          "製品ID",
+          "状態"
+        ]
+
+      ],
+
+      "成形条件詳細マスター": [
+
+        [
+          "条件ID",
+          "金型温度(℃)",
+          "速度徐変1(ON/OFF)",
+          "保圧徐変1(ON/OFF)"
+        ]
+
+      ],
+
+      "製品マスター": [
+
+        [
+          "製品ID",
+          "現在標準条件ID"
+        ],
+
+        [
+          "P-000035",
+          "COND-000152"
+        ]
+
+      ]
+
+    });
+
+
+  SpreadsheetTransactionEngineTest_prepareEnvironment(
+    spreadsheet
+  );
+
+
+  const executionPlan =
+    SpreadsheetTransactionEngineTest_createBaseExecutionPlan();
+
+
+  const detailOperation =
+    SpreadsheetTransactionEngineTest_createInsertDetailOperation(
+      2
+    );
+
+
+  detailOperation
+    .payload
+    .values[
+      "速度徐変1(ON/OFF)"
+    ] =
+    true;
+
+
+  detailOperation
+    .payload
+    .values[
+      "保圧徐変1(ON/OFF)"
+    ] =
+    false;
+
+
+  executionPlan.operations = [
+
+    SpreadsheetTransactionEngineTest_createInsertConditionOperation(
+      1
+    ),
+
+    detailOperation,
+
+    SpreadsheetTransactionEngineTest_createUpdateProductOperation(
+      3,
+      "COND-000152"
+    )
+
+  ];
+
+
+  ExecutionPlanContract_validate(
+    executionPlan
+  );
+
+
+  const result =
+    SpreadsheetTransactionEngine_execute(
+      executionPlan
+    );
+
+
+  SpreadsheetTransactionEngineTest_assertEquals(
+    EXECUTION_RESULT_STATUS_SUCCESS,
+    result.status,
+    "result.status"
+  );
+
+
+  const detailRow =
+    spreadsheet
+      .getSheetByName(
+        "成形条件詳細マスター"
+      )
+      .getAllValues()[1];
+
+
+  SpreadsheetTransactionEngineTest_assertEquals(
+    true,
+    detailRow[2],
+    "速度徐変1(ON/OFF)"
+  );
+
+
+  SpreadsheetTransactionEngineTest_assertEquals(
+    false,
+    detailRow[3],
+    "保圧徐変1(ON/OFF)"
+  );
+
+
+  console.log(
+    "[PASS] booleanConditionDetailIsPersisted"
   );
 
 }

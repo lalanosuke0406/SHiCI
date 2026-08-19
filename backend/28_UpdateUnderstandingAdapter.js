@@ -251,46 +251,98 @@ function UpdateUnderstandingAdapter_convert(
   =========================================
   */
 
-  const newValue =
-    Number(
-      validatedResult.change.value
-    );
+  let newValue;
 
 
   if (
-    !Number.isFinite(
-      newValue
-    )
+    fieldDefinition.valueType ===
+      "boolean"
   ) {
 
-    return {
+    if (
+      typeof validatedResult.change.value !==
+        "boolean"
+    ) {
 
-      status:
-        "incomplete",
+      return {
 
-      intentType:
-        "update",
+        status:
+          "incomplete",
 
-      updateType:
-        fieldDefinition.changeField,
+        intentType:
+          "update",
 
-      targetField:
-        fieldDefinition.spreadsheetHeader,
+        updateType:
+          fieldDefinition.changeField,
 
-      newValue:
-        null,
+        targetField:
+          fieldDefinition.spreadsheetHeader,
 
-      unit:
-        UpdateUnderstandingAdapter_convertUnit(
-          validatedResult.change.unit
-        ),
+        newValue:
+          null,
 
-      message:
-        "変更後の" +
-        fieldDefinition.label +
-        "を正しく取得できませんでした。"
+        unit:
+          UpdateUnderstandingAdapter_convertUnit(
+            validatedResult.change.unit
+          ),
 
-    };
+        message:
+          "変更後の" +
+          fieldDefinition.label +
+          "を正しく取得できませんでした。"
+
+      };
+
+    }
+
+
+    newValue =
+      validatedResult.change.value;
+
+  } else {
+
+    newValue =
+      Number(
+        validatedResult.change.value
+      );
+
+
+    if (
+      !Number.isFinite(
+        newValue
+      )
+    ) {
+
+      return {
+
+        status:
+          "incomplete",
+
+        intentType:
+          "update",
+
+        updateType:
+          fieldDefinition.changeField,
+
+        targetField:
+          fieldDefinition.spreadsheetHeader,
+
+        newValue:
+          null,
+
+        unit:
+          UpdateUnderstandingAdapter_convertUnit(
+            validatedResult.change.unit
+          ),
+
+        message:
+          "変更後の" +
+          fieldDefinition.label +
+          "を正しく取得できませんでした。"
+
+      };
+
+    }
 
   }
 
@@ -319,9 +371,12 @@ function UpdateUnderstandingAdapter_convert(
       newValue,
 
     unit:
-      UpdateUnderstandingAdapter_convertUnit(
-        fieldDefinition.canonicalUnit
-      )
+      fieldDefinition.canonicalUnit ===
+        null
+        ? null
+        : UpdateUnderstandingAdapter_convertUnit(
+            fieldDefinition.canonicalUnit
+          )
 
   };
 

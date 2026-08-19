@@ -2033,6 +2033,33 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
 
 
+    "- 標準成形条件の速度徐変1を変更する場合は、change.fieldをinjection_speed_ramp_1としてください。",
+    "- 速度徐変1をONにする場合は、change.valueをtrueとしてください。",
+    "- 速度徐変1をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 速度徐変1には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の速度徐変2を変更する場合は、change.fieldをinjection_speed_ramp_2としてください。",
+    "- 速度徐変2をONにする場合は、change.valueをtrueとしてください。",
+    "- 速度徐変2をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 速度徐変2には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の速度徐変3を変更する場合は、change.fieldをinjection_speed_ramp_3としてください。",
+    "- 速度徐変3をONにする場合は、change.valueをtrueとしてください。",
+    "- 速度徐変3をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 速度徐変3には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の速度徐変4を変更する場合は、change.fieldをinjection_speed_ramp_4としてください。",
+    "- 速度徐変4をONにする場合は、change.valueをtrueとしてください。",
+    "- 速度徐変4をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 速度徐変4には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の速度徐変5を変更する場合は、change.fieldをinjection_speed_ramp_5としてください。",
+    "- 速度徐変5をONにする場合は、change.valueをtrueとしてください。",
+    "- 速度徐変5をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 速度徐変5には単位がないため、change.unitはnullとしてください。",
+
+
+
     "- 標準成形条件の保圧または保圧条件について質問された場合は、view.nameをholding_conditionとしてください。",
 
     "- holding_conditionは保圧力P1～P4と保圧時間T1～T4を組み合わせて表示するViewであり、change.fieldには使用しないでください。",
@@ -2068,6 +2095,28 @@ function OpenAIAdapter_buildUnderstandingInstructions(
     "- 標準成形条件の保圧時間T4を変更する場合は、change.fieldをholding_time_t4としてください。",
 
     "- 保圧時間T4の単位は、change.unitをsecondとしてください。",
+
+
+
+    "- 標準成形条件の保圧徐変1を変更する場合は、change.fieldをholding_ramp_1としてください。",
+    "- 保圧徐変1をONにする場合は、change.valueをtrueとしてください。",
+    "- 保圧徐変1をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 保圧徐変1には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の保圧徐変2を変更する場合は、change.fieldをholding_ramp_2としてください。",
+    "- 保圧徐変2をONにする場合は、change.valueをtrueとしてください。",
+    "- 保圧徐変2をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 保圧徐変2には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の保圧徐変3を変更する場合は、change.fieldをholding_ramp_3としてください。",
+    "- 保圧徐変3をONにする場合は、change.valueをtrueとしてください。",
+    "- 保圧徐変3をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 保圧徐変3には単位がないため、change.unitはnullとしてください。",
+
+    "- 標準成形条件の保圧徐変4を変更する場合は、change.fieldをholding_ramp_4としてください。",
+    "- 保圧徐変4をONにする場合は、change.valueをtrueとしてください。",
+    "- 保圧徐変4をOFFにする場合は、change.valueをfalseとしてください。",
+    "- 保圧徐変4には単位がないため、change.unitはnullとしてください。",
 
 
 

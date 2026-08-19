@@ -66,6 +66,13 @@ function ConfirmationProposalEngineTest_runAll() {
     },
 
     {
+      name:
+        "buildMeteringPositionConfirmation",
+      run:
+        ConfirmationProposalEngineTest_buildMeteringPositionConfirmation
+    },
+
+    {
         name:
             "holdingTimeT1PresentationIsGenerated",
         run:
@@ -980,6 +987,9 @@ function ConfirmationProposalEngineTest_setHoldingTimeT1SnapshotOverride() {
 
           "冷却時間":
             8,
+
+          "計量値(mm)":
+            "",
 
           "保圧力:P1":
             30,
@@ -1914,5 +1924,103 @@ function ConfirmationProposalEngineTest_createHoldingStageChangePlan(
     ConfirmationProposalEngineTest_clearHoldingTimeT1SnapshotOverride();
 
   }
+
+}
+
+
+
+function ConfirmationProposalEngineTest_buildMeteringPositionConfirmation() {
+
+  const testCase = {
+
+    field:
+      "metering_position",
+
+    path:
+      "standard_condition.metering_position",
+
+    label:
+      "計量値",
+
+    value:
+      35,
+
+    unit:
+      "millimeter",
+
+    displayUnit:
+      "mm"
+
+  };
+
+
+  const changePlan =
+    ConfirmationProposalEngineTest_createHoldingStageChangePlan(
+      testCase
+    );
+
+
+  const proposal =
+    ConfirmationProposalEngine_build(
+      changePlan
+    );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    proposal.status,
+    "pending",
+    "metering_position proposal.status"
+  );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    proposal.changes.length,
+    1,
+    "metering_position proposal.changes.length"
+  );
+
+
+  const change =
+    proposal.changes[0];
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    change.path,
+    testCase.path,
+    "metering_position change.path"
+  );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    change.label,
+    testCase.label,
+    "metering_position change.label"
+  );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    change.before,
+    "",
+    "metering_position change.before"
+  );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    change.after,
+    testCase.value,
+    "metering_position change.after"
+  );
+
+
+  ConfirmationProposalEngineTest_assertEqual(
+    change.unit,
+    testCase.displayUnit,
+    "metering_position change.unit"
+  );
+
+
+  ConfirmationProposalContract_validate(
+    proposal
+  );
 
 }

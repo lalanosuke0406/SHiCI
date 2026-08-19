@@ -151,6 +151,44 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
   },
 
 
+  metering_position: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "metering_position",
+
+    path:
+      "standard_condition.metering_position",
+
+    spreadsheetHeader:
+      "計量値(mm)",
+
+    label:
+      "計量値",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter",
+
+    displayUnit:
+      "mm",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
 
   resin_temperature_z0: {
 

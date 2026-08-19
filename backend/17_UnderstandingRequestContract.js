@@ -232,6 +232,8 @@ function UnderstandingRequestContract_create(
         "resin_temperature_z6",
         "resin_temperature_zh",
 
+        "metering_position",
+
         "injection_speed_v1",
         "injection_stroke_s1",
         "injection_speed_v2",

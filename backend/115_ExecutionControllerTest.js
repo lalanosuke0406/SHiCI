@@ -87,6 +87,13 @@ function test_ExecutionController_runAll() {
 
     {
         name:
+            "meteringPositionSuccess",
+        run:
+            test_ExecutionController_meteringPositionSuccess
+    },
+
+    {
+        name:
             "rampSuccess",
         run:
             test_ExecutionController_rampSuccess
@@ -3916,6 +3923,116 @@ function test_ExecutionController_injectionStagesSuccess() {
 
   console.log(
     "[PASS] injectionStagesSuccess"
+  );
+
+}
+
+
+
+function test_ExecutionController_meteringPositionSuccess() {
+
+  const testCase = {
+
+    field:
+      "metering_position",
+
+    path:
+      "standard_condition.metering_position",
+
+    spreadsheetHeader:
+      "計量値(mm)",
+
+    value:
+      35,
+
+    unit:
+      "millimeter"
+
+  };
+
+
+  const fixture =
+    ExecutionControllerTest_createHoldingStageSuccessFixture(
+      testCase
+    );
+
+
+  try {
+
+    const result =
+      ExecutionController_confirmAndExecute(
+        fixture.proposal.proposalId,
+        fixture.changePlan.changePlanId,
+        {
+
+          source:
+            "execution_controller_test",
+
+          decidedBy:
+            "USER_EXECUTION_CONTROLLER_TEST",
+
+          requestId:
+            "REQUEST_EXECUTION_CONTROLLER_METERING_POSITION"
+
+        }
+      );
+
+
+    ExecutionControllerTest_validateResult(
+      result
+    );
+
+
+    ExecutionControllerTest_assertEquals(
+      EXECUTION_CONTROLLER_STATUS_COMPLETED,
+      result.status,
+      "metering_position result.status"
+    );
+
+
+    const detailRows =
+      fixture.spreadsheet
+        .getSheetByName(
+          "成形条件詳細マスター"
+        )
+        .getAllValues();
+
+
+    const detailHeaderMap =
+      ExecutionControllerTest_createHeaderMap(
+        detailRows[0]
+      );
+
+
+    ExecutionControllerTest_assertEquals(
+      3,
+      detailRows.length,
+      "metering_position detailRows.length"
+    );
+
+
+    ExecutionControllerTest_assertEquals(
+      35,
+      Number(
+        detailRows[2][
+          detailHeaderMap[
+            "計量値(mm)"
+          ]
+        ]
+      ),
+      "metering_position newConditionDetail.計量値(mm)"
+    );
+
+
+  } finally {
+
+    ExecutionControllerTest_clearEnvironment();
+
+  }
+
+
+  console.log(
+    "[PASS] meteringPositionSuccess"
   );
 
 }

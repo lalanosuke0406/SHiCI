@@ -39,6 +39,20 @@ function UnderstandingTest_runAll() {
 
     {
       name:
+        "MeteringPositionUpdate",
+      run:
+        UnderstandingTest_validateVersion2MeteringPositionUpdate
+    },
+
+    {
+      name:
+        "OpenAIInstructionsMeteringPosition",
+      run:
+        UnderstandingTest_validateVersion2OpenAIInstructionsMeteringPosition
+    },
+
+    {
+      name:
         "OpenAIInstructionsHoldingPressureP1",
       run:
         UnderstandingTest_validateVersion2OpenAIInstructionsHoldingPressureP1
@@ -168,6 +182,13 @@ function UnderstandingTest_runAllLive() {
         "Version2HandleRoutingLive",
       run:
         UnderstandingTest_runVersion2HandleRoutingLive
+    },
+
+    {
+      name:
+        "OpenAIMeteringPositionUpdate",
+      run:
+        UnderstandingTest_runVersion2OpenAIMeteringPositionUpdate
     },
 
     {
@@ -1003,6 +1024,12 @@ function UnderstandingTest_validateVersion2RequestContract() {
 
   UnderstandingTest_assertArrayIncludesV2(
     request.policy.allowedChangeFields,
+    "metering_position",
+    "allowedChangeFields"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    request.policy.allowedChangeFields,
     "injection_speed_v1",
     "allowedChangeFields"
   );
@@ -1280,6 +1307,17 @@ function UnderstandingTest_validateVersion2OpenAISchema() {
         .enum,
     "second",
     "Schema change.unit enum"
+  );
+
+  UnderstandingTest_assertArrayIncludesV2(
+    schema.properties
+        .change
+        .properties
+        .field
+        .anyOf[0]
+        .enum,
+    "metering_position",
+    "Schema change.field enum"
   );
 
   UnderstandingTest_assertArrayIncludesV2(
@@ -5113,6 +5151,53 @@ function UnderstandingTest_validateVersion2ResinTemperatureUpdateFields() {
 
 
 
+function UnderstandingTest_validateVersion2OpenAIInstructionsMeteringPosition() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの計量値を35mmにして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  const requiredTexts = [
+
+    "metering_position",
+    "millimeter",
+    "計量値"
+
+  ];
+
+
+  requiredTexts.forEach(
+    function(text) {
+
+      UnderstandingTest_assertTrueV2(
+        instructions.indexOf(
+          text
+        ) !== -1,
+        "Instructionsに" +
+        text +
+        "がありません。"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Instructions Metering Position"
+  );
+
+}
+
+
+
 function UnderstandingTest_validateVersion2OpenAIInstructionsHoldingStages() {
 
   const request =
@@ -5950,6 +6035,204 @@ function UnderstandingTest_runKMVLocalEntityProbe() {
       null,
       2
     )
+  );
+
+}
+
+
+
+/**
+ * 計量値(mm)について、
+ * Understanding Result Contractと
+ * UpdateUnderstandingAdapterの共通経路を確認する。
+ */
+function UnderstandingTest_validateVersion2MeteringPositionUpdate() {
+
+  UnderstandingTest_assertArrayIncludesV2(
+    UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS,
+    "metering_position",
+    "UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS"
+  );
+
+
+  const result =
+    UnderstandingTest_createVersion2StandardConditionUpdateResult(
+      "ワンワンの計量値を35mmにして",
+      "ワンワン",
+      "metering_position",
+      35,
+      "millimeter",
+      []
+    );
+
+
+  result.view.name =
+    null;
+
+
+  const validated =
+    UnderstandingResultContract_validate(
+      result
+    );
+
+
+  const updateIntent =
+    UpdateUnderstandingAdapter_convert(
+      validated
+    );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.field,
+    "metering_position",
+    "change.field"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.value,
+    35,
+    "change.value"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    validated.change.unit,
+    "millimeter",
+    "change.unit"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.status,
+    "ready",
+    "updateIntent.status"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.intentType,
+    "update",
+    "updateIntent.intentType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.updateType,
+    "metering_position",
+    "updateIntent.updateType"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.targetField,
+    "計量値(mm)",
+    "updateIntent.targetField"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.newValue,
+    35,
+    "updateIntent.newValue"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    updateIntent.unit,
+    "millimeter",
+    "updateIntent.unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Metering Position Update"
+  );
+
+}
+
+
+
+function UnderstandingTest_runVersion2OpenAIMeteringPositionUpdate() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの計量値を35mmにして"
+    );
+
+
+  const result =
+    OpenAIAdapter_understand(
+      request
+    );
+
+
+  Logger.log(
+    "[OpenAI Metering Position Result] " +
+    JSON.stringify(
+      result,
+      null,
+      2
+    )
+  );
+
+
+  UnderstandingResultContract_validate(
+    result
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.intent.type,
+    "update",
+    "metering_position intent.type"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.knowledgeBoundary.type,
+    "company_knowledge",
+    "metering_position knowledgeBoundary.type"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.entity.query,
+    "ワンワン",
+    "metering_position entity.query"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.field,
+    "metering_position",
+    "metering_position change.field"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.operation,
+    "set",
+    "metering_position change.operation"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.value,
+    35,
+    "metering_position change.value"
+  );
+
+
+  UnderstandingTest_assertEqualV2(
+    result.change.unit,
+    "millimeter",
+    "metering_position change.unit"
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Metering Position Update"
   );
 
 }

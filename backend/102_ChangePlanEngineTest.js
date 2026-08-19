@@ -43,10 +43,17 @@ function ChangePlanEngineTest_runAll() {
     },
 
     {
-        name:
-            "buildHoldingPressureP1ChangePlan",
-        run:
-            ChangePlanEngineTest_buildHoldingPressureP1ChangePlan
+      name:
+        "buildMeteringPositionChangePlan",
+      run:
+        ChangePlanEngineTest_buildMeteringPositionChangePlan
+    },
+
+    {
+      name:
+        "buildHoldingPressureP1ChangePlan",
+      run:
+        ChangePlanEngineTest_buildHoldingPressureP1ChangePlan
     },
 
     {
@@ -2071,6 +2078,10 @@ function ChangePlanEngineTest_setSnapshotOverride() {
             8,
 
 
+          "計量値(mm)":
+            null,
+
+
           "射出速度:V1":
             null,
 
@@ -2295,5 +2306,109 @@ function ChangePlanEngineTest_assertThrows(
     );
 
   }
+
+}
+
+
+
+/**
+ * 計量値の変更が
+ * Change Plan共通経路で生成されることを確認する。
+ */
+function ChangePlanEngineTest_buildMeteringPositionChangePlan() {
+
+  const testCase = {
+
+    field:
+      "metering_position",
+
+    path:
+      "standard_condition.metering_position",
+
+    spreadsheetHeader:
+      "計量値(mm)",
+
+    value:
+      35,
+
+    unit:
+      "millimeter"
+
+  };
+
+
+  const resolutionResult =
+    ChangePlanEngineTest_createHoldingStageResolvedMutation(
+      testCase
+    );
+
+
+  const changePlan =
+    ChangePlanEngine_build(
+      resolutionResult
+    );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.status,
+    "ready_for_confirmation",
+    "changePlan.status"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.changes.length,
+    1,
+    "changePlan.changes.length"
+  );
+
+
+  const change =
+    changePlan.changes[0];
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.changeType,
+    "state",
+    "change.changeType"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.path,
+    "standard_condition.metering_position",
+    "change.path"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.after,
+    35,
+    "change.after"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.unit,
+    "millimeter",
+    "change.unit"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    change.preservationPolicy,
+    "create_new_version",
+    "change.preservationPolicy"
+  );
+
+
+  ChangePlanEngineTest_assertEqual(
+    changePlan.proposedSnapshot
+      .conditionDetail[
+        "計量値(mm)"
+      ],
+    35,
+    "proposedSnapshot.conditionDetail.計量値(mm)"
+  );
 
 }

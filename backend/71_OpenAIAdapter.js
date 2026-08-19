@@ -1988,6 +1988,12 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- 標準成形条件の樹脂温ZHを変更する場合は、change.fieldをresin_temperature_zhとしてください。",
     "- 樹脂温ZHの単位は、change.unitをcelsiusとしてください。",
+    
+
+
+    "- 標準成形条件の計量値を変更する場合は、change.fieldをmetering_positionとしてください。",
+
+    "- 計量値の単位は、change.unitをmillimeterとしてください。",
 
 
 

@@ -100,6 +100,13 @@ function ProductMutationAdapterTest_runAll() {
     },
 
     {
+      name:
+        "validMeteringPosition",
+      run:
+        ProductMutationAdapterTest_validMeteringPosition
+    },
+
+    {
         name:
             "validRampFields",
         run:
@@ -1479,6 +1486,152 @@ function ProductMutationAdapterTest_validInjectionStages() {
 
   Logger.log(
     "[Passed] Product Mutation Adapter Injection Stages"
+  );
+
+}
+
+
+
+/**
+ * 計量値変更要求が
+ * change_state Mutationへ共通経路で変換されることを確認する。
+ */
+function ProductMutationAdapterTest_validMeteringPosition() {
+
+  const understandingResult =
+    ProductMutationAdapterTest_createUnderstandingResult(
+      "ワンワンの計量値を35mmにして",
+      "ワンワン",
+      35,
+      "millimeter"
+    );
+
+
+  /*
+   * 既存Fixtureは金型温度用なので、
+   * Fieldだけ計量値へ差し替える。
+   */
+  understandingResult.view.name =
+    null;
+
+  understandingResult.change.field =
+    "metering_position";
+
+
+  const mutation =
+    ProductMutationAdapter_convert(
+      understandingResult
+    );
+
+
+  ProductMutationAdapterTest_assertNotNull(
+    mutation,
+    "mutation"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.mutationType,
+    "change_state",
+    "mutationType"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.subject.entityType,
+    "product",
+    "subject.entityType"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.subject.entityQuery,
+    "ワンワン",
+    "subject.entityQuery"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.stateChanges.length,
+    1,
+    "stateChanges.length"
+  );
+
+
+  const stateChange =
+    mutation.stateChanges[0];
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.path,
+    "standard_condition.metering_position",
+    "stateChange.path"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.proposedValue,
+    35,
+    "stateChange.proposedValue"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.unit,
+    "millimeter",
+    "stateChange.unit"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    stateChange.preservationPolicy,
+    "create_new_version",
+    "stateChange.preservationPolicy"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.events.length,
+    1,
+    "events.length"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.events[0].details.field,
+    "metering_position",
+    "event.details.field"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.events[0].details.path,
+    "standard_condition.metering_position",
+    "event.details.path"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.events[0].details.proposedValue,
+    35,
+    "event.details.proposedValue"
+  );
+
+
+  ProductMutationAdapterTest_assertEqual(
+    mutation.events[0].details.unit,
+    "millimeter",
+    "event.details.unit"
+  );
+
+
+  EntityMutationContract_validate(
+    mutation
+  );
+
+
+  Logger.log(
+    "[Passed] Product Mutation Adapter Metering Position"
   );
 
 }

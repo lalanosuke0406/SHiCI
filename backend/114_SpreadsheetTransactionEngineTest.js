@@ -92,6 +92,13 @@ function test_SpreadsheetTransactionEngine_runAll() {
 
     {
       name:
+        "meteringPositionIsPersisted",
+      run:
+        test_SpreadsheetTransactionEngine_meteringPositionIsPersisted
+    },
+
+    {
+      name:
         "booleanConditionDetailIsPersisted",
       run:
         test_SpreadsheetTransactionEngine_booleanConditionDetailIsPersisted
@@ -2214,6 +2221,128 @@ function SpreadsheetTransactionEngineTest_deepCopy(
     JSON.stringify(
       value
     )
+  );
+
+}
+
+
+
+function test_SpreadsheetTransactionEngine_meteringPositionIsPersisted() {
+
+  const spreadsheet =
+    SpreadsheetTransactionEngineTest_createSpreadsheet({
+
+      "成形条件マスター": [
+
+        [
+          "条件ID",
+          "製品ID",
+          "状態"
+        ]
+
+      ],
+
+      "成形条件詳細マスター": [
+
+        [
+          "条件ID",
+          "金型温度(℃)",
+          "計量値(mm)"
+        ]
+
+      ],
+
+      "製品マスター": [
+
+        [
+          "製品ID",
+          "現在標準条件ID"
+        ],
+
+        [
+          "P-000035",
+          "COND-000152"
+        ]
+
+      ]
+
+    });
+
+
+  SpreadsheetTransactionEngineTest_prepareEnvironment(
+    spreadsheet
+  );
+
+
+  const executionPlan =
+    SpreadsheetTransactionEngineTest_createBaseExecutionPlan();
+
+
+  const detailOperation =
+    SpreadsheetTransactionEngineTest_createInsertDetailOperation(
+      2
+    );
+
+
+  detailOperation
+    .payload
+    .values[
+      "計量値(mm)"
+    ] =
+    35;
+
+
+  executionPlan.operations = [
+
+    SpreadsheetTransactionEngineTest_createInsertConditionOperation(
+      1
+    ),
+
+    detailOperation,
+
+    SpreadsheetTransactionEngineTest_createUpdateProductOperation(
+      3,
+      "COND-000152"
+    )
+
+  ];
+
+
+  ExecutionPlanContract_validate(
+    executionPlan
+  );
+
+
+  const result =
+    SpreadsheetTransactionEngine_execute(
+      executionPlan
+    );
+
+
+  SpreadsheetTransactionEngineTest_assertEquals(
+    EXECUTION_RESULT_STATUS_SUCCESS,
+    result.status,
+    "result.status"
+  );
+
+
+  const detailRow =
+    spreadsheet
+      .getSheetByName(
+        "成形条件詳細マスター"
+      )
+      .getAllValues()[1];
+
+
+  SpreadsheetTransactionEngineTest_assertEquals(
+    35,
+    detailRow[2],
+    "計量値(mm)"
+  );
+
+
+  console.log(
+    "[PASS] meteringPositionIsPersisted"
   );
 
 }

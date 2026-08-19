@@ -101,6 +101,13 @@ function test_ExecutionPlanEngine_runAll() {
     },
 
     {
+        name:
+            "buildMeteringPosition",
+        run:
+            test_ExecutionPlanEngine_build_meteringPosition
+    },
+
+    {
       name:
         "archiveOldConditionPreservesBlankVersion",
       run:
@@ -1554,6 +1561,9 @@ function ExecutionPlanEngineTest_setSnapshotOverride() {
           "冷却時間":
             8,
 
+          "計量値(mm)":
+            "",
+
 
           "射出速度:V1":
             "",
@@ -2858,6 +2868,84 @@ function test_ExecutionPlanEngine_build_injectionStages() {
   console.log(
     "[PASS] buildInjectionStages"
   );
+
+}
+
+
+
+function test_ExecutionPlanEngine_build_meteringPosition() {
+
+  const testCase = {
+
+    field:
+      "metering_position",
+
+    path:
+      "standard_condition.metering_position",
+
+    spreadsheetHeader:
+      "計量値(mm)",
+
+    value:
+      35,
+
+    unit:
+      "millimeter"
+
+  };
+
+
+  const confirmationExecution =
+    ExecutionPlanEngineTest_createHoldingStageConfirmationExecution(
+      testCase
+    );
+
+
+  try {
+
+    const executionPlan =
+      ExecutionPlanEngine_build(
+        confirmationExecution
+      );
+
+
+    const insertDetailOperation =
+      executionPlan.operations.find(
+        function(operation) {
+
+          return (
+            operation.operationId ===
+            "INSERT_NEW_CONDITION_DETAIL"
+          );
+
+        }
+      );
+
+
+    ExecutionPlanEngineTest_assertTrue(
+      !!insertDetailOperation,
+      "metering_position INSERT_NEW_CONDITION_DETAILがありません。"
+    );
+
+
+    ExecutionPlanEngineTest_assertEquals(
+      35,
+      insertDetailOperation
+        .payload
+        .values["計量値(mm)"],
+      "metering_position payload.values.計量値(mm)"
+    );
+
+
+    console.log(
+      "[PASS] buildMeteringPosition"
+    );
+
+  } finally {
+
+    ExecutionPlanEngineTest_clearSnapshotOverride();
+
+  }
 
 }
 

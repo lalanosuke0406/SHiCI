@@ -43,6 +43,13 @@ function test_StandardConditionFieldRegistry_runAll() {
 
     {
       name:
+        "findsMeteringPosition",
+      run:
+        test_StandardConditionFieldRegistry_findsMeteringPosition
+    },
+
+    {
+      name:
         "findsHoldingPressureP1",
       run:
         test_StandardConditionFieldRegistry_findsHoldingPressureP1
@@ -713,7 +720,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    38,
+    39,
     definitions.length,
     "definitions.length"
   );
@@ -767,6 +774,8 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
         "injection_stroke_s3",
         "injection_stroke_s4",
         "injection_stroke_s5",
+
+        "metering_position",
 
         "mold_temperature",
 
@@ -847,6 +856,8 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
         "injection_stroke_s3",
         "injection_stroke_s4",
         "injection_stroke_s5",
+
+        "metering_position",
 
         "mold_temperature",
 
@@ -1170,5 +1181,64 @@ function StandardConditionFieldRegistryTest_assertThrows(
     }
 
   }
+
+}
+
+
+
+function test_StandardConditionFieldRegistry_findsMeteringPosition() {
+
+  const definition =
+    StandardConditionFieldRegistry_find(
+      "metering_position"
+    );
+
+
+  StandardConditionFieldRegistryTest_assertTrue(
+    definition !== null,
+    "metering_position definition"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.changeField,
+    "metering_position",
+    "changeField"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.path,
+    "standard_condition.metering_position",
+    "path"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.spreadsheetHeader,
+    "計量値(mm)",
+    "spreadsheetHeader"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.valueType,
+    "number",
+    "valueType"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.canonicalUnit,
+    "millimeter",
+    "canonicalUnit"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.displayUnit,
+    "mm",
+    "displayUnit"
+  );
 
 }

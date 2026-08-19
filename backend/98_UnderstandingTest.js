@@ -46,9 +46,23 @@ function UnderstandingTest_runAll() {
 
     {
       name:
+        "AdditionalStandardConditionFields",
+      run:
+        UnderstandingTest_validateVersion2AdditionalStandardConditionFields
+    },
+
+    {
+      name:
         "OpenAIInstructionsMeteringPosition",
       run:
         UnderstandingTest_validateVersion2OpenAIInstructionsMeteringPosition
+    },
+
+    {
+      name:
+        "OpenAIInstructionsAdditionalStandardConditionFields",
+      run:
+        UnderstandingTest_validateVersion2OpenAIInstructionsAdditionalStandardConditionFields
     },
 
     {
@@ -189,6 +203,13 @@ function UnderstandingTest_runAllLive() {
         "OpenAIMeteringPositionUpdate",
       run:
         UnderstandingTest_runVersion2OpenAIMeteringPositionUpdate
+    },
+
+    {
+      name:
+        "OpenAIAdditionalStandardConditionFields",
+      run:
+        UnderstandingTest_runVersion2OpenAIAdditionalStandardConditionFields
     },
 
     {
@@ -6233,6 +6254,313 @@ function UnderstandingTest_runVersion2OpenAIMeteringPositionUpdate() {
 
   Logger.log(
     "[Passed] Version 2.0 OpenAI Metering Position Update"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2AdditionalStandardConditionFields() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンの上限圧を180MPaにして",
+      field:
+        "pressure_limit",
+      value:
+        180,
+      unit:
+        "megapascal",
+      spreadsheetHeader:
+        "上限圧(MPa)"
+    },
+
+    {
+      text:
+        "ワンワンの上限時間を2秒にして",
+      field:
+        "pressure_limit_time",
+      value:
+        2,
+      unit:
+        "second",
+      spreadsheetHeader:
+        "上限時間(秒)"
+    },
+
+    {
+      text:
+        "ワンワンの保圧速度を50mm/sにして",
+      field:
+        "holding_speed",
+      value:
+        50,
+      unit:
+        "millimeter_per_second",
+      spreadsheetHeader:
+        "保圧速度(mm/s)"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      UnderstandingTest_assertArrayIncludesV2(
+        UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS,
+        testCase.field,
+        "UNDERSTANDING_RESULT_ALLOWED_CHANGE_FIELDS"
+      );
+
+
+      const result =
+        UnderstandingTest_createVersion2StandardConditionUpdateResult(
+          testCase.text,
+          "ワンワン",
+          testCase.field,
+          testCase.value,
+          testCase.unit,
+          []
+        );
+
+
+      result.view.name =
+        null;
+
+
+      const validated =
+        UnderstandingResultContract_validate(
+          result
+        );
+
+
+      const updateIntent =
+        UpdateUnderstandingAdapter_convert(
+          validated
+        );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.field,
+        testCase.field,
+        testCase.field + " change.field"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.value,
+        testCase.value,
+        testCase.field + " change.value"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        validated.change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.status,
+        "ready",
+        testCase.field + " updateIntent.status"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.updateType,
+        testCase.field,
+        testCase.field + " updateIntent.updateType"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        updateIntent.targetField,
+        testCase.spreadsheetHeader,
+        testCase.field + " updateIntent.targetField"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 Additional Standard Condition Fields"
+  );
+
+}
+
+
+
+function UnderstandingTest_validateVersion2OpenAIInstructionsAdditionalStandardConditionFields() {
+
+  const request =
+    UnderstandingRequestContract_create(
+      "ワンワンの上限圧を180MPaにして"
+    );
+
+
+  const instructions =
+    OpenAIAdapter_buildUnderstandingInstructions(
+      request
+    );
+
+
+  const requiredTexts = [
+
+    "pressure_limit",
+    "pressure_limit_time",
+    "holding_speed",
+
+    "megapascal",
+    "second",
+    "millimeter_per_second",
+
+    "上限圧",
+    "上限時間",
+    "保圧速度"
+
+  ];
+
+
+  requiredTexts.forEach(
+    function(text) {
+
+      UnderstandingTest_assertTrueV2(
+        instructions.indexOf(
+          text
+        ) !== -1,
+        "Instructionsに" +
+        text +
+        "がありません。"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Instructions Additional Standard Condition Fields"
+  );
+
+}
+
+
+
+function UnderstandingTest_runVersion2OpenAIAdditionalStandardConditionFields() {
+
+  const cases = [
+
+    {
+      text:
+        "ワンワンの上限圧を180MPaにして",
+      field:
+        "pressure_limit",
+      value:
+        180,
+      unit:
+        "megapascal"
+    },
+
+    {
+      text:
+        "ワンワンの上限時間を2秒にして",
+      field:
+        "pressure_limit_time",
+      value:
+        2,
+      unit:
+        "second"
+    },
+
+    {
+      text:
+        "ワンワンの保圧速度を50mm/sにして",
+      field:
+        "holding_speed",
+      value:
+        50,
+      unit:
+        "millimeter_per_second"
+    }
+
+  ];
+
+
+  cases.forEach(
+    function(testCase) {
+
+      const request =
+        UnderstandingRequestContract_create(
+          testCase.text
+        );
+
+
+      const result =
+        OpenAIAdapter_understand(
+          request
+        );
+
+
+      Logger.log(
+        "[OpenAI Additional Field Result] " +
+        JSON.stringify(
+          result,
+          null,
+          2
+        )
+      );
+
+
+      UnderstandingResultContract_validate(
+        result
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.intent.type,
+        "update",
+        testCase.field + " intent.type"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.field,
+        testCase.field,
+        testCase.field + " change.field"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.operation,
+        "set",
+        testCase.field + " change.operation"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.value,
+        testCase.value,
+        testCase.field + " change.value"
+      );
+
+
+      UnderstandingTest_assertEqualV2(
+        result.change.unit,
+        testCase.unit,
+        testCase.field + " change.unit"
+      );
+
+    }
+  );
+
+
+  Logger.log(
+    "[Passed] Version 2.0 OpenAI Additional Standard Condition Fields"
   );
 
 }

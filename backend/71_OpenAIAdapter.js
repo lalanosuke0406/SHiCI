@@ -1988,12 +1988,26 @@ function OpenAIAdapter_buildUnderstandingInstructions(
 
     "- 標準成形条件の樹脂温ZHを変更する場合は、change.fieldをresin_temperature_zhとしてください。",
     "- 樹脂温ZHの単位は、change.unitをcelsiusとしてください。",
-    
+
 
 
     "- 標準成形条件の計量値を変更する場合は、change.fieldをmetering_positionとしてください。",
 
     "- 計量値の単位は、change.unitをmillimeterとしてください。",
+
+    
+
+    "- 標準成形条件の上限圧を変更する場合は、change.fieldをpressure_limitとしてください。",
+
+    "- 上限圧の単位は、change.unitをmegapascalとしてください。",
+
+    "- 標準成形条件の上限時間を変更する場合は、change.fieldをpressure_limit_timeとしてください。",
+
+    "- 上限時間の単位は、change.unitをsecondとしてください。",
+
+    "- 標準成形条件の保圧速度を変更する場合は、change.fieldをholding_speedとしてください。",
+
+    "- 保圧速度の単位は、change.unitをmillimeter_per_secondとしてください。",
 
 
 

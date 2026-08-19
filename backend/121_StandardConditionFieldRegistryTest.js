@@ -50,16 +50,37 @@ function test_StandardConditionFieldRegistry_runAll() {
 
     {
       name:
+        "findsPressureLimit",
+      run:
+        test_StandardConditionFieldRegistry_findsPressureLimit
+    },
+
+    {
+      name:
+        "findsPressureLimitTime",
+      run:
+        test_StandardConditionFieldRegistry_findsPressureLimitTime
+    },
+
+    {
+      name:
+        "findsHoldingSpeed",
+      run:
+        test_StandardConditionFieldRegistry_findsHoldingSpeed
+    },
+
+    {
+      name:
         "findsHoldingPressureP1",
       run:
         test_StandardConditionFieldRegistry_findsHoldingPressureP1
     },
 
     {
-        name:
-            "findsDefinitionByPath",
-        run:
-            test_StandardConditionFieldRegistry_findsDefinitionByPath
+      name:
+          "findsDefinitionByPath",
+      run:
+          test_StandardConditionFieldRegistry_findsDefinitionByPath
     },
 
     {
@@ -720,7 +741,7 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
 
 
   StandardConditionFieldRegistryTest_assertEquals(
-    39,
+    42,
     definitions.length,
     "definitions.length"
   );
@@ -752,6 +773,8 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
         "holding_ramp_3",
         "holding_ramp_4",
 
+        "holding_speed",
+
         "holding_time_t1",
         "holding_time_t2",
         "holding_time_t3",
@@ -778,6 +801,9 @@ function test_StandardConditionFieldRegistry_listsEnabledDefinitions() {
         "metering_position",
 
         "mold_temperature",
+
+        "pressure_limit",
+        "pressure_limit_time",
 
         "resin_temperature_z0",
         "resin_temperature_z1",
@@ -834,6 +860,8 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
         "holding_ramp_3",
         "holding_ramp_4",
 
+        "holding_speed",
+
         "holding_time_t1",
         "holding_time_t2",
         "holding_time_t3",
@@ -860,6 +888,9 @@ function test_StandardConditionFieldRegistry_listsChangeFields() {
         "metering_position",
 
         "mold_temperature",
+
+        "pressure_limit",
+        "pressure_limit_time",
 
         "resin_temperature_z0",
         "resin_temperature_z1",
@@ -1238,6 +1269,181 @@ function test_StandardConditionFieldRegistry_findsMeteringPosition() {
   StandardConditionFieldRegistryTest_assertEquals(
     definition.displayUnit,
     "mm",
+    "displayUnit"
+  );
+
+}
+
+
+
+function test_StandardConditionFieldRegistry_findsPressureLimit() {
+
+  const definition =
+    StandardConditionFieldRegistry_find(
+      "pressure_limit"
+    );
+
+
+  StandardConditionFieldRegistryTest_assertTrue(
+    definition !== null,
+    "pressure_limit definition"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.changeField,
+    "pressure_limit",
+    "changeField"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.path,
+    "standard_condition.pressure_limit",
+    "path"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.spreadsheetHeader,
+    "上限圧(MPa)",
+    "spreadsheetHeader"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.valueType,
+    "number",
+    "valueType"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.canonicalUnit,
+    "megapascal",
+    "canonicalUnit"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.displayUnit,
+    "MPa",
+    "displayUnit"
+  );
+
+}
+
+
+function test_StandardConditionFieldRegistry_findsPressureLimitTime() {
+
+  const definition =
+    StandardConditionFieldRegistry_find(
+      "pressure_limit_time"
+    );
+
+
+  StandardConditionFieldRegistryTest_assertTrue(
+    definition !== null,
+    "pressure_limit_time definition"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.changeField,
+    "pressure_limit_time",
+    "changeField"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.path,
+    "standard_condition.pressure_limit_time",
+    "path"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.spreadsheetHeader,
+    "上限時間(秒)",
+    "spreadsheetHeader"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.valueType,
+    "number",
+    "valueType"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.canonicalUnit,
+    "second",
+    "canonicalUnit"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.displayUnit,
+    "秒",
+    "displayUnit"
+  );
+
+}
+
+
+function test_StandardConditionFieldRegistry_findsHoldingSpeed() {
+
+  const definition =
+    StandardConditionFieldRegistry_find(
+      "holding_speed"
+    );
+
+
+  StandardConditionFieldRegistryTest_assertTrue(
+    definition !== null,
+    "holding_speed definition"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.changeField,
+    "holding_speed",
+    "changeField"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.path,
+    "standard_condition.holding_speed",
+    "path"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.spreadsheetHeader,
+    "保圧速度(mm/s)",
+    "spreadsheetHeader"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.valueType,
+    "number",
+    "valueType"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.canonicalUnit,
+    "millimeter_per_second",
+    "canonicalUnit"
+  );
+
+
+  StandardConditionFieldRegistryTest_assertEquals(
+    definition.displayUnit,
+    "mm/s",
     "displayUnit"
   );
 

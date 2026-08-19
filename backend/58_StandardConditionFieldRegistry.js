@@ -189,6 +189,121 @@ const STANDARD_CONDITION_FIELD_DEFINITIONS = {
   },
 
 
+  pressure_limit: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "pressure_limit",
+
+    path:
+      "standard_condition.pressure_limit",
+
+    spreadsheetHeader:
+      "上限圧(MPa)",
+
+    label:
+      "上限圧",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "megapascal",
+
+    displayUnit:
+      "MPa",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  pressure_limit_time: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "pressure_limit_time",
+
+    path:
+      "standard_condition.pressure_limit_time",
+
+    spreadsheetHeader:
+      "上限時間(秒)",
+
+    label:
+      "上限時間",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "second",
+
+    displayUnit:
+      "秒",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  holding_speed: {
+
+    registryVersion:
+      STANDARD_CONDITION_FIELD_REGISTRY_VERSION,
+
+    changeField:
+      "holding_speed",
+
+    path:
+      "standard_condition.holding_speed",
+
+    spreadsheetHeader:
+      "保圧速度(mm/s)",
+
+    label:
+      "保圧速度",
+
+    valueType:
+      "number",
+
+    canonicalUnit:
+      "millimeter_per_second",
+
+    displayUnit:
+      "mm/s",
+
+    preservationPolicy:
+      STANDARD_CONDITION_FIELD_PRESERVATION_CREATE_NEW_VERSION,
+
+    group:
+      "standard_condition",
+
+    enabled:
+      true
+
+  },
+
+
+  
 
   resin_temperature_z0: {
 

@@ -233,6 +233,9 @@ function UnderstandingRequestContract_create(
         "resin_temperature_zh",
 
         "metering_position",
+        "pressure_limit",
+        "pressure_limit_time",
+        "holding_speed",
 
         "injection_speed_v1",
         "injection_stroke_s1",

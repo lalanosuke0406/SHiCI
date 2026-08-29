@@ -41,7 +41,11 @@ async function handleSubmit(event) {
     if (!text) return;
 
     // ユーザー発言
-    addMessage(text, "user");
+    const userMessage =
+        addMessage(
+            text,
+            "user"
+        );
 
     // Welcome非表示
     if (welcome) {
@@ -88,6 +92,48 @@ async function handleSubmit(event) {
                 result.answer || ""
             );
         
+        }
+
+
+        else if (
+            result.messageType ===
+                "executive_challenge"
+        ) {
+
+            ExecutiveMessageController_handleChallenge(
+                userMessage,
+                loading,
+                result
+            );
+
+        }
+
+
+        else if (
+            result.messageType ===
+                "executive_challenge_failed"
+        ) {
+
+            ExecutiveMessageController_handleChallengeFailed(
+                userMessage,
+                loading,
+                result
+            );
+
+        }
+
+
+        else if (
+            result.messageType ===
+                "executive_message_unlocked"
+        ) {
+
+            ExecutiveMessageController_handleUnlocked(
+                userMessage,
+                loading,
+                result
+            );
+
         }
 
 

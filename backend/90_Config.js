@@ -134,3 +134,85 @@ function Config_getGoogleClientId() {
   return String(clientId).trim();
 
 }
+
+
+/*
+=========================================
+Executive Message
+=========================================
+*/
+
+function Config_getExecutiveMessageSpreadsheetId() {
+
+  const spreadsheetId =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        "EXECUTIVE_MESSAGE_SPREADSHEET_ID"
+      );
+
+  if (
+    !spreadsheetId ||
+    !String(spreadsheetId).trim()
+  ) {
+
+    throw new Error(
+      "EXECUTIVE_MESSAGE_SPREADSHEET_IDが設定されていません。"
+    );
+
+  }
+
+  return String(spreadsheetId).trim();
+
+}
+
+function Config_getExecutiveMessageTrigger() {
+
+  return Config_getRequiredScriptProperty(
+    "EXECUTIVE_MESSAGE_TRIGGER"
+  );
+
+}
+
+function Config_getExecutiveMessageChallenge() {
+
+  return Config_getRequiredScriptProperty(
+    "EXECUTIVE_MESSAGE_CHALLENGE"
+  );
+
+}
+
+function Config_getExecutiveMessageResponse() {
+
+  return Config_getRequiredScriptProperty(
+    "EXECUTIVE_MESSAGE_RESPONSE"
+  );
+
+}
+
+function Config_getRequiredScriptProperty(
+  propertyName
+) {
+
+  const value =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        propertyName
+      );
+
+  if (
+    !value ||
+    !String(value).trim()
+  ) {
+
+    throw new Error(
+      propertyName +
+      "が設定されていません。"
+    );
+
+  }
+
+  return String(value).trim();
+
+}

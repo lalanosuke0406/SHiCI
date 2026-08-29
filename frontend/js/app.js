@@ -8,5 +8,7 @@ document.addEventListener(
 
         initializeChat();
 
+        initializeExecutiveMessage();
+
     }
 );

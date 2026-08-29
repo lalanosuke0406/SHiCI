@@ -261,6 +261,107 @@ async function cancelUpdateRequest(
 
 
 
+async function listExecutiveMessagePeers(
+    executiveSessionToken
+) {
+
+    return await callApi(
+        "executiveMessageListPeers",
+        {
+            executiveSessionToken
+        }
+    );
+
+}
+
+async function listExecutiveMessages(
+    executiveSessionToken,
+    peerUserId
+) {
+
+    return await callApi(
+        "executiveMessageList",
+        {
+            executiveSessionToken,
+            peerUserId
+        }
+    );
+
+}
+
+async function sendExecutiveMessage(
+    executiveSessionToken,
+    recipientUserId,
+    body
+) {
+
+    return await callApi(
+        "executiveMessageSend",
+        {
+            executiveSessionToken,
+            recipientUserId,
+            body
+        }
+    );
+
+}
+
+async function lockExecutiveMessage(
+    executiveSessionToken
+) {
+
+    return await callApi(
+        "executiveMessageLock",
+        {
+            executiveSessionToken
+        }
+    );
+
+}
+
+function lockExecutiveMessageBestEffort(
+    executiveSessionToken
+) {
+
+    const normalizedToken =
+        String(
+            executiveSessionToken || ""
+        ).trim();
+
+    if (!normalizedToken) {
+        return;
+    }
+
+    try {
+
+        fetch(
+            GAS_API_URL,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "text/plain;charset=utf-8"
+                },
+                body: JSON.stringify({
+                    action:
+                        "executiveMessageLock",
+                    sessionId:
+                        getSessionId(),
+                    executiveSessionToken:
+                        normalizedToken
+                }),
+                keepalive: true
+            }
+        ).catch(
+            function() {}
+        );
+
+    } catch (error) {
+    }
+
+}
+
+
 async function callApi(
     action,
     body = {}

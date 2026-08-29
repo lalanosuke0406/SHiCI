@@ -97,6 +97,18 @@ function ActionRouter_routePost(data) {
 
         }
 
+        const executiveMessageResult =
+            ExecutiveMessageSessionEngine_tryHandleChat(
+                data.sessionId,
+                data.text
+            );
+
+        if (executiveMessageResult) {
+
+            return executiveMessageResult;
+
+        }
+
         return routeRequest(
             data.text,
             data.sessionId
@@ -135,6 +147,64 @@ function ActionRouter_routePost(data) {
             ).trim(),
 
             data.sessionId
+        );
+
+    }
+
+
+    /*
+    =========================================
+    役員メッセージ
+    =========================================
+    */
+
+    if (
+        data.action ===
+        "executiveMessageListPeers"
+    ) {
+
+        return ExecutiveMessageService_listPeers(
+            data.sessionId,
+            data.executiveSessionToken
+        );
+
+    }
+
+    if (
+        data.action ===
+        "executiveMessageList"
+    ) {
+
+        return ExecutiveMessageService_listMessages(
+            data.sessionId,
+            data.executiveSessionToken,
+            data.peerUserId
+        );
+
+    }
+
+    if (
+        data.action ===
+        "executiveMessageSend"
+    ) {
+
+        return ExecutiveMessageService_sendMessage(
+            data.sessionId,
+            data.executiveSessionToken,
+            data.recipientUserId,
+            data.body
+        );
+
+    }
+
+    if (
+        data.action ===
+        "executiveMessageLock"
+    ) {
+
+        return ExecutiveMessageService_lock(
+            data.sessionId,
+            data.executiveSessionToken
         );
 
     }

@@ -1,0 +1,13 @@
+{
+	"$schema": "./node_modules/wrangler/config-schema.json",
+	"name": "shici-executive-push",
+	"main": "src/worker.js",
+	"compatibility_date": "2026-08-31",
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"vars": {
+		"VAPID_PUBLIC_KEY": "BOAtgbpzLSbcySnKmFeTh9CcsyiO7bb77QMgu8y2cr5jGYprxsq3tOqN4vDagoP5liGefTh1oKqTQ2j5df1hHMM",
+		"VAPID_SUBJECT": "mailto:akira@shinko-ft.co.jp"
+	}
+}

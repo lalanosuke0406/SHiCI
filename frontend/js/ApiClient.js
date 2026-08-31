@@ -319,6 +319,55 @@ async function lockExecutiveMessage(
 
 }
 
+
+
+async function getExecutivePushConfiguration(
+    executiveSessionToken
+) {
+
+    return await callApi(
+        "executivePushConfig",
+        {
+            executiveSessionToken
+        }
+    );
+
+}
+
+
+async function registerExecutivePushSubscription(
+    executiveSessionToken,
+    subscription
+) {
+
+    return await callApi(
+        "executivePushSubscribe",
+        {
+            executiveSessionToken,
+            subscription
+        }
+    );
+
+}
+
+
+async function unregisterExecutivePushSubscription(
+    executiveSessionToken,
+    endpoint
+) {
+
+    return await callApi(
+        "executivePushUnsubscribe",
+        {
+            executiveSessionToken,
+            endpoint
+        }
+    );
+
+}
+
+
+
 function lockExecutiveMessageBestEffort(
     executiveSessionToken
 ) {

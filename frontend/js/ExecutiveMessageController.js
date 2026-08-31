@@ -243,11 +243,18 @@ function ExecutiveMessageController_handleUnlocked(
   }
 
   executiveSessionToken = token;
+
+  ExecutivePushController_setSessionToken(
+    token
+  );
+
   executivePeers = Array.isArray(result.peers)
     ? result.peers
     : [];
 
   ExecutiveMessageController_openView();
+
+  ExecutivePushController_refreshButton();
 
 }
 
@@ -827,6 +834,9 @@ function ExecutiveMessageController_emergencyClose() {
     executiveSessionToken;
 
   executiveSessionToken = null;
+
+  ExecutivePushController_clearSessionToken();
+
   executiveActivePeerUserId = null;
   executivePeers = [];
 

@@ -744,3 +744,528 @@ function ExecutiveMessageRepository_toIsoString(
   return date.toISOString();
 
 }
+
+
+
+
+/**
+ * Push Subscriptionを登録または更新する。
+ *
+ * endpointを端末購読の一意キーとして扱う。
+ *
+ * @param {Object} subscription
+ * @return {Object}
+ */
+function ExecutiveMessageRepository_upsertPushSubscription(
+  subscription
+) {
+
+  const sheet =
+    ExecutiveMessageRepository_getRequiredSheet(
+      "ExecutivePushSubscriptions"
+    );
+
+
+  const values =
+    sheet
+      .getDataRange()
+      .getValues();
+
+
+  if (
+    values.length < 1
+  ) {
+
+    throw new Error(
+      "ExecutivePushSubscriptionsのHeaderがありません。"
+    );
+
+  }
+
+
+  const headers =
+    values[0];
+
+
+  const headerMap =
+    ExecutiveMessageRepository_createHeaderMap(
+      headers
+    );
+
+
+  ExecutiveMessageRepository_requireHeaders(
+    headerMap,
+    [
+      "subscriptionId",
+      "userId",
+      "endpoint",
+      "p256dh",
+      "auth",
+      "status",
+      "createdAt",
+      "updatedAt",
+      "lastSuccessAt",
+      "failureCount"
+    ],
+    "ExecutivePushSubscriptions"
+  );
+
+
+  const normalizedEndpoint =
+    String(
+      subscription.endpoint || ""
+    ).trim();
+
+
+  if (
+    !normalizedEndpoint
+  ) {
+
+    throw new Error(
+      "Push Subscription endpointがありません。"
+    );
+
+  }
+
+
+  const now =
+    new Date();
+
+
+  for (
+    let rowIndex = 1;
+    rowIndex < values.length;
+    rowIndex++
+  ) {
+
+    const row =
+      values[rowIndex];
+
+
+    const storedEndpoint =
+      String(
+        row[
+          headerMap.endpoint
+        ] || ""
+      ).trim();
+
+
+    if (
+      storedEndpoint !==
+        normalizedEndpoint
+    ) {
+      continue;
+    }
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.userId + 1
+      )
+      .setValue(
+        subscription.userId
+      );
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.p256dh + 1
+      )
+      .setValue(
+        subscription.p256dh
+      );
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.auth + 1
+      )
+      .setValue(
+        subscription.auth
+      );
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.status + 1
+      )
+      .setValue(
+        "ACTIVE"
+      );
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.updatedAt + 1
+      )
+      .setValue(
+        now
+      );
+
+
+    return {
+
+      subscriptionId:
+        String(
+          row[
+            headerMap.subscriptionId
+          ] || ""
+        ).trim(),
+
+      userId:
+        String(
+          subscription.userId || ""
+        ).trim(),
+
+      endpoint:
+        normalizedEndpoint,
+
+      p256dh:
+        String(
+          subscription.p256dh || ""
+        ).trim(),
+
+      auth:
+        String(
+          subscription.auth || ""
+        ).trim(),
+
+      status:
+        "ACTIVE"
+
+    };
+
+  }
+
+
+  const record = {
+
+    subscriptionId:
+      Utilities.getUuid(),
+
+    userId:
+      String(
+        subscription.userId || ""
+      ).trim(),
+
+    endpoint:
+      normalizedEndpoint,
+
+    p256dh:
+      String(
+        subscription.p256dh || ""
+      ).trim(),
+
+    auth:
+      String(
+        subscription.auth || ""
+      ).trim(),
+
+    status:
+      "ACTIVE",
+
+    createdAt:
+      now,
+
+    updatedAt:
+      now,
+
+    lastSuccessAt:
+      "",
+
+    failureCount:
+      0
+
+  };
+
+
+  const newRow =
+    headers.map(
+      function(header) {
+
+        const normalizedHeader =
+          String(
+            header || ""
+          ).trim();
+
+        if (
+          Object.prototype.hasOwnProperty.call(
+            record,
+            normalizedHeader
+          )
+        ) {
+
+          return record[
+            normalizedHeader
+          ];
+
+        }
+
+        return "";
+
+      }
+    );
+
+
+  sheet.appendRow(
+    newRow
+  );
+
+
+  return record;
+
+}
+
+
+/**
+ * 指定Userの有効なPush Subscriptionを取得する。
+ *
+ * @param {string} userId
+ * @return {Array<Object>}
+ */
+function ExecutiveMessageRepository_listActivePushSubscriptionsByUserId(
+  userId
+) {
+
+  const normalizedUserId =
+    String(
+      userId || ""
+    ).trim();
+
+
+  if (
+    !normalizedUserId
+  ) {
+    return [];
+  }
+
+
+  const sheet =
+    ExecutiveMessageRepository_getRequiredSheet(
+      "ExecutivePushSubscriptions"
+    );
+
+
+  const values =
+    sheet
+      .getDataRange()
+      .getValues();
+
+
+  if (
+    values.length < 2
+  ) {
+    return [];
+  }
+
+
+  const headerMap =
+    ExecutiveMessageRepository_createHeaderMap(
+      values[0]
+    );
+
+
+  ExecutiveMessageRepository_requireHeaders(
+    headerMap,
+    [
+      "subscriptionId",
+      "userId",
+      "endpoint",
+      "p256dh",
+      "auth",
+      "status"
+    ],
+    "ExecutivePushSubscriptions"
+  );
+
+
+  return values
+    .slice(1)
+    .map(
+      function(row) {
+
+        return {
+
+          subscriptionId:
+            String(
+              row[
+                headerMap.subscriptionId
+              ] || ""
+            ).trim(),
+
+          userId:
+            String(
+              row[
+                headerMap.userId
+              ] || ""
+            ).trim(),
+
+          endpoint:
+            String(
+              row[
+                headerMap.endpoint
+              ] || ""
+            ).trim(),
+
+          p256dh:
+            String(
+              row[
+                headerMap.p256dh
+              ] || ""
+            ).trim(),
+
+          auth:
+            String(
+              row[
+                headerMap.auth
+              ] || ""
+            ).trim(),
+
+          status:
+            String(
+              row[
+                headerMap.status
+              ] || ""
+            )
+              .trim()
+              .toUpperCase()
+
+        };
+
+      }
+    )
+    .filter(
+      function(subscription) {
+
+        return (
+          subscription.userId ===
+            normalizedUserId &&
+          subscription.status ===
+            "ACTIVE" &&
+          subscription.endpoint &&
+          subscription.p256dh &&
+          subscription.auth
+        );
+
+      }
+    );
+
+}
+
+
+/**
+ * Push Subscriptionを無効化する。
+ *
+ * @param {string} endpoint
+ * @return {boolean}
+ */
+function ExecutiveMessageRepository_deactivatePushSubscription(
+  endpoint
+) {
+
+  const normalizedEndpoint =
+    String(
+      endpoint || ""
+    ).trim();
+
+
+  if (
+    !normalizedEndpoint
+  ) {
+    return false;
+  }
+
+
+  const sheet =
+    ExecutiveMessageRepository_getRequiredSheet(
+      "ExecutivePushSubscriptions"
+    );
+
+
+  const values =
+    sheet
+      .getDataRange()
+      .getValues();
+
+
+  if (
+    values.length < 2
+  ) {
+    return false;
+  }
+
+
+  const headerMap =
+    ExecutiveMessageRepository_createHeaderMap(
+      values[0]
+    );
+
+
+  ExecutiveMessageRepository_requireHeaders(
+    headerMap,
+    [
+      "endpoint",
+      "status",
+      "updatedAt"
+    ],
+    "ExecutivePushSubscriptions"
+  );
+
+
+  for (
+    let rowIndex = 1;
+    rowIndex < values.length;
+    rowIndex++
+  ) {
+
+    const storedEndpoint =
+      String(
+        values[
+          rowIndex
+        ][
+          headerMap.endpoint
+        ] || ""
+      ).trim();
+
+
+    if (
+      storedEndpoint !==
+        normalizedEndpoint
+    ) {
+      continue;
+    }
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.status + 1
+      )
+      .setValue(
+        "INACTIVE"
+      );
+
+
+    sheet
+      .getRange(
+        rowIndex + 1,
+        headerMap.updatedAt + 1
+      )
+      .setValue(
+        new Date()
+      );
+
+
+    return true;
+
+  }
+
+
+  return false;
+
+}

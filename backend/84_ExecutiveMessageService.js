@@ -231,6 +231,39 @@ function ExecutiveMessageService_sendMessage(
     message
   );
 
+  /*
+  =========================================
+  Executive Push Notification
+  =========================================
+
+  メッセージ保存を本処理とし、
+  Push通知はbest-effortで実行する。
+
+  Push側で障害が発生しても
+  メッセージ送信自体は成功扱いとする。
+  */
+
+  try {
+
+    const pushSubscriptions =
+      ExecutiveMessageRepository_listActivePushSubscriptionsByUserId(
+        recipient.userId
+      );
+
+
+    ExecutivePushService_sendAll(
+      pushSubscriptions
+    );
+
+  } catch (error) {
+
+    /*
+     * Push通知失敗は握りつぶす。
+     * メッセージ保存結果には影響させない。
+     */
+
+  }
+
   return {
 
     status:
@@ -365,6 +398,166 @@ function ExecutiveMessageService_requirePeer(
       peerUser.nickName ||
       peerUser.name ||
       peerUser.email
+
+  };
+
+}
+
+
+
+
+/**
+ * 役員Push Subscriptionを登録する。
+ *
+ * @param {string} normalSessionId
+ * @param {string} executiveSessionToken
+ * @param {Object} subscription
+ * @return {Object}
+ */
+function ExecutiveMessageService_registerPushSubscription(
+  normalSessionId,
+  executiveSessionToken,
+  subscription
+) {
+
+  const context =
+    ExecutiveMessageSessionEngine_requireExecutiveSession(
+      normalSessionId,
+      executiveSessionToken
+    );
+
+
+  if (
+    !subscription ||
+    !subscription.endpoint ||
+    !subscription.keys ||
+    !subscription.keys.p256dh ||
+    !subscription.keys.auth
+  ) {
+
+    throw new Error(
+      "Push Subscriptionが不正です。"
+    );
+
+  }
+
+
+  const record =
+    ExecutiveMessageRepository_upsertPushSubscription(
+      {
+
+        userId:
+          context.user.userId,
+
+        endpoint:
+          String(
+            subscription.endpoint
+          ).trim(),
+
+        p256dh:
+          String(
+            subscription.keys.p256dh
+          ).trim(),
+
+        auth:
+          String(
+            subscription.keys.auth
+          ).trim()
+
+      }
+    );
+
+
+  return {
+
+    status:
+      "success",
+
+    subscriptionId:
+      record.subscriptionId
+
+  };
+
+}
+
+
+/**
+ * 役員Push Subscriptionを解除する。
+ *
+ * @param {string} normalSessionId
+ * @param {string} executiveSessionToken
+ * @param {string} endpoint
+ * @return {Object}
+ */
+function ExecutiveMessageService_unregisterPushSubscription(
+  normalSessionId,
+  executiveSessionToken,
+  endpoint
+) {
+
+  ExecutiveMessageSessionEngine_requireExecutiveSession(
+    normalSessionId,
+    executiveSessionToken
+  );
+
+
+  const normalizedEndpoint =
+    String(
+      endpoint || ""
+    ).trim();
+
+
+  if (
+    !normalizedEndpoint
+  ) {
+
+    throw new Error(
+      "Push Subscription endpointがありません。"
+    );
+
+  }
+
+
+  return {
+
+    status:
+      "success",
+
+    deactivated:
+      ExecutiveMessageRepository_deactivatePushSubscription(
+        normalizedEndpoint
+      )
+
+  };
+
+}
+
+
+/**
+ * 役員Push設定を返す。
+ *
+ * @param {string} normalSessionId
+ * @param {string} executiveSessionToken
+ * @return {Object}
+ */
+function ExecutiveMessageService_getPushConfiguration(
+  normalSessionId,
+  executiveSessionToken
+) {
+
+  ExecutiveMessageSessionEngine_requireExecutiveSession(
+    normalSessionId,
+    executiveSessionToken
+  );
+
+
+  return {
+
+    status:
+      "success",
+
+    vapidPublicKey:
+      Config_getExecutivePushVapidPublicKey()
 
   };
 

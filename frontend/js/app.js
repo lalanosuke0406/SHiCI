@@ -10,5 +10,7 @@ document.addEventListener(
 
         initializeExecutiveMessage();
 
+        initializeExecutivePush();
+
     }
 );

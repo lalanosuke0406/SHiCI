@@ -216,3 +216,95 @@ function Config_getRequiredScriptProperty(
   return String(value).trim();
 
 }
+
+
+
+
+/**
+ * Executive Push Worker URLを取得する。
+ *
+ * @return {string}
+ */
+function Config_getExecutivePushWorkerUrl() {
+
+  const value =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        "EXECUTIVE_PUSH_WORKER_URL"
+      );
+
+  if (
+    !value ||
+    !String(value).trim()
+  ) {
+
+    throw new Error(
+      "EXECUTIVE_PUSH_WORKER_URL is not configured."
+    );
+
+  }
+
+  return String(value).trim();
+
+}
+
+
+/**
+ * Executive Push共有Secretを取得する。
+ *
+ * @return {string}
+ */
+function Config_getExecutivePushSharedSecret() {
+
+  const value =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        "EXECUTIVE_PUSH_SHARED_SECRET"
+      );
+
+  if (
+    !value ||
+    !String(value).trim()
+  ) {
+
+    throw new Error(
+      "EXECUTIVE_PUSH_SHARED_SECRET is not configured."
+    );
+
+  }
+
+  return String(value).trim();
+
+}
+
+
+/**
+ * Executive Push VAPID公開鍵を取得する。
+ *
+ * @return {string}
+ */
+function Config_getExecutivePushVapidPublicKey() {
+
+  const value =
+    PropertiesService
+      .getScriptProperties()
+      .getProperty(
+        "EXECUTIVE_PUSH_VAPID_PUBLIC_KEY"
+      );
+
+  if (
+    !value ||
+    !String(value).trim()
+  ) {
+
+    throw new Error(
+      "EXECUTIVE_PUSH_VAPID_PUBLIC_KEY is not configured."
+    );
+
+  }
+
+  return String(value).trim();
+
+}

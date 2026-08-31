@@ -197,6 +197,49 @@ function ActionRouter_routePost(data) {
 
     }
 
+
+
+        if (
+        data.action ===
+            "executivePushConfig"
+    ) {
+
+        return ExecutiveMessageService_getPushConfiguration(
+            data.sessionId,
+            data.executiveSessionToken
+        );
+
+    }
+
+
+    if (
+        data.action ===
+            "executivePushSubscribe"
+    ) {
+
+        return ExecutiveMessageService_registerPushSubscription(
+            data.sessionId,
+            data.executiveSessionToken,
+            data.subscription
+        );
+
+    }
+
+
+    if (
+        data.action ===
+            "executivePushUnsubscribe"
+    ) {
+
+        return ExecutiveMessageService_unregisterPushSubscription(
+            data.sessionId,
+            data.executiveSessionToken,
+            data.endpoint
+        );
+
+    }
+
+
     if (
         data.action ===
         "executiveMessageLock"

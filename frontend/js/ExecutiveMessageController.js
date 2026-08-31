@@ -668,22 +668,17 @@ function ExecutiveMessageController_handleTouchEnd(
     Date.now() -
     executiveTouchStartAt;
 
-  const startedNearBottom =
-    executiveTouchStartY >=
-      window.innerHeight * 0.72;
-
-  const isUpSwipe =
-    startedNearBottom &&
-    deltaY <= -100 &&
-    Math.abs(deltaY) >
-      Math.abs(deltaX) &&
+  const isHorizontalSwipe =
+    Math.abs(deltaX) >= 100 &&
+    Math.abs(deltaX) >
+      Math.abs(deltaY) &&
     duration <= 700;
 
   executiveTouchStartX = null;
   executiveTouchStartY = null;
   executiveTouchStartAt = null;
 
-  if (isUpSwipe) {
+  if (isHorizontalSwipe) {
 
     ExecutiveMessageController_emergencyClose();
 

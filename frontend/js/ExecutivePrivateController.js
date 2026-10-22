@@ -4,7 +4,7 @@ let executiveReleaseLock = null, executiveIdleTimer, executiveExpiryTimer;
 let executiveConfiguration = null, executiveActiveRoom = null, executiveSelectedPeer = null;
 let executiveHandshakeNodes = [], executiveMessages = [];
 const executivePending = new Map(), executiveObjectUrls = new Set();
-let executiveSensorEnabled = false, executiveFaceDownSince = null;
+let executiveSensorEnabled = false, executiveFaceDownSince = null, executiveFaceDownLast = null;
 let executiveRecorder = null, executiveMediaStream = null;
 const executiveNode = id => document.getElementById(id);
 const executiveStillOpen = epoch => epoch === executiveEpoch && ExecutiveMessageController_isOpen() && !document.hidden;
@@ -324,20 +324,27 @@ async function ExecutiveMessageController_devices() {
 async function ExecutiveMessageController_enablePrivacySensor() {
   const epoch = executiveEpoch;
   try {
-    if (typeof DeviceMotionEvent === "undefined") throw new Error();
-    if (typeof DeviceMotionEvent.requestPermission === "function" && await DeviceMotionEvent.requestPermission() !== "granted") throw new Error();
+    if (typeof DeviceOrientationEvent === "undefined") throw new Error();
+    if (typeof DeviceOrientationEvent.requestPermission === "function" && await DeviceOrientationEvent.requestPermission() !== "granted") throw new Error();
     if (!executiveStillOpen(epoch)) return;
-    if (!executiveSensorEnabled) window.addEventListener("devicemotion", ExecutiveMessageController_handleDeviceMotion);
-    executiveSensorEnabled = true; executiveNode("executivePrivacySensorButton").textContent = "伏せて閉じる：有効";
+    if (!executiveSensorEnabled) window.addEventListener("deviceorientation", ExecutiveMessageController_handleDeviceOrientation);
+    executiveSensorEnabled = true; executiveNode("executivePrivacySensorButton").textContent = "伏せて閉じる：センサー待機中";
   } catch { if (executiveStillOpen(epoch)) ExecutiveMessageController_status("端末の動きの利用を許可してください。非対応の場合は「戻る」で閉じられます。"); }
 }
-function ExecutiveMessageController_handleDeviceMotion(event) {
-  if (!ExecutiveMessageController_isOpen()) return;
-  const {x, y, z} = event.accelerationIncludingGravity || {};
-  const faceDown = Number.isFinite(z) && z < -7.5 && Math.abs(x || 0) < 5 && Math.abs(y || 0) < 5;
-  if (!faceDown) { executiveFaceDownSince = null; return; }
-  if (executiveFaceDownSince === null) executiveFaceDownSince = Date.now();
-  if (Date.now() - executiveFaceDownSince >= 250) ExecutiveMessageController_emergencyClose();
+function ExecutiveMessageController_handleDeviceOrientation(event) {
+  if (!ExecutiveMessageController_isOpen() || document.hidden) { executiveFaceDownSince = null; return; }
+  const {beta, gamma} = event;
+  // Vertical component of the screen normal in the standard Z-X-Y rotation matrix.
+  const valid = Number.isFinite(beta) && Number.isFinite(gamma) && Math.abs(beta) <= 180 && Math.abs(gamma) <= 90;
+  if (valid) executiveNode("executivePrivacySensorButton").textContent = "伏せて閉じる：有効";
+  const screenUp = valid ? Math.cos(beta * Math.PI / 180) * Math.cos(gamma * Math.PI / 180) : 1;
+  if (screenUp > -0.8) { executiveFaceDownSince = null; return; }
+  const now = Date.now();
+  // Missing sensor samples must not count as continuous face-down observation.
+  if (executiveFaceDownLast === null || now - executiveFaceDownLast > 200) executiveFaceDownSince = now;
+  executiveFaceDownLast = now;
+  if (executiveFaceDownSince === null) executiveFaceDownSince = now;
+  if (now - executiveFaceDownSince >= 250) ExecutiveMessageController_emergencyClose();
 }
 function ExecutiveMessageController_isOpen() { return Boolean(executiveSessionToken && executiveNode("executiveMessageView") && !executiveNode("executiveMessageView").hidden); }
 function ExecutiveMessageController_resetIdleTimer() {
@@ -364,6 +371,6 @@ function ExecutiveMessageController_emergencyClose() {
   }
   for (const url of executiveObjectUrls) URL.revokeObjectURL(url); executiveObjectUrls.clear();
   executiveMessages = []; executivePending.clear(); executiveConfiguration = null;
-  executiveActiveRoom = executiveSelectedPeer = executiveFaceDownSince = null;
+  executiveActiveRoom = executiveSelectedPeer = executiveFaceDownSince = executiveFaceDownLast = null;
   ExecutiveMessageController_clearHandshakeNodes(); if (token) lockExecutiveMessageBestEffort(token);
 }

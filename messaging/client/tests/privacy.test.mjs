@@ -29,10 +29,35 @@ test("late challenge result after a privacy boundary does not reopen the view",(
   s.context.ExecutiveMessageController_handleUnlocked(null,null,{executiveSessionToken:"late",messaging:{provider:"matrix"}},epoch);
   assert.equal(s.get("executiveMessageView").hidden,true);
 });
-test("face-down is an absolute sustained orientation, not a baseline inversion",()=>{
-  const s=state();vm.runInContext("executiveFaceDownSince=Date.now()-300",s.context);
-  s.context.ExecutiveMessageController_handleDeviceMotion({accelerationIncludingGravity:{x:0,y:0,z:-9.8}});
-  assert.equal(s.get("executiveMessageView").hidden,true);
-  const up=state();up.context.ExecutiveMessageController_handleDeviceMotion({accelerationIncludingGravity:{x:0,y:0,z:9.8}});
-  assert.equal(up.closed(),0);
+test("only sustained screen-down orientation closes, in either rotation direction",()=>{
+  for(const beta of [180,-180,160,-160]) {
+    const s=state();let now=1000;s.context.Date={now:()=>now};
+    for(const time of [1000,1100,1200]){now=time;s.context.ExecutiveMessageController_handleDeviceOrientation({beta,gamma:10});}
+    assert.equal(s.closed(),0);now=1300;s.context.ExecutiveMessageController_handleDeviceOrientation({beta,gamma:10});assert.equal(s.closed(),1);
+  }
+});
+test("face-up, upright and invalid readings never close",()=>{
+  for(const event of [{beta:0,gamma:0},{beta:90,gamma:0},{beta:0,gamma:90},{beta:null,gamma:0},{beta:180,gamma:null},{beta:NaN,gamma:0}]){
+    const s=state();let now=1000;s.context.Date={now:()=>now};
+    for(const time of [1000,1100,1200,1300]){now=time;s.context.ExecutiveMessageController_handleDeviceOrientation(event);}assert.equal(s.closed(),0);
+  }
+});
+test("face-up and gaps in readings restart the face-down dwell",()=>{
+  const s=state();let now=1000;s.context.Date={now:()=>now};
+  const turn=beta=>s.context.ExecutiveMessageController_handleDeviceOrientation({beta,gamma:0});
+  turn(180);now=1100;turn(0);now=1200;turn(180);now=1300;turn(180);assert.equal(s.closed(),0);
+  now=2000;turn(180);assert.equal(s.closed(),0);
+  now=2100;turn(180);now=2200;turn(180);now=2300;turn(180);assert.equal(s.closed(),1);
+});
+
+test("orientation permission registers orientation events and denied permission stays disabled",async()=>{
+  const s=state();let listener;
+  s.context.DeviceOrientationEvent={requestPermission:async()=>"granted"};s.context.window={addEventListener:(type,fn)=>{listener={type,fn};}};
+  await s.context.ExecutiveMessageController_enablePrivacySensor();assert.equal(listener.type,"deviceorientation");
+  assert.equal(listener.fn,s.context.ExecutiveMessageController_handleDeviceOrientation);
+  assert.equal(s.get("executivePrivacySensorButton").textContent,"伏せて閉じる：センサー待機中");
+  listener.fn({beta:0,gamma:0});assert.equal(s.get("executivePrivacySensorButton").textContent,"伏せて閉じる：有効");
+  const denied=state();denied.context.DeviceOrientationEvent={requestPermission:async()=>"denied"};
+  denied.context.window={addEventListener:()=>assert.fail("denied sensor must not be registered")};
+  await denied.context.ExecutiveMessageController_enablePrivacySensor();assert.equal(vm.runInContext("executiveSensorEnabled",denied.context),false);
 });

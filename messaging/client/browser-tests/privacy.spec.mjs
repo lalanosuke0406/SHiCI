@@ -54,9 +54,13 @@ test("visibility, pagehide and sustained face-down each restore normal SHiCI", a
       } else if (boundary === "pagehide") window.dispatchEvent(new Event("pagehide"));
       else {
         const realNow = Date.now; let now=1000; Date.now=()=>now;
-        ExecutiveMessageController_handleDeviceMotion({accelerationIncludingGravity:{x:0,y:0,z:-9.8}});
+        ExecutiveMessageController_handleDeviceOrientation({beta:180,gamma:0});
+        now=1100;
+        ExecutiveMessageController_handleDeviceOrientation({beta:180,gamma:0});
+        now=1200;
+        ExecutiveMessageController_handleDeviceOrientation({beta:180,gamma:0});
         now=1300;
-        ExecutiveMessageController_handleDeviceMotion({accelerationIncludingGravity:{x:0,y:0,z:-9.8}});
+        ExecutiveMessageController_handleDeviceOrientation({beta:180,gamma:0});
         Date.now=realNow;
       }
     }, boundary);

@@ -2201,3 +2201,10 @@ SHiCI Hexagon Loading
   }
 
 }
+
+/* Inline decrypted media remains inside its message bubble. */
+.executive-message-bubble .executive-attachment-preview { border-radius: 10px; }
+.executive-message-bubble img.executive-attachment-preview,
+.executive-message-bubble video.executive-attachment-preview { width: min(320px, 100%); object-fit: contain; background: #101216; }
+.executive-message-bubble video.executive-attachment-preview { aspect-ratio: 16 / 9; }
+.executive-attachment-fallback { margin-top: 8px; font-size: 13px; }

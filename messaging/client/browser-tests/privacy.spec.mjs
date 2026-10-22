@@ -109,3 +109,50 @@ test("notification opt-in and stop are available only inside the device panel",a
   expect(await page.evaluate(()=>window.pushCalls.slice(-2))).toEqual(['disablePush','unsubscribe']);
   await page.locator("#executiveCloseButton").click();await expect(page.locator("#executiveFreePushButton")).toBeHidden();
 });
+
+async function previewFixture(page,mode) {
+  await page.goto("http://localhost:4173/test.html");
+  await page.evaluate(mode=>{
+    executiveSessionToken="preview-fixture";executiveActiveRoom="room";
+    document.getElementById("executiveMessageView").hidden=false;document.getElementById("appView").hidden=true;
+    document.getElementById("executiveChatPanel").hidden=false;
+    window.previewCalls=[];window.previewUrlCount=0;
+    const create=URL.createObjectURL.bind(URL);URL.createObjectURL=blob=>{window.previewUrlCount++;return create(blob);};
+    executiveClient={close(){},async request(action,{eventId}){
+      window.previewCalls.push(eventId);
+      if(mode==='late')return new Promise(resolve=>{window.completePreview=resolve;});
+      if(mode==='retry' && window.previewCalls.length===1)throw Error('fixture offline');
+      return {data:Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII='),c=>c.charCodeAt(0)),mime:'image/png',name:'fixture.png'};
+    }};
+    const message=id=>({id,body:'fixture.png',timestamp:Date.now(),status:'sent',attachment:{name:'fixture.png',mime:'image/png'}});
+    if(mode==='lazy') {
+      const conversation=document.getElementById('executiveConversation');conversation.style.height='180px';conversation.style.flex='none';conversation.style.paddingBottom='0';
+      executiveMessages=[message('top'),...Array.from({length:40},(_,i)=>({id:'text'+i,body:'間のメッセージ '.repeat(12),timestamp:Date.now()})),message('bottom')];
+    } else executiveMessages=[message('one')];
+    ExecutiveMessageController_renderMessages();
+  },mode);
+}
+test("inline previews load near the viewport once and are disposed when messages disappear",async({page})=>{
+  await previewFixture(page,'lazy');
+  await expect(page.locator('[data-message-id=bottom] img')).toBeVisible();
+  expect(await page.evaluate(()=>window.previewCalls)).toEqual(['bottom']);
+  await page.locator('#executiveConversation').evaluate(node=>{node.scrollTop=0;});
+  await expect(page.locator('[data-message-id=top] img')).toBeVisible();
+  expect(await page.evaluate(()=>window.previewCalls)).toEqual(['bottom','top']);
+  await page.evaluate(()=>{window.heldImage=document.querySelector('[data-message-id=top] img');executiveMessages=executiveMessages.filter(message=>message.id!=='top');ExecutiveMessageController_renderMessages();});
+  expect(await page.evaluate(()=>window.heldImage.hasAttribute('src'))).toBe(false);
+  expect(await page.evaluate(()=>executiveObjectUrls.size)).toBe(1);
+  await page.evaluate(()=>ExecutiveMessageController_emergencyClose());expect(await page.evaluate(()=>executiveObjectUrls.size)).toBe(0);
+});
+test("failed automatic preview offers retry without a download loop",async({page})=>{
+  await previewFixture(page,'retry');
+  const retry=page.locator('[data-attachment]');await expect(retry).toHaveText('添付の読み込みを再試行');await expect(retry).toBeEnabled();
+  expect(await page.evaluate(()=>window.previewCalls)).toEqual(['one']);await retry.click();
+  await expect(page.locator('[data-message-id=one] img')).toBeVisible();expect(await page.evaluate(()=>window.previewCalls)).toEqual(['one','one']);
+});
+test("an automatic download finishing after privacy close cannot create a plaintext preview",async({page})=>{
+  await previewFixture(page,'late');await expect.poll(()=>page.evaluate(()=>window.previewCalls.length)).toBe(1);
+  await page.evaluate(()=>{ExecutiveMessageController_emergencyClose();window.completePreview({mime:'image/png',name:'late.png',data:new Uint8Array([1,2,3])});});
+  await expect(page.locator('#executiveConversation')).toBeEmpty();await expect(page.locator('#executiveMessageView')).toBeHidden();
+  expect(await page.evaluate(()=>window.previewUrlCount)).toBe(0);
+});

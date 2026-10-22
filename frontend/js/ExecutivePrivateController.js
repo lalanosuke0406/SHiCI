@@ -6,6 +6,7 @@ let executiveHandshakeNodes = [], executiveMessages = [];
 const executivePending = new Map(), executiveObjectUrls = new Set();
 let executiveSensorEnabled = false, executiveFaceDownSince = null, executiveFaceDownLast = null;
 let executiveRecorder = null, executiveMediaStream = null;
+let executivePreviewObserver = null;
 let executiveFreePushConfiguration = null, executiveFreePushSubscribed = false;
 const executiveNode = id => document.getElementById(id);
 const executiveStillOpen = epoch => epoch === executiveEpoch && ExecutiveMessageController_isOpen() && !document.hidden;
@@ -186,6 +187,8 @@ async function ExecutiveMessageController_selectPeer(peer) {
   executiveSelectedPeer = peer.userId; executiveActiveRoom = null; executiveMessages = [];
   executiveNode("executivePeerVerificationPanel").hidden = true;
   executiveNode("executiveVerificationCode").textContent = "";
+  executivePreviewObserver?.disconnect(); executivePreviewObserver = null;
+  for (const bubble of executiveNode("executiveConversation").children) executiveDisposeAttachment(bubble);
   executiveNode("executiveConversation").replaceChildren(); executiveNode("executivePeerTitle").textContent = peer.displayName;
   ExecutiveMessageController_status("会話を開いています…");
   await executiveRun(async () => {
@@ -227,9 +230,11 @@ function ExecutiveMessageController_renderMessages() {
     bubble.className = "executive-message-bubble " + (message.mine ? "mine" : "theirs");
     bubble.querySelector(".executive-message-body").textContent = message.body;
     if (message.attachment && !message.pending && !bubble.querySelector("[data-attachment],img,audio,video,a[download]")) {
-      const button = document.createElement("button"); button.type = "button"; button.textContent = "添付を開く";
+      const automatic = executiveInlineMedia(message.attachment.mime) && message.status !== "sending" && message.status !== "not_sent";
+      const button = document.createElement("button"); button.type = "button"; button.textContent = automatic ? "プレビューを表示" : "添付を開く";
       button.dataset.attachment = "true";
       button.onclick = () => ExecutiveMessageController_openAttachment(message.id, bubble, button); bubble.appendChild(button);
+      if (automatic) executiveObserveAttachment(button, conversation);
     }
     const time = bubble.querySelector(".executive-message-time");
     time.textContent = message.failed || message.status === "not_sent" ? "送信できませんでした" :
@@ -244,7 +249,7 @@ function ExecutiveMessageController_renderMessages() {
     if (bubble !== cursor) conversation.insertBefore(bubble, cursor);
     cursor = bubble.nextSibling;
   }
-  for (const [key, element] of existing) if (!keep.has(key)) element.remove();
+  for (const [key, element] of existing) if (!keep.has(key)) { executiveDisposeAttachment(element); element.remove(); }
   conversation.scrollTop = nearBottom ? conversation.scrollHeight : previousScroll;
 }
 function ExecutiveMessageController_queue(body, file) {
@@ -269,24 +274,84 @@ async function ExecutiveMessageController_dispatch(message) {
   } catch (error) { if (executiveStillOpen(epoch)) { message.failed = true; ExecutiveMessageController_status(error.message); } }
   finally { message.inFlight = false; if (executiveStillOpen(epoch)) ExecutiveMessageController_renderMessages(); }
 }
+function executiveAttachmentMime(value) { return String(value || "application/octet-stream").split(";")[0].trim().toLowerCase(); }
+function executiveInlineMedia(value) {
+  const mime = executiveAttachmentMime(value);
+  return ["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif", "image/bmp"].includes(mime) || mime.startsWith("video/");
+}
+function executiveObserveAttachment(button, conversation) {
+  if (typeof IntersectionObserver === "undefined") {
+    Promise.resolve().then(() => { if (button.isConnected && ExecutiveMessageController_isOpen()) button.click(); });
+    return;
+  }
+  if (!executivePreviewObserver) {
+    const observer = new IntersectionObserver(entries => {
+      for (const entry of entries) if (entry.isIntersecting) {
+        observer.unobserve(entry.target);
+        if (entry.target.isConnected && ExecutiveMessageController_isOpen()) entry.target.click();
+      }
+    }, {root:conversation, rootMargin:"150px"});
+    executivePreviewObserver = observer;
+  }
+  executivePreviewObserver.observe(button);
+}
+function executiveDisposeAttachment(bubble) {
+  for (const button of bubble.querySelectorAll("[data-attachment]")) executivePreviewObserver?.unobserve(button);
+  for (const media of bubble.querySelectorAll("img,video,audio")) {
+    media.onerror = null;
+    if (media.tagName !== "IMG") media.pause();
+    media.removeAttribute("src");
+    if (media.tagName !== "IMG") media.load();
+  }
+  const url = bubble.dataset.previewUrl;
+  if (url) { URL.revokeObjectURL(url); executiveObjectUrls.delete(url); delete bubble.dataset.previewUrl; }
+}
 async function ExecutiveMessageController_openAttachment(eventId, bubble, button) {
-  button.disabled = true;
+  if (button.disabled || !bubble.isConnected) return;
+  const epoch = executiveEpoch, roomId = executiveActiveRoom;
+  executivePreviewObserver?.unobserve(button);
+  button.disabled = true; button.textContent = "添付を読み込み中…";
   await executiveRun(async () => {
     try {
-      const roomId = executiveActiveRoom;
       const result = await executiveClient.request("download", {roomId, eventId});
-      if (roomId !== executiveActiveRoom || !bubble.isConnected) return;
-      const mime = result.mime.toLowerCase(), url = URL.createObjectURL(new Blob([result.data], {type: mime}));
-      executiveObjectUrls.add(url);
+      if (!executiveStillOpen(epoch) || roomId !== executiveActiveRoom || !bubble.isConnected) return;
+      const mime = executiveAttachmentMime(result.mime), url = URL.createObjectURL(new Blob([result.data], {type: mime}));
+      executiveObjectUrls.add(url); bubble.dataset.previewUrl = url;
       let preview;
-      if (["image/jpeg", "image/png", "image/webp", "image/gif"].includes(mime)) { preview = document.createElement("img"); preview.alt = result.name; }
-      else if (mime.startsWith("video/") || mime.startsWith("audio/")) {
+      const saveLink = () => {
+        const link = document.createElement("a"); link.href = url; link.download = result.name; link.textContent = "ファイルを保存"; return link;
+      };
+      if (mime.startsWith("image/") && executiveInlineMedia(mime)) {
+        preview = document.createElement("img"); preview.alt = result.name; preview.decoding = "async";
+      } else if (mime.startsWith("video/") || mime.startsWith("audio/")) {
         preview = document.createElement(mime.startsWith("video/") ? "video" : "audio"); preview.controls = true;
-        preview.disablePictureInPicture = true; preview.controlsList = "nodownload noremoteplayback"; preview.setAttribute("playsinline", "");
-      } else { preview = document.createElement("a"); preview.href = url; preview.download = result.name; preview.textContent = "ファイルを保存"; }
+        preview.preload = "metadata"; preview.autoplay = false;
+        preview.disablePictureInPicture = true; preview.disableRemotePlayback = true;
+        preview.controlsList = "nodownload noremoteplayback"; preview.setAttribute("playsinline", "");
+      } else preview = saveLink();
+      preview.className = "executive-attachment-preview";
+      preview.onerror = () => {
+        if (!executiveStillOpen(epoch) || !preview.isConnected || roomId !== executiveActiveRoom) return;
+        const fallback = document.createElement("div"); fallback.className = "executive-attachment-fallback";
+        const text = document.createElement("p"); text.textContent = "この端末ではプレビューできません。保存して開いてください。";
+        fallback.append(text, saveLink()); preview.replaceWith(fallback);
+      };
+      const conversation = executiveNode("executiveConversation");
+      const followBottom = conversation.scrollHeight - conversation.scrollTop - conversation.clientHeight < 100;
+      let anchoredTop = conversation.scrollTop;
+      preview.addEventListener(preview.tagName === "IMG" ? "load" : "loadedmetadata", () => {
+        if (executiveStillOpen(epoch) && roomId === executiveActiveRoom && preview.isConnected && followBottom && Math.abs(conversation.scrollTop - anchoredTop) < 2) {
+          conversation.scrollTop = conversation.scrollHeight;
+        }
+      }, {once:true});
       if (preview.tagName !== "A") preview.src = url;
       bubble.appendChild(preview); button.remove();
-    } catch (error) { button.disabled = false; throw error; }
+      if (followBottom) conversation.scrollTop = conversation.scrollHeight;
+      anchoredTop = conversation.scrollTop;
+    } catch (error) {
+      if (executiveStillOpen(epoch) && bubble.isConnected) { button.disabled = false; button.textContent = "添付の読み込みを再試行"; }
+      throw error;
+    }
   });
 }
 async function ExecutiveMessageController_record() {
@@ -359,6 +424,7 @@ function ExecutiveMessageController_resetIdleTimer() {
 }
 function ExecutiveMessageController_emergencyClose() {
   ++executiveEpoch; // Also invalidate unlock requests which have not returned yet.
+  executivePreviewObserver?.disconnect(); executivePreviewObserver = null;
   const token = executiveSessionToken; executiveSessionToken = null;
   const view = executiveNode("executiveMessageView"); if (view) view.hidden = true;
   if (token && executiveNode("appView")) executiveNode("appView").hidden = false;

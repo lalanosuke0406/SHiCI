@@ -1,4 +1,4 @@
-const CACHE_NAME = "shici-shell-v6";
+const CACHE_NAME = "shici-shell-v7";
 const ASSETS = [
   "./",
   "index.html",

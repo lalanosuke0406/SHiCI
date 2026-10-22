@@ -173,6 +173,8 @@ function ExecutiveMessageSessionEngine_handleChallengeResponse(
 
   }
 
+  const messaging = ExecutiveMessengerGateway_getConfiguration(user);
+
   const executiveSession =
     ExecutiveMessageSessionEngine_createExecutiveSession(
       sessionId,
@@ -193,10 +195,9 @@ function ExecutiveMessageSessionEngine_handleChallengeResponse(
     expiresAt:
       executiveSession.expiresAt,
 
-    peers:
-      ExecutiveMessageService_listPeersForUser(
-        user
-      )
+    peers: [],
+
+    messaging: messaging
 
   };
 

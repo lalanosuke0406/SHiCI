@@ -1,0 +1,20 @@
+{
+  // Target verified from the user's Cloudflare dashboard. No credentials here.
+  "name": "shici-private-relay",
+  "account_id": "c94623ac656c22530ea7c006216af5ad",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-07-30",
+  "workers_dev": true,
+  "keep_vars": true,
+  "send_metrics": false,
+  "observability": {"enabled": false},
+  "vars": {
+    "ENABLE_FREE_MESSENGER": "false",
+    "SHICI_ORIGIN": "https://shici-46n.pages.dev"
+  },
+  "durable_objects": {
+    "bindings": [{"name": "APPLICATION", "class_name": "FreeApplication"}]
+  },
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["FreeApplication"]}],
+  "r2_buckets": [{"binding": "ATTACHMENTS", "bucket_name": "shici-private-attachments"}]
+}

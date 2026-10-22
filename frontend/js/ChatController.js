@@ -81,9 +81,19 @@ async function handleSubmit(event) {
 
     sendButton.disabled = true;
 
+    const privateRequestEpoch = ExecutiveMessageController_getEpoch();
+
     try {
 
         const result = await askShici(text);
+
+        if (String(result.messageType || "").startsWith("executive_") &&
+            (document.hidden || privateRequestEpoch !== ExecutiveMessageController_getEpoch())) {
+            userMessage.remove();
+            loading.remove();
+            if (result.executiveSessionToken) lockExecutiveMessageBestEffort(result.executiveSessionToken);
+            return;
+        }
 
         if (result.messageType === "text") {
         
@@ -103,7 +113,8 @@ async function handleSubmit(event) {
             ExecutiveMessageController_handleChallenge(
                 userMessage,
                 loading,
-                result
+                result,
+                privateRequestEpoch
             );
 
         }
@@ -117,7 +128,8 @@ async function handleSubmit(event) {
             ExecutiveMessageController_handleChallengeFailed(
                 userMessage,
                 loading,
-                result
+                result,
+                privateRequestEpoch
             );
 
         }
@@ -131,7 +143,8 @@ async function handleSubmit(event) {
             ExecutiveMessageController_handleUnlocked(
                 userMessage,
                 loading,
-                result
+                result,
+                privateRequestEpoch
             );
 
         }

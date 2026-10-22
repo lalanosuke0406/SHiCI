@@ -1,10 +1,13 @@
-const CACHE_NAME = "shici-pwa-v1";
+const CACHE_NAME = "shici-shell-v4";
 const ASSETS = [
   "./",
   "index.html",
-  "style.css",
-  "script.js",
-  "manifest.json"
+  "css/main.css",
+  "manifest.json",
+  "js/SessionStore.js", "js/UIRenderer.js?v=20260806-1", "js/ApiClient.js",
+  "js/TextareaController.js", "js/AuthController.js", "js/ChatController.js",
+  "js/ExecutivePrivateController.js",
+  "js/ExecutivePushController.js", "js/app.js"
 ];
 
 self.addEventListener("install", function(event) {
@@ -15,11 +18,29 @@ self.addEventListener("install", function(event) {
   );
 });
 
+self.addEventListener("activate", function(event) {
+  event.waitUntil(caches.keys().then(function(names) {
+    return Promise.all(names.filter(function(name) {
+      return name === "shici-pwa-v1" || (name.startsWith("shici-shell-") && name !== CACHE_NAME);
+    }).map(function(name) { return caches.delete(name); }));
+  }));
+});
+
 self.addEventListener("fetch", function(event) {
+  // Cache only the explicitly listed public shell. API responses, messages,
+  // tokens, cross-origin media and authenticated requests never enter this cache.
+  const request = event.request;
+  if (request.method !== "GET" || request.headers.has("Authorization")) return;
+  const allowed = ASSETS.map(function(asset) { return new URL(asset, self.registration.scope).href; });
+  if (!allowed.includes(request.url)) return;
   event.respondWith(
-    caches.match(event.request).then(function(cached) {
-      return cached || fetch(event.request);
-    })
+    fetch(request).then(function(response) {
+      if (response.ok) {
+        const copy = response.clone();
+        event.waitUntil(caches.open(CACHE_NAME).then(function(cache) { return cache.put(request, copy); }));
+      }
+      return response;
+    }).catch(function() { return caches.match(request); })
   );
 });
 

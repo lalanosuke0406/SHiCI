@@ -70,7 +70,13 @@ function ActionRouter_routeGet(e) {
  * POSTルーティング
  */
 function ActionRouter_routePost(data) {
-
+    if (ExecutiveMessengerGateway_isRetiredAction(data.action)) {
+        return {
+            status: "error",
+            code: "SECURE_MESSENGER_REQUIRED",
+            message: "専用メッセージ画面を開いてください。旧形式での送受信は終了しました。"
+        };
+    }
 
     if (data.action === "login") {
 

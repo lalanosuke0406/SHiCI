@@ -252,92 +252,71 @@
          Executive Message
     =========================================== -->
 
-    <section
-        id="executiveMessageView"
-        class="executive-message-view"
-        hidden
-        aria-label="Private message"
-    >
-
-        <header class="executive-message-header">
-
-            <div class="executive-message-brand">
-                SHiCI / PRIVATE
-            </div>
-
-            <div
-                id="executivePeerTitle"
-                class="executive-message-peer-title"
-            ></div>
-
-            <button
-                id="executivePrivacySensorButton"
-                class="executive-privacy-sensor-button"
-                type="button"
-            >
-                伏せて閉じる：設定
-            </button>
-
-            <button
-                id="executivePushButton"
-                class="executive-privacy-sensor-button"
-                type="button"
-            >
-                通知：設定
-            </button>
-
-        </header>
-
-        <div class="executive-message-layout">
-
-            <nav
-                id="executivePeerList"
-                class="executive-peer-list"
-                aria-label="連絡先"
-            ></nav>
-
-            <section class="executive-conversation-panel">
-
-                <div
-                    id="executiveConversation"
-                    class="executive-conversation"
-                    aria-live="polite"
-                ></div>
-
-                <form
-                    id="executiveMessageForm"
-                    class="executive-message-form"
-                >
-
-                    <textarea
-                        id="executiveMessageInput"
-                        class="executive-message-input"
-                        rows="1"
-                        maxlength="2000"
-                        autocomplete="off"
-                        enterkeyhint="send"
-                        placeholder="メッセージ"
-                    ></textarea>
-
-                    <button
-                        class="executive-message-send"
-                        type="submit"
-                        aria-label="送信"
-                    >
-                        ↑
-                    </button>
-
-                </form>
-
-            </section>
-
-        </div>
-
-        <div class="executive-swipe-hint" aria-hidden="true">
-            ↔ swipe to close
-        </div>
-
+<section id="executiveMessageView" class="executive-message-view" hidden aria-label="メッセージ">
+  <header class="executive-message-header">
+    <span class="executive-message-brand">SHiCI</span>
+    <span id="executivePeerTitle" class="executive-message-peer-title"></span>
+    <button id="executiveCloseButton" type="button">戻る</button>
+    <button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button>
+    <button id="executiveDeviceButton" type="button">端末</button>
+  </header>
+  <p id="executiveStatus" role="status" aria-live="polite"></p>
+  <section id="executiveFreeRegisterPanel" class="executive-setup-panel" hidden>
+    <p>このブラウザをメッセージ用の端末として登録します。現在は1人1端末で利用します。</p>
+    <p>復旧機能は準備中です。ブラウザのデータ削除、プライベートブラウズの終了、端末紛失で履歴を読めなくなることがあります。</p>
+    <form id="executiveFreeRegisterForm" autocomplete="off">
+      <label><input id="executiveFreeRegisterAccepted" type="checkbox" required>内容を確認しました</label>
+      <button type="submit">この端末を登録</button>
+    </form>
+  </section>
+  <section id="executivePeerVerificationPanel" class="executive-setup-panel" hidden>
+    <p>相手と対面または電話などで、下のコード全体が同じことを確認してください。一致しなければ送信を始めないでください。</p>
+    <pre id="executiveVerificationCode" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
+    <button id="executiveConfirmPeerButton" type="button">相手と照合して一致を確認しました</button>
+  </section>
+  <div id="executiveConnectPanel" class="executive-setup-panel">
+    <form id="executiveLoginForm" autocomplete="off" hidden>
+      <label>この端末を登録するためのパスワード<input id="executiveLoginPassword" type="password" autocomplete="off" required></label>
+      <button type="submit">この端末を登録</button>
+    </form>
+  </div>
+  <div id="executiveRecoveryPanel" class="executive-setup-panel" hidden>
+    <p>履歴を復旧するための鍵を設定します。キーは本人が保管してください。</p>
+    <button id="executiveGenerateRecovery" type="button">リカバリーキーを作成</button>
+    <form id="executiveRecoveryForm" autocomplete="off">
+      <div id="executiveExistingRecovery" hidden>
+        <label>保管しているリカバリーキー<input id="executiveRecoveryInput" type="password" autocomplete="off"></label>
+      </div>
+      <div id="executiveNewRecovery" hidden>
+        <p>このキーを安全に保管してください。この画面を閉じると表示は消えます。</p>
+        <pre id="executiveGeneratedKey"></pre>
+        <label><input id="executiveRecoverySaved" type="checkbox">リカバリーキーを保管しました</label>
+      </div>
+      <label>本人確認用パスワード（求められた場合）<input id="executiveRecoveryPassword" type="password" autocomplete="off"></label>
+      <button type="submit">鍵の設定・復元</button>
+    </form>
+  </div>
+  <div id="executiveChatPanel" class="executive-message-layout" hidden>
+    <nav id="executivePeerList" class="executive-peer-list" aria-label="連絡先"></nav>
+    <section class="executive-conversation-panel">
+      <button id="executiveOlderButton" type="button">以前の履歴</button>
+      <div id="executiveConversation" class="executive-conversation" aria-live="polite"></div>
+      <form id="executiveMessageForm" class="executive-message-form" autocomplete="off">
+        <textarea id="executiveMessageInput" class="executive-message-input" rows="1" maxlength="10000" autocomplete="off" placeholder="メッセージ"></textarea>
+        <button class="executive-message-send" type="submit" aria-label="送信">↑</button>
+        <label class="executive-attach-button">添付<input id="executiveFileInput" type="file" aria-label="添付ファイル"></label>
+        <button id="executiveRecordButton" type="button">録音</button>
+      </form>
     </section>
+  </div>
+  <section id="executiveDevices" class="executive-device-panel" hidden>
+    <button id="executiveDevicesClose" type="button">閉じる</button>
+    <div id="executiveDeviceList"></div>
+    <p>登録を解除した端末も、保存済みのデータを遠隔消去できる保証はありません。</p>
+    <button id="executiveForgetButton" type="button">この端末の登録を解除して閉じる</button>
+  </section>
+</section>
+
 
     <!-- ==========================================
          JavaScript
@@ -356,8 +335,7 @@
     <script src="js/AuthController.js"></script>
 
     <script src="js/ChatController.js"></script>
-
-    <script src="js/ExecutiveMessageController.js"></script>
+  <script src="js/ExecutivePrivateController.js"></script>
 
     <script src="js/ExecutivePushController.js"></script>
 

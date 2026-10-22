@@ -1,0 +1,8 @@
+{
+  "name": "shici-private-client",
+  "private": true,
+  "type": "module",
+  "scripts": {"build": "vite build", "test": "node --test tests/*.test.mjs"},
+  "dependencies": {"matrix-js-sdk": "44.0.0", "@matrix-org/matrix-sdk-crypto-wasm": "18.9.0"},
+  "devDependencies": {"vite": "8.3.4", "@playwright/test": "1.56.1"}
+}

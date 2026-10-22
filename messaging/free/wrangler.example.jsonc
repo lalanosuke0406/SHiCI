@@ -1,0 +1,17 @@
+{
+  // Copy to wrangler.jsonc only after confirming the target Cloudflare account.
+  "name": "shici-private-relay",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-07-30",
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "vars": {
+    "ENABLE_FREE_MESSENGER": "false",
+    "SHICI_ORIGIN": "https://shici-46n.pages.dev",
+    "FREE_USERS_JSON": "[\"replace_user_one\",\"replace_user_two\"]"
+  },
+  "durable_objects": {"bindings": [{"name": "APPLICATION", "class_name": "FreeApplication"}]},
+  "migrations": [{"tag": "v1", "new_sqlite_classes": ["FreeApplication"]}],
+  "r2_buckets": [{"binding": "ATTACHMENTS", "bucket_name": "replace-with-private-bucket-name"}]
+  // FREE_AUTH_SECRET is a Worker secret, never a public variable or frontend value.
+}

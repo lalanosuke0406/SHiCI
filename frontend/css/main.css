@@ -1,3 +1,31 @@
+/* The private view is never visible until an authorized challenge succeeds. */
+.executive-message-view[hidden] { display: none !important; }
+.executive-setup-panel { width: min(100%, 580px); margin: 0 auto; padding: 20px; overflow-y: auto; }
+.executive-setup-panel label { display: block; margin: 16px 0; }
+.executive-setup-panel input:not([type="checkbox"]) { display: block; width: 100%; margin-top: 8px; }
+.executive-message-view button, .executive-message-view input { font: inherit; }
+.executive-message-view button { cursor: pointer; border-radius: 10px; padding: 8px 12px; border: 1px solid #59606e; }
+.executive-message-view input { padding: 10px; color: #f5f7fa; background: #1b1f26; border: 1px solid #59606e; border-radius: 8px; }
+#executiveGeneratedKey { white-space: pre-wrap; overflow-wrap: anywhere; user-select: text; background: #1b1f26; padding: 12px; }
+#executiveStatus { flex-shrink: 0; padding: 4px 16px; font-size: 13px; min-height: 1.5em; }
+.executive-message-bubble img, .executive-message-bubble video, .executive-message-bubble audio { display: block; max-width: 100%; max-height: 45dvh; margin-top: 8px; }
+.executive-device-panel { position: absolute; inset: 50px 10px 10px; padding: 16px; background: #16191f; overflow-y: auto; z-index: 2; }
+.executive-device-panel input { max-width: 100%; }
+.executive-attach-button { position: relative; overflow: hidden; padding: 8px; cursor: pointer; }
+.executive-attach-button input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.executive-message-view .executive-message-form { grid-template-columns: minmax(0, 1fr) auto; }
+.executive-message-view .executive-message-header { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 6px; }
+.executive-message-view .executive-conversation { padding-bottom: 150px; }
+
+/* Retired standalone launcher styles, unused by the in-app controller. */
+.executive-external-mode > :not(.executive-messenger-launcher) { display: none !important; }
+.executive-messenger-launcher { width: min(100%, 560px); margin: auto; padding: 32px 24px; }
+.executive-messenger-launcher h1 { font-size: 24px; margin-bottom: 20px; }
+.executive-messenger-launcher p { line-height: 1.8; margin: 16px 0; color: #c6ccd6; }
+.executive-messenger-open { display: block; padding: 15px 20px; border-radius: 12px;
+  background: #e7ebf0; color: #0b0d11; text-align: center; text-decoration: none; font-weight: 700; }
+.executive-messenger-launcher button { padding: 12px 16px; border-radius: 10px; cursor: pointer; }
+
 /* =========================================================
    SHiCI Design System v1.0
    Concept: Quiet Intelligence

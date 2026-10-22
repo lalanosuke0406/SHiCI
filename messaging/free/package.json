@@ -1,0 +1,8 @@
+{
+  "name":"shici-free-messaging",
+  "private":true,
+  "type":"module",
+  "scripts":{"dev":"node dev-server.mjs"},
+  "devDependencies":{"miniflare":"4.20260730.0"},
+  "engines":{"node":">=22"}
+}

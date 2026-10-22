@@ -170,7 +170,13 @@ export class FreeApplication extends ProbeLedger {
         await this.ctx.storage.transaction(async storage=>{
           for(const id of Object.keys(query)) {
             const alias=aliasOf(id);if(!alias || (alias!==user && !grant.peers.includes(alias))) throw new Failure(403,"peer_denied");
-            const found=await storage.get("profile:"+alias);if(!found) continue;
+            const found=await storage.get("profile:"+alias);
+            // An explicitly empty device map completes a query for an
+            // unregistered user. Omitting it leaves the Rust SDK retrying.
+            if(!found) {
+              if(path==="/keys/query") result.device_keys[id]={};
+              continue;
+            }
             if(path==="/keys/query") {
               result.device_keys[id]={[found.device.device_id]:found.device};
               for(const [kind,plural] of [["master_key","master_keys"],["self_signing_key","self_signing_keys"],["user_signing_key","user_signing_keys"]]) if(found[kind]) result[plural][id]=found[kind];

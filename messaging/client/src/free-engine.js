@@ -87,6 +87,10 @@ export class FreeEngine {
         if(signatures.id) await this.machine.markRequestAsSent(signatures.id,signatures.type,JSON.stringify(response));
       } finally {signatures.free();}
     } finally {signing.free();}
+    // Import the published cross-signatures into the SDK's own device cache.
+    // Uploading them alone leaves our sent Megolm events untrusted locally.
+    const ownQuery=this.machine.queryKeysForUsers([new UserId(identity(this.config.userId))]);
+    try {await this.process(ownQuery);} finally {ownQuery.free();}
     await this.flush();await this.inbox();
     if(!this.closed) await this.connectSocket();
     this.ready=true;

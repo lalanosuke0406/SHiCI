@@ -13,3 +13,7 @@ node_modules/
 
 # Logs
 *.log
+
+# Isolated browser/relay test storage; never production data.
+.local-tests/
+.wrangler/

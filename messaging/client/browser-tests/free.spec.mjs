@@ -5,7 +5,9 @@ import {join} from "node:path";
 import {startFreeServer} from "../../free/dev-server.mjs";
 let service;
 test.beforeAll(async()=>{
-  const stateRoot=await mkdtemp(join(fileURLToPath(new URL("../../../../../work/",import.meta.url)),"free-browser-"));
+  const {mkdir}=await import("node:fs/promises");
+  const testRoot=fileURLToPath(new URL("../../../.local-tests/",import.meta.url));await mkdir(testRoot,{recursive:true});
+  const stateRoot=await mkdtemp(join(testRoot,"free-browser-"));
   service=await startFreeServer({apiPort:0,stateRoot});
 });
 test.afterAll(async()=>{await service.close();});
@@ -29,8 +31,10 @@ test("hidden UI: register two browsers, compare keys, real-time encrypted text a
     await expect(alice.locator("#executivePeerVerificationPanel")).toBeHidden();
     await expect(bob.locator("#executivePeerVerificationPanel")).toBeHidden();
     await alice.locator("#executiveMessageInput").fill("暗号化ブラウザ試験の文字");await alice.locator("#executiveMessageForm button[type=submit]").click();
+    await expect(alice.locator("#executiveConversation")).toContainText("暗号化ブラウザ試験の文字",{timeout:20000});
     await expect(bob.locator("#executiveConversation")).toContainText("暗号化ブラウザ試験の文字",{timeout:20000});
     await bob.locator("#executiveMessageInput").fill("ブラウザからの返信");await bob.locator("#executiveMessageForm button[type=submit]").click();
+    await expect(bob.locator("#executiveConversation")).toContainText("ブラウザからの返信",{timeout:20000});
     await expect(alice.locator("#executiveConversation")).toContainText("ブラウザからの返信",{timeout:20000});
     await alice.locator("#executiveFileInput").setInputFiles({name:"試験.txt",mimeType:"text/plain",buffer:Buffer.from("暗号化添付の内容")});
     await expect(bob.locator("#executiveConversation")).toContainText("試験.txt",{timeout:20000});
@@ -44,6 +48,7 @@ test("hidden UI: register two browsers, compare keys, real-time encrypted text a
     await expect(bob.locator("#executiveRecoveryPanel")).toBeHidden();
     await bob.reload();await bob.locator("#testUser").selectOption("bob");await bob.locator("#testUnlock button").click();
     await expect(bob.locator("#executiveConversation")).toContainText("試験.txt",{timeout:30000});
+    await expect(bob.locator("#executiveConversation")).toContainText("ブラウザからの返信",{timeout:30000});
     await bob.evaluate(()=>{Object.defineProperty(document,"hidden",{configurable:true,get:()=>true});document.dispatchEvent(new Event("visibilitychange"));});
     await expect(bob.locator("#executiveMessageView")).toBeHidden();await expect(bob.locator("#executiveVerificationCode")).toBeEmpty();
     await expect(bob.locator("#appView")).toBeVisible();

@@ -1,5 +1,22 @@
 # 無料構成：SHiCIの隠しメッセージ初期版
 
+> 送信者側の復号エラーを修正：クロス署名登録後にSDKのqueryKeysForUsersで自分の公開鍵・署名を読み戻す。
+> 従来はSDK内の自分の端末情報が古く、TrustRequirement.CrossSignedが自分の送信履歴を拒否していた。
+> 信頼要件・署名鍵照合は維持。端末鍵の再生成や平文の履歴保存はしない。
+> 送信者の本文・添付・履歴の復号、WebKitでの自分の返信表示と再読込後の復号を試験。
+
+> 本修正をWorkerバージョン `21c71f4b-877e-4487-a6d1-b9aeb3140dd5` として本番反映済み。
+> 配置後のメタデータでENABLE_FREE_MESSENGER=true、2名の許可設定、Secret、DO・R2接続の保持を確認。
+> 許可証のない本番API要求は401で拒否。iPhoneの実ユーザーによる開き直しを確認する段階。
+
+> 2026-10-22修正：相手が未登録の鍵照会にはdevice_keys内に空の端末一覧を明示する。
+> 従来はユーザー自体を省略し、Rust SDKが照会を繰り返して「暗号化の準備が完了しませんでした」となった。
+> tests/key-preparation.test.mjsで修正前の同じ失敗と、修正後の後日登録・双方向E2EE・暗号化添付を確認。
+> 端末の既存鍵・サーバープロフィール・履歴を削除せず修正できる。変更対象は通信Workerのみ。
+> 本番で有効化済みのWorkerへ再配置するときは、設定ファイルの初期停止値を上書きするため
+> `npx.cmd --yes wrangler@4.151.3 deploy --config wrangler.production.jsonc --var ENABLE_FREE_MESSENGER:true` を使用。
+> このCLI操作にはCloudflareへのログインが必要。端末の秘密鍵・GASの認証秘密は入力しない。
+
 > 2026-10-22追記：利用者がR2を有効化し、非公開Standardバケット `shici-private-attachments` を作成。
 > Worker `shici-private-relay` にコード・R2接続・停止設定・SHiCIオリジンを反映済み（画面で確認）。
 > Durable Objectの保存領域はまだ未作成で、管理画面の接続候補は空。作成宣言を含む `wrangler.production.jsonc` を用意。

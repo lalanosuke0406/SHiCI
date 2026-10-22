@@ -7,7 +7,7 @@ import {resolve,join} from "node:path";
 import {startServer} from "../client/dev-server.mjs";
 export async function startFreeServer({port=4173,apiPort=8787,stateRoot}={}) {
   const secret=randomBytes(32).toString("hex"),origin="http://localhost:"+port;
-  stateRoot||=resolve(fileURLToPath(new URL("../../../../work/free-local/",import.meta.url)));
+  stateRoot||=resolve(fileURLToPath(new URL("../../.local-tests/free-local/",import.meta.url)));
   await mkdir(stateRoot,{recursive:true});
   const mf=new Miniflare({modules:true,modulesRoot:fileURLToPath(new URL("../",import.meta.url)),
     scriptPath:fileURLToPath(new URL("worker.mjs",import.meta.url)),compatibilityDate:"2026-07-30",host:"127.0.0.1",port:apiPort,

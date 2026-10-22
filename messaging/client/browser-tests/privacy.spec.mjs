@@ -81,3 +81,31 @@ test("incoming messages preserve an existing attachment preview", async ({page})
   });
   expect(await page.evaluate(()=>document.querySelector("[data-message-id=one] video")===window.testPreview)).toBe(true);
 });
+
+test("notification opt-in and stop are available only inside the device panel",async({page})=>{
+  const key=Buffer.concat([Buffer.from([4]),Buffer.alloc(64,1)]).toString("base64url");
+  await page.addInitScript(({key})=>{
+    window.pushCalls=[];let sub=null;
+    const permission={permission:"default",requestPermission:async()=>{window.pushCalls.push("permission");permission.permission="granted";return "granted";}};
+    Object.defineProperty(window,"Notification",{configurable:true,value:permission});
+    Object.defineProperty(window,"PushManager",{configurable:true,value:function(){}});
+    Object.defineProperty(navigator,"serviceWorker",{configurable:true,value:{addEventListener(){},ready:Promise.resolve({pushManager:{
+      getSubscription:async()=>sub,subscribe:async options=>{window.pushCalls.push("subscribe");sub={options,toJSON:()=>({endpoint:"https://fcm.googleapis.com/fixture",keys:{p256dh:key,auth:"A".repeat(22)}}),unsubscribe:async()=>{sub=null;window.pushCalls.push("unsubscribe");return true;}};return sub;}
+    }})}});
+  },{key});
+  await page.route("**/private/free-client.js",route=>route.fulfill({contentType:"text/javascript",body:`export function createPrivateClient(){return {close(){},async request(action){window.pushCalls.push(action);if(action==='pushConfiguration')return {configured:true,publicKey:${JSON.stringify(key)},subscribed:false};if(action==='devices')return [];if(action==='selectPeer')return {roomId:'fixture'};return {ready:true};}};}`}));
+  await page.goto("http://localhost:4173/test.html");
+  await expect(page.locator("#executiveFreePushButton")).toBeHidden();
+  await page.evaluate(()=>{window.testConfiguration={provider:"cloudflare",userId:"alice",peers:[{userId:"bob",displayName:"相手"}]};});
+  await page.locator("#testUnlock button").click();
+  await expect(page.locator("#executiveChatPanel")).toBeVisible();
+  await page.locator("#executiveDeviceButton").click();
+  await expect(page.locator("#executiveFreePushButton")).toHaveText("通知を有効にする");
+  await page.locator("#executiveFreePushButton").click();
+  await expect(page.locator("#executiveFreePushButton")).toHaveText("通知を停止する");
+  expect(await page.evaluate(()=>window.pushCalls.filter(value=>['permission','subscribe','registerPush'].includes(value)))).toEqual(['permission','subscribe','registerPush']);
+  await page.locator("#executiveFreePushButton").click();
+  await expect(page.locator("#executiveFreePushButton")).toHaveText("通知を有効にする");
+  expect(await page.evaluate(()=>window.pushCalls.slice(-2))).toEqual(['disablePush','unsubscribe']);
+  await page.locator("#executiveCloseButton").click();await expect(page.locator("#executiveFreePushButton")).toBeHidden();
+});

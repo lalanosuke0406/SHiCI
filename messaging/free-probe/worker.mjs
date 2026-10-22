@@ -112,9 +112,10 @@ export class ProbeLedger {
             typeof event.ciphertext!=="string" || !/^[A-Za-z0-9+/]+={0,2}$/.test(event.ciphertext) || event.ciphertext.length<24) throw new Failure(400,"invalid_envelope");
         const key = `event:${pairKey}:${event.id}`;
         // Serialize check-and-commit: a retry with the same ID cannot duplicate or replace ciphertext.
-        let stored;
+        let stored, created=false;
         await this.ctx.storage.transaction(async transaction=>{
           stored = await transaction.get(key);
+          created = !stored;
           if (stored && (stored.sender!==claims.sub || stored.ciphertext!==event.ciphertext)) throw new Failure(409,"id_conflict");
           await this.quota({bytes:stored ? 0 : 2*bytes.length+512,events:stored ? 0 : 1},transaction);
           if (!stored) {
@@ -128,7 +129,7 @@ export class ProbeLedger {
           if (socket.deserializeAttachment().exp*1000 <= Date.now()) {socket.close(1008,"expired"); continue;}
           try {socket.send(JSON.stringify(stored));} catch {}
         }
-        return reply(stored);
+        const response=reply(stored);response.headers.set("X-Event-Created",created?"1":"0");return response;
       }
       if (path === "/events" && request.method === "GET") {
         await this.quota();

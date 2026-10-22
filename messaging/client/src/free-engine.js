@@ -28,6 +28,9 @@ export class FreeEngine {
       if(this.closed) throw Error("画面は閉じられています。");
       const actions={start:()=>this.start(payload),selectPeer:()=>this.selectPeer(payload.peerId),confirmPeer:()=>this.confirmPeer(payload),
         older:()=>this.history(true),sendText:()=>this.sendText(payload),sendFile:()=>this.sendFile(payload),download:()=>this.download(payload),
+        pushConfiguration:()=>this.json("/push/config"),
+        registerPush:()=>this.json("/push/subscription",{method:"POST",data:{enabled:true,subscription:payload.subscription}}),
+        disablePush:()=>this.json("/push/subscription",{method:"POST",data:{enabled:false}}),
         devices:()=>([{id:this.record.deviceId,name:"登録したブラウザ",current:true,fingerprint:this.ownFingerprint}]),_sync:()=>this.syncAndRefresh()};
       if(!actions[action]) throw Error("この操作には対応していません。");return actions[action]();
     });

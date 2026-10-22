@@ -2,7 +2,7 @@
 function e(e) {
 	let t = new Worker(new URL(
 		/* @vite-ignore */
-		new URL("assets/free-worker-B6zUU46G.js", import.meta.url).href,
+		new URL("assets/free-worker-B2ifLvl8.js", import.meta.url).href,
 		"" + import.meta.url
 	), { type: "module" }), n = 0, r = !1, i = /* @__PURE__ */ new Map();
 	return t.onmessage = ({ data: t }) => {

@@ -1,4 +1,5 @@
 import {ProbeLedger,Failure,boundedBytes,reply} from "../free-probe/worker.mjs";
+import {pushConfiguration,validateSubscription,deliverPush} from "./push.mjs";
 const encoder=new TextEncoder();
 const DOMAIN="shici-free.invalid";
 const idOf=user=>`@${user}:${DOMAIN}`;
@@ -70,6 +71,14 @@ export class FreeApplication extends ProbeLedger {
       try {socket.send('{"type":"changed"}');} catch {}
     }
   }
+  async sendPush(user) {
+    const subscription=await this.ctx.storage.get("push:"+user);if(!subscription) return;
+    const result=await deliverPush(subscription,this.env);
+    if(result==="expired") await this.ctx.storage.transaction(async storage=>{
+      const current=await storage.get("push:"+user);
+      if(current?.endpoint===subscription.endpoint) await storage.delete("push:"+user);
+    });
+  }
   async fetch(request) {
     let uploading=false;
     try {
@@ -100,7 +109,7 @@ export class FreeApplication extends ProbeLedger {
         return reply({registered:Boolean(profile),deviceId:profile?.device.device_id});
       }
       const room=path.match(/^\/rooms\/([a-z0-9_-]{1,64})\/(events|attachments(?:\/[a-f0-9-]+)?)$/);
-      const limit=room?.[2]==="attachments" ? 5*1024*1024 : 256*1024;
+      const limit=path.startsWith("/push/") ? 4096 : room?.[2]==="attachments" ? 5*1024*1024 : 256*1024;
       const bytes=await boundedBytes(request,limit);
       let body={};
       if(bytes.length && !room?.[2].startsWith("attachments")) {
@@ -122,6 +131,17 @@ export class FreeApplication extends ProbeLedger {
       } else {
         if(!profile) throw new Failure(403,"device_not_registered");
         await this.proof(request,bytes,profile,user);
+      }
+      if(path==="/push/config" && request.method==="GET") {
+        const config=pushConfiguration(this.env);
+        return reply({configured:Boolean(config),publicKey:config?.publicKey||null,subscribed:Boolean(await this.ctx.storage.get("push:"+user))});
+      }
+      if(path==="/push/subscription" && request.method==="POST") {
+        if(body.enabled===false) {await this.ctx.storage.delete("push:"+user);return reply({subscribed:false});}
+        if(body.enabled!==true) throw new Failure(400,"invalid_push_subscription");
+        if(!pushConfiguration(this.env)) throw new Failure(503,"push_not_configured");
+        const subscription=await validateSubscription(body.subscription);
+        await this.ctx.storage.put("push:"+user,subscription);return reply({subscribed:true});
       }
       if(path==="/keys/upload" && request.method==="POST") {
         if(body.device_keys && (!same(body.device_keys.keys,profile.device.keys) || body.device_keys.device_id!==profile.device.device_id || body.device_keys.user_id!==idOf(user))) throw new Failure(409,"device_changed");
@@ -246,7 +266,14 @@ export class FreeApplication extends ProbeLedger {
         const forwarded=new URL(request.url);forwarded.pathname="/"+room[2];forwarded.search="";
         const headers=new Headers(request.headers);headers.set("X-Probe-Claims",JSON.stringify({...grant,pair:[user,peer]}));
         const result=await super.fetch(new Request(forwarded,{method:request.method,headers,body:bytes.length?bytes:undefined}));
-        if(result.ok && request.method==="POST") this.notify([user,peer]);
+        if(result.ok && request.method==="POST") {
+          this.notify([user,peer]);
+          if(room[2]==="events" && result.headers.get("X-Event-Created")==="1") {
+            // Delivery is best effort and cannot roll back or fail a committed message.
+            this.ctx.waitUntil(this.sendPush(peer).catch(()=>{}));
+          }
+        }
+        result.headers.delete("X-Event-Created");
         return result;
       }
       return reply({error:"not_found"},404);

@@ -1,4 +1,4 @@
-const CACHE_NAME = "shici-shell-v5";
+const CACHE_NAME = "shici-shell-v6";
 const ASSETS = [
   "./",
   "index.html",
@@ -139,6 +139,7 @@ self.addEventListener(
                 "focus" in client
               ) {
 
+                client.postMessage({type: "shici-notification-open"});
                 return client.focus();
 
               }

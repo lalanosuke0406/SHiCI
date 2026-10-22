@@ -1,4 +1,4 @@
-/* No navigation, URL changes, browser notifications, or background sync. */
+/* No private navigation or background decryption. Push notices require explicit opt-in. */
 let executiveEpoch = 0, executiveSessionToken = null, executiveClient = null;
 let executiveReleaseLock = null, executiveIdleTimer, executiveExpiryTimer;
 let executiveConfiguration = null, executiveActiveRoom = null, executiveSelectedPeer = null;
@@ -6,6 +6,7 @@ let executiveHandshakeNodes = [], executiveMessages = [];
 const executivePending = new Map(), executiveObjectUrls = new Set();
 let executiveSensorEnabled = false, executiveFaceDownSince = null, executiveFaceDownLast = null;
 let executiveRecorder = null, executiveMediaStream = null;
+let executiveFreePushConfiguration = null, executiveFreePushSubscribed = false;
 const executiveNode = id => document.getElementById(id);
 const executiveStillOpen = epoch => epoch === executiveEpoch && ExecutiveMessageController_isOpen() && !document.hidden;
 
@@ -16,8 +17,12 @@ function initializeExecutiveMessage() {
   window.addEventListener("pagehide", ExecutiveMessageController_emergencyClose);
   window.addEventListener("pageshow", event => { if (event.persisted) ExecutiveMessageController_emergencyClose(); });
   document.addEventListener("freeze", ExecutiveMessageController_emergencyClose);
+  navigator.serviceWorker?.addEventListener("message", event => {
+    if (event.data?.type === "shici-notification-open") ExecutiveMessageController_emergencyClose();
+  });
   document.addEventListener("keydown", event => { if (event.key === "Escape") ExecutiveMessageController_emergencyClose(); });
   for (const type of ["pointerdown", "keydown"]) view.addEventListener(type, ExecutiveMessageController_resetIdleTimer);
+  executiveNode("executiveFreePushButton").onclick = ExecutiveMessageController_togglePush;
   executiveNode("executiveCloseButton").onclick = ExecutiveMessageController_emergencyClose;
   executiveNode("executivePrivacySensorButton").onclick = ExecutiveMessageController_enablePrivacySensor;
   executiveNode("executiveLoginForm").onsubmit = async event => {
@@ -173,6 +178,7 @@ function ExecutiveMessageController_ready() {
     const button = document.createElement("button"); button.type = "button"; button.className = "executive-peer-button";
     button.textContent = peer.displayName; button.onclick = () => ExecutiveMessageController_selectPeer(peer); list.appendChild(button);
   }
+  void ExecutiveMessageController_refreshPush();
   ExecutiveMessageController_status("相手を選択してください。");
   if (executiveConfiguration.peers.length === 1) void ExecutiveMessageController_selectPeer(executiveConfiguration.peers[0]);
 }
@@ -371,6 +377,72 @@ function ExecutiveMessageController_emergencyClose() {
   }
   for (const url of executiveObjectUrls) URL.revokeObjectURL(url); executiveObjectUrls.clear();
   executiveMessages = []; executivePending.clear(); executiveConfiguration = null;
+  executiveFreePushConfiguration = null; executiveFreePushSubscribed = false;
+  if (executiveNode("executiveFreePushButton")) executiveNode("executiveFreePushButton").hidden = true;
+  if (executiveNode("executiveFreePushHint")) executiveNode("executiveFreePushHint").hidden = true;
   executiveActiveRoom = executiveSelectedPeer = executiveFaceDownSince = executiveFaceDownLast = null;
   ExecutiveMessageController_clearHandshakeNodes(); if (token) lockExecutiveMessageBestEffort(token);
+}
+
+function executivePushKeyMatches(subscription, publicKey) {
+  const actual = subscription?.options?.applicationServerKey;
+  if (!actual) return false;
+  const expected = Uint8Array.from(atob(publicKey.replace(/-/g,"+").replace(/_/g,"/")), c=>c.charCodeAt(0));
+  const bytes = new Uint8Array(actual);
+  return bytes.length === expected.length && bytes.every((value,index)=>value===expected[index]);
+}
+async function ExecutiveMessageController_refreshPush() {
+  const epoch = executiveEpoch, button = executiveNode("executiveFreePushButton");
+  if (!button || executiveConfiguration?.provider !== "cloudflare") return;
+  button.hidden = false; button.disabled = true; button.textContent = "通知：確認中";
+  executiveNode("executiveFreePushHint").hidden = false;
+  if (!("Notification" in window) || !("PushManager" in window) || !("serviceWorker" in navigator)) {
+    button.textContent = "この環境では通知を利用できません"; return;
+  }
+  try {
+    const config = await executiveClient.request("pushConfiguration");
+    if (!executiveStillOpen(epoch)) return;
+    if (!config.configured) { button.textContent = "通知：準備中"; return; }
+    executiveFreePushConfiguration = config;
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+    if (!executiveStillOpen(epoch)) return;
+    // Permission and subscription changes require the explicit button gesture.
+    executiveFreePushSubscribed = config.subscribed && Notification.permission === "granted" && executivePushKeyMatches(subscription,config.publicKey);
+    if (!executiveStillOpen(epoch)) return;
+    button.textContent = executiveFreePushSubscribed ? "通知を停止する" : "通知を有効にする";
+    button.disabled = false;
+  } catch { if (executiveStillOpen(epoch)) { button.textContent = "通知：確認できませんでした"; } }
+}
+async function ExecutiveMessageController_togglePush() {
+  const epoch = executiveEpoch, client = executiveClient, config = executiveFreePushConfiguration;
+  if (!config || !client || !executiveStillOpen(epoch)) return;
+  const button = executiveNode("executiveFreePushButton");
+  const disabling = executiveFreePushSubscribed;
+  // Invoke the native prompt directly within the user's button gesture (required by iOS).
+  const permission = !disabling && Notification.permission !== "granted" ? Notification.requestPermission() : Promise.resolve(Notification.permission);
+  button.disabled = true;
+  try {
+    if (await permission !== "granted" && !disabling) throw new Error("通知が許可されていません。端末の設定でSHiCIの通知を許可してください。");
+    if (!executiveStillOpen(epoch)) return;
+    const registration = await navigator.serviceWorker.ready;
+    let subscription = await registration.pushManager.getSubscription();
+    if (!executiveStillOpen(epoch)) return;
+    if (disabling) {
+      await client.request("disablePush");
+      await subscription?.unsubscribe();
+    } else {
+      if (subscription && !executivePushKeyMatches(subscription,config.publicKey)) {await subscription.unsubscribe();subscription = null;}
+      if (!executiveStillOpen(epoch)) return;
+      if (!subscription) subscription = await registration.pushManager.subscribe({userVisibleOnly:true,
+        applicationServerKey:Uint8Array.from(atob(config.publicKey.replace(/-/g,"+").replace(/_/g,"/")),c=>c.charCodeAt(0))});
+      if (!executiveStillOpen(epoch)) return;
+      await client.request("registerPush",{subscription:subscription.toJSON()});
+    }
+    if (!executiveStillOpen(epoch)) return;
+    executiveFreePushSubscribed = !disabling;
+    button.textContent = disabling ? "通知を有効にする" : "通知を停止する";
+    ExecutiveMessageController_status(disabling ? "通知を停止しました。" : "通知を有効にしました。本文や送信者名は表示しません。");
+  } catch (error) { if (executiveStillOpen(epoch)) ExecutiveMessageController_status(error.message); }
+  finally { if (executiveStillOpen(epoch)) button.disabled = false; }
 }

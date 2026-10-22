@@ -254,11 +254,12 @@
 
 <section id="executiveMessageView" class="executive-message-view" hidden aria-label="メッセージ">
   <header class="executive-message-header">
-    <span class="executive-message-brand">SHiCI</span>
-    <span id="executivePeerTitle" class="executive-message-peer-title"></span>
-    <button id="executiveCloseButton" type="button">戻る</button>
-    <button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button>
-    <button id="executiveDeviceButton" type="button">端末</button>
+    <div class="executive-titlebar">
+      <button id="executiveCloseButton" class="executive-header-button" type="button" aria-label="通常画面に戻る"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg><span>戻る</span></button>
+      <div class="executive-heading"><span class="executive-message-brand">SHiCI</span><span id="executivePeerTitle" class="executive-message-peer-title"></span></div>
+      <button id="executiveDeviceButton" class="executive-header-button" type="button" aria-label="端末と通知の設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v.01M12 12v.01M12 16v.01"/></svg><span>設定</span></button>
+    </div>
+    <div class="executive-privacy-bar"><span>メッセージ</span><button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button></div>
   </header>
   <p id="executiveStatus" role="status" aria-live="polite"></p>
   <section id="executiveFreeRegisterPanel" class="executive-setup-panel" hidden>
@@ -302,20 +303,23 @@
       <button id="executiveOlderButton" type="button">以前の履歴</button>
       <div id="executiveConversation" class="executive-conversation" aria-live="polite"></div>
       <form id="executiveMessageForm" class="executive-message-form" autocomplete="off">
-        <textarea id="executiveMessageInput" class="executive-message-input" rows="1" maxlength="10000" autocomplete="off" placeholder="メッセージ"></textarea>
-        <button class="executive-message-send" type="submit" aria-label="送信">↑</button>
-        <label class="executive-attach-button">添付<input id="executiveFileInput" type="file" aria-label="添付ファイル"></label>
-        <button id="executiveRecordButton" type="button">録音</button>
+        <textarea id="executiveMessageInput" aria-label="メッセージ" class="executive-message-input" rows="1" maxlength="10000" autocomplete="off" placeholder="メッセージ"></textarea>
+        <button class="executive-message-send" type="submit" aria-label="送信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>
+        <label class="executive-attach-button" title="添付ファイルを選ぶ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 13 6-6a3 3 0 0 1 4 4l-8 8a5 5 0 0 1-7-7l8-8"/><path d="m7 14 7-7"/></svg><span class="executive-visually-hidden">添付</span><input id="executiveFileInput" type="file" aria-label="添付ファイル"></label>
+        <button id="executiveRecordButton" class="executive-record-button" type="button" aria-label="音声を録音">録音</button>
       </form>
     </section>
   </div>
-  <section id="executiveDevices" class="executive-device-panel" hidden>
-    <button id="executiveDevicesClose" type="button">閉じる</button>
+  <section id="executiveDevices" class="executive-device-panel" hidden aria-labelledby="executiveDeviceHeading">
+    <div class="executive-device-sheet">
+    <div class="executive-device-heading"><div><p>SETTINGS</p><h2 id="executiveDeviceHeading">この端末の設定</h2></div><button id="executiveDevicesClose" type="button" aria-label="設定を閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
     <div id="executiveDeviceList"></div>
+    <div class="executive-notification-settings"><h3>新着メッセージの通知</h3>
     <button id="executiveFreePushButton" type="button" hidden disabled>通知：確認中</button>
-    <p id="executiveFreePushHint" hidden>通知には本文や送信者名を表示しません。</p>
-    <p>登録を解除した端末も、保存済みのデータを遠隔消去できる保証はありません。</p>
+    <p id="executiveFreePushHint" hidden>通知には本文や送信者名を表示しません。</p></div>
+    <p class="executive-device-note">登録を解除した端末も、保存済みのデータを遠隔消去できる保証はありません。</p>
     <button id="executiveForgetButton" type="button">この端末の登録を解除して閉じる</button>
+    </div>
   </section>
 </section>
 

@@ -66,11 +66,12 @@ function initializeExecutiveMessage() {
     executiveNode("executiveNewRecovery").hidden = false;
     executiveNode("executiveGenerateRecovery").hidden = true;
   });
+  executiveNode("executiveMessageInput").oninput = executiveResizeComposer;
   executiveNode("executiveMessageForm").onsubmit = event => {
     event.preventDefault();
     const body = executiveNode("executiveMessageInput").value.trim();
     if (!body || !executiveActiveRoom) return;
-    executiveNode("executiveMessageInput").value = "";
+    executiveNode("executiveMessageInput").value = ""; executiveResizeComposer();
     ExecutiveMessageController_queue(body);
   };
   executiveNode("executiveFileInput").onchange = event => {
@@ -177,14 +178,19 @@ function ExecutiveMessageController_ready() {
   const list = executiveNode("executivePeerList"); list.replaceChildren();
   for (const peer of executiveConfiguration.peers) {
     const button = document.createElement("button"); button.type = "button"; button.className = "executive-peer-button";
-    button.textContent = peer.displayName; button.onclick = () => ExecutiveMessageController_selectPeer(peer); list.appendChild(button);
+    button.dataset.peerId = peer.userId; button.textContent = peer.displayName; button.onclick = () => ExecutiveMessageController_selectPeer(peer); list.appendChild(button);
   }
+  executiveUpdatePeerNavigation();
   void ExecutiveMessageController_refreshPush();
   ExecutiveMessageController_status("相手を選択してください。");
   if (executiveConfiguration.peers.length === 1) void ExecutiveMessageController_selectPeer(executiveConfiguration.peers[0]);
 }
 async function ExecutiveMessageController_selectPeer(peer) {
   executiveSelectedPeer = peer.userId; executiveActiveRoom = null; executiveMessages = [];
+  executiveUpdatePeerNavigation();
+  for (const button of executiveNode("executivePeerList").querySelectorAll("button")) {
+    const active = button.dataset.peerId === peer.userId; button.classList.toggle("active", active); button.setAttribute("aria-pressed", String(active));
+  }
   executiveNode("executivePeerVerificationPanel").hidden = true;
   executiveNode("executiveVerificationCode").textContent = "";
   executivePreviewObserver?.disconnect(); executivePreviewObserver = null;
@@ -206,7 +212,22 @@ async function ExecutiveMessageController_selectPeer(peer) {
 function ExecutiveMessageController_status(text) {
   if (ExecutiveMessageController_isOpen()) executiveNode("executiveStatus").textContent = String(text || "");
 }
+function executiveUpdatePeerNavigation() {
+  executiveNode("executiveChatPanel")?.classList?.toggle("single-conversation", executiveConfiguration?.peers?.length === 1 && Boolean(executiveActiveRoom));
+}
+function executiveResizeComposer() {
+  const input = executiveNode("executiveMessageInput");
+  if (!input?.style) return;
+  input.style.height = "auto"; input.style.height = Math.min(124, Math.max(44, input.scrollHeight)) + "px";
+}
+function executiveRecordingButton(recording) {
+  const button = executiveNode("executiveRecordButton");
+  button.textContent = recording ? "送信" : "録音";
+  button.classList?.toggle("is-recording", recording);
+  button.setAttribute?.("aria-label", recording ? "録音を止めて送信" : "音声を録音");
+}
 function ExecutiveMessageController_renderMessages() {
+  executiveUpdatePeerNavigation();
   const conversation = executiveNode("executiveConversation");
   const nearBottom = conversation.scrollHeight - conversation.scrollTop - conversation.clientHeight < 100;
   const remote = new Set(executiveMessages.map(message => message.id));
@@ -227,7 +248,7 @@ function ExecutiveMessageController_renderMessages() {
       const body = document.createElement("div"); body.className = "executive-message-body"; bubble.appendChild(body);
       const time = document.createElement("div"); time.className = "executive-message-time"; bubble.appendChild(time);
     }
-    bubble.className = "executive-message-bubble " + (message.mine ? "mine" : "theirs");
+    bubble.className = "executive-message-bubble " + (message.mine ? "mine" : "theirs") + (message.attachment ? " has-attachment" : "") + (message.attachment && executiveInlineMedia(message.attachment.mime) ? " has-inline-media" : "");
     bubble.querySelector(".executive-message-body").textContent = message.body;
     if (message.attachment && !message.pending && !bubble.querySelector("[data-attachment],img,audio,video,a[download]")) {
       const automatic = executiveInlineMedia(message.attachment.mime) && message.status !== "sending" && message.status !== "not_sent";
@@ -325,7 +346,7 @@ async function ExecutiveMessageController_openAttachment(eventId, bubble, button
         preview = document.createElement("img"); preview.alt = result.name; preview.decoding = "async";
       } else if (mime.startsWith("video/") || mime.startsWith("audio/")) {
         preview = document.createElement(mime.startsWith("video/") ? "video" : "audio"); preview.controls = true;
-        preview.preload = "metadata"; preview.autoplay = false;
+        preview.preload = mime.startsWith("video/") ? "auto" : "metadata"; preview.autoplay = false;
         preview.disablePictureInPicture = true; preview.disableRemotePlayback = true;
         preview.controlsList = "nodownload noremoteplayback"; preview.setAttribute("playsinline", "");
       } else preview = saveLink();
@@ -369,9 +390,9 @@ async function ExecutiveMessageController_record() {
       if (!executiveStillOpen(epoch) || executiveActiveRoom !== roomId) return;
       const mime = recorder.mimeType || "audio/webm";
       ExecutiveMessageController_sendFile(new File(chunks, mime.includes("mp4") ? "音声.m4a" : "音声.webm", {type: mime}));
-      executiveNode("executiveRecordButton").textContent = "録音";
+      executiveRecordingButton(false);
     };
-    recorder.start(1000); executiveNode("executiveRecordButton").textContent = "録音を止めて送信";
+    recorder.start(1000); executiveRecordingButton(true);
   } catch { if (executiveStillOpen(epoch)) ExecutiveMessageController_status("マイクの利用を許可してください。"); }
 }
 async function ExecutiveMessageController_devices() {
@@ -439,7 +460,7 @@ function ExecutiveMessageController_emergencyClose() {
     for (const id of ["executiveGeneratedKey", "executivePeerTitle", "executiveStatus", "executiveVerificationCode"]) if (executiveNode(id)) executiveNode(id).textContent = "";
     for (const id of ["executiveFreeRegisterPanel", "executivePeerVerificationPanel"]) if (executiveNode(id)) executiveNode(id).hidden = true;
     executiveNode("executiveDevices").hidden = executiveNode("executiveNewRecovery").hidden = true;
-    executiveNode("executiveRecordButton").textContent = "録音";
+    executiveRecordingButton(false); executiveResizeComposer();
   }
   for (const url of executiveObjectUrls) URL.revokeObjectURL(url); executiveObjectUrls.clear();
   executiveMessages = []; executivePending.clear(); executiveConfiguration = null;

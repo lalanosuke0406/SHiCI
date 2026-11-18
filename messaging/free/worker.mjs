@@ -65,11 +65,13 @@ export class FreeApplication extends ProbeLedger {
       recent[nonce]=Date.now();await storage.put(key,recent);
     });
   }
-  notify(users) {
+  notify(users, event = {type:"changed"}) {
+    let delivered = 0;
     for(const user of users) for(const socket of this.ctx.getWebSockets("user:"+user)) {
       if(socket.deserializeAttachment().exp*1000<=Date.now()) {socket.close(1008,"expired");continue;}
-      try {socket.send('{"type":"changed"}');} catch {}
+      try {socket.send(JSON.stringify(event)); delivered++;} catch {}
     }
+    return delivered;
   }
   async sendPush(user) {
     const subscription=await this.ctx.storage.get("push:"+user);if(!subscription) return;
@@ -131,6 +133,31 @@ export class FreeApplication extends ProbeLedger {
       } else {
         if(!profile) throw new Failure(403,"device_not_registered");
         await this.proof(request,bytes,profile,user);
+      }
+      if(path==="/call/signal" && request.method==="POST") {
+        const {peer, id, kind, sdp} = body || {};
+        if(!grant.peers.includes(peer) || !/^[a-f0-9-]{36}$/.test(id || "") ||
+           !["offer","answer","end"].includes(kind) ||
+           (kind !== "end" && (typeof sdp !== "string" || !sdp.startsWith("v=0") || sdp.length > 24000))) {
+          throw new Failure(400,"invalid_call_signal");
+        }
+        const delivered = this.notify([peer], {type:"call", peer:user, id, kind, sdp:kind === "end" ? undefined : sdp});
+        if (kind === "offer" && !delivered) {
+          await this.ctx.storage.put("missed-call:"+peer, {id:crypto.randomUUID(), at:Date.now()});
+        }
+        return reply({delivered:Boolean(delivered)});
+      }
+      if(path==="/call/missed" && request.method==="GET") {
+        const notice = await this.ctx.storage.get("missed-call:"+user);
+        return reply({notice:notice || null});
+      }
+      if(path==="/call/missed/ack" && request.method==="POST") {
+        await this.ctx.storage.transaction(async storage=>{
+          const key="missed-call:"+user;
+          const notice=await storage.get(key);
+          if(notice && notice.id===body?.id) await storage.delete(key);
+        });
+        return reply({ok:true});
       }
       if(path==="/push/config" && request.method==="GET") {
         const config=pushConfiguration(this.env);

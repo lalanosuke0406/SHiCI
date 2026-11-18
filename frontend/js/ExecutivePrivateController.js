@@ -12,6 +12,7 @@ const executiveNode = id => document.getElementById(id);
 const executiveStillOpen = epoch => epoch === executiveEpoch && ExecutiveMessageController_isOpen() && !document.hidden;
 
 function initializeExecutiveMessage() {
+  ExecutiveCall_initialize();
   const view = executiveNode("executiveMessageView");
   if (!view) return;
   document.addEventListener("visibilitychange", () => { if (document.hidden) ExecutiveMessageController_emergencyClose(); });
@@ -45,6 +46,7 @@ function initializeExecutiveMessage() {
       if (executiveSelectedPeer !== peerId) return;
       executiveNode("executivePeerVerificationPanel").hidden = true;
       executiveActiveRoom = result.roomId;
+      ExecutiveCall_refresh();
       await executiveClient.request("older", {roomId: result.roomId}); ExecutiveMessageController_status("");
     } finally {button.disabled = false;}
   });
@@ -145,7 +147,8 @@ async function ExecutiveMessageController_connect(password, accepted = false) {
         if (!executiveStillOpen(epoch)) return;
         if (event.type === "messages" && event.roomId === executiveActiveRoom) {
           executiveMessages = event.messages; ExecutiveMessageController_renderMessages();
-        } else if (event.type === "progress") ExecutiveMessageController_status("添付を送信しています：" + Math.round(event.loaded / (event.total || 1) * 100) + "%");
+        } else if (event.type === "call") void ExecutiveCall_receive(event);
+        else if (event.type === "progress") ExecutiveMessageController_status("添付を送信しています：" + Math.round(event.loaded / (event.total || 1) * 100) + "%");
         else if (event.type === "error") ExecutiveMessageController_status(event.message);
       });
       executiveClient = {
@@ -172,6 +175,7 @@ async function ExecutiveMessageController_connect(password, accepted = false) {
   } catch (error) { if (executiveStillOpen(epoch)) ExecutiveMessageController_status(error.message); }
 }
 function ExecutiveMessageController_ready() {
+  void ExecutiveCall_readMissed();
   executiveNode("executiveRecoveryPanel").hidden = executiveNode("executiveConnectPanel").hidden = true;
   executiveNode("executiveFreeRegisterPanel").hidden = true;
   executiveNode("executiveChatPanel").hidden = false;
@@ -206,6 +210,7 @@ async function ExecutiveMessageController_selectPeer(peer) {
       ExecutiveMessageController_status("初回だけ、相手と確認コードを照合してください。"); return;
     }
     executiveActiveRoom = result.roomId;
+    ExecutiveCall_refresh();
     await executiveClient.request("older", {roomId: result.roomId}); ExecutiveMessageController_status("");
   });
 }
@@ -213,6 +218,7 @@ function ExecutiveMessageController_status(text) {
   if (ExecutiveMessageController_isOpen()) executiveNode("executiveStatus").textContent = String(text || "");
 }
 function executiveUpdatePeerNavigation() {
+  ExecutiveCall_refresh();
   executiveNode("executiveChatPanel")?.classList?.toggle("single-conversation", executiveConfiguration?.peers?.length === 1 && Boolean(executiveActiveRoom));
 }
 function executiveResizeComposer() {
@@ -444,6 +450,9 @@ function ExecutiveMessageController_resetIdleTimer() {
   clearTimeout(executiveIdleTimer); executiveIdleTimer = setTimeout(ExecutiveMessageController_emergencyClose, 180000);
 }
 function ExecutiveMessageController_emergencyClose() {
+  ExecutiveCall_finish();
+  const missed = executiveNode("executiveMissedCall");
+  if (missed) missed.hidden = true;
   ++executiveEpoch; // Also invalidate unlock requests which have not returned yet.
   executivePreviewObserver?.disconnect(); executivePreviewObserver = null;
   const token = executiveSessionToken; executiveSessionToken = null;
@@ -532,4 +541,191 @@ async function ExecutiveMessageController_togglePush() {
     ExecutiveMessageController_status(disabling ? "通知を停止しました。" : "通知を有効にしました。本文や送信者名は表示しません。");
   } catch (error) { if (executiveStillOpen(epoch)) ExecutiveMessageController_status(error.message); }
   finally { if (executiveStillOpen(epoch)) button.disabled = false; }
+}
+
+let executiveCall = null;
+
+function ExecutiveCall_initialize() {
+  executiveNode("executiveCallStart").onclick = () => void ExecutiveCall_start();
+  executiveNode("executiveCallAnswer").onclick = () => void ExecutiveCall_answer();
+  executiveNode("executiveCallEnd").onclick = () => ExecutiveCall_finish(true);
+}
+
+async function ExecutiveCall_readMissed() {
+  if (executiveConfiguration?.provider !== "cloudflare") return;
+  const client = executiveClient;
+  const panel = executiveNode("executiveMissedCall");
+  const dismiss = executiveNode("executiveMissedCallDismiss");
+  try {
+    const {notice} = await client.request("missedCall");
+    if (client !== executiveClient) return;
+    panel.hidden = !notice;
+    dismiss.onclick = notice ? async () => {
+      dismiss.disabled = true;
+      try {
+        await client.request("dismissMissedCall", {id:notice.id});
+        if (client === executiveClient) await ExecutiveCall_readMissed();
+      } catch {
+        if (client === executiveClient) ExecutiveMessageController_status("通知を確認済みにできませんでした。");
+      } finally {
+        dismiss.disabled = false;
+      }
+    } : null;
+  } catch {
+    // Keep conversation access available if the notice service cannot be reached.
+  }
+}
+
+function ExecutiveCall_refresh() {
+  const button = executiveNode("executiveCallStart");
+  if (!button) return;
+  button.hidden = executiveConfiguration?.provider !== "cloudflare" ||
+    !executiveActiveRoom || !window.RTCPeerConnection || !navigator.mediaDevices?.getUserMedia;
+  button.disabled = Boolean(executiveCall);
+}
+
+function ExecutiveCall_show(text, incoming = false) {
+  executiveNode("executiveCallPanel").hidden = false;
+  executiveNode("executiveCallStatus").textContent = text;
+  executiveNode("executiveCallAnswer").hidden = !incoming;
+}
+
+function ExecutiveCall_create(peer, id, offer) {
+  const call = {peer, id, offer, client: executiveClient};
+  executiveCall = call;
+  call.timeout = setTimeout(() => ExecutiveCall_fail(call, "通話に接続できませんでした。"), 45000);
+  ExecutiveCall_refresh();
+  return call;
+}
+
+function ExecutiveCall_signal(call, kind, sdp) {
+  return call.client.request("callSignal", {peer: call.peer, id: call.id, kind, sdp});
+}
+
+function ExecutiveCall_finish(notify = false) {
+  const call = executiveCall;
+  if (!call) return;
+  executiveCall = null;
+  clearTimeout(call.timeout);
+  clearTimeout(call.disconnectTimeout);
+  call.connection?.close();
+  call.stream?.getTracks().forEach(track => track.stop());
+  const audio = executiveNode("executiveCallAudio");
+  audio.srcObject = null;
+  audio.controls = false;
+  executiveNode("executiveCallStatus").textContent = "";
+  executiveNode("executiveCallPanel").hidden = true;
+  if (notify) void ExecutiveCall_signal(call, "end").catch(() => {});
+  ExecutiveCall_refresh();
+}
+
+function ExecutiveCall_fail(call, text) {
+  if (executiveCall !== call) return;
+  ExecutiveCall_finish(true);
+  ExecutiveMessageController_status(text || "音声通話を開始できませんでした。");
+}
+
+async function ExecutiveCall_connect(call) {
+  const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+  if (executiveCall !== call) {
+    stream.getTracks().forEach(track => track.stop());
+    return null;
+  }
+  call.stream = stream;
+  const connection = new RTCPeerConnection({
+    iceServers: [{urls: "stun:stun.cloudflare.com:3478"}]
+  });
+  call.connection = connection;
+  connection.ontrack = event => {
+    if (executiveCall !== call) return;
+    const audio = executiveNode("executiveCallAudio");
+    audio.srcObject = event.streams[0] || new MediaStream([event.track]);
+    void audio.play().catch(() => { if (executiveCall === call) audio.controls = true; });
+  };
+  connection.onconnectionstatechange = () => {
+    if (executiveCall !== call) return;
+    if (connection.connectionState === "connected") {
+      clearTimeout(call.timeout);
+      clearTimeout(call.disconnectTimeout);
+      ExecutiveCall_show("通話中");
+    } else if (connection.connectionState === "disconnected") {
+      clearTimeout(call.disconnectTimeout);
+      call.disconnectTimeout = setTimeout(() => ExecutiveCall_fail(call, "通話が切断されました。"), 10000);
+    } else if (["failed", "closed"].includes(connection.connectionState)) {
+      ExecutiveCall_fail(call, "通話が切断されました。");
+    }
+  };
+  stream.getAudioTracks().forEach(track => connection.addTrack(track, stream));
+  return connection;
+}
+
+async function ExecutiveCall_localDescription(connection, kind) {
+  const description = kind === "offer" ? await connection.createOffer() : await connection.createAnswer();
+  await connection.setLocalDescription(description);
+  if (connection.iceGatheringState !== "complete") {
+    await new Promise(resolve => {
+      const timeout = setTimeout(done, 5000);
+      function done() {
+        clearTimeout(timeout);
+        connection.removeEventListener("icegatheringstatechange", changed);
+        resolve();
+      }
+      function changed() { if (connection.iceGatheringState === "complete") done(); }
+      connection.addEventListener("icegatheringstatechange", changed);
+      changed();
+    });
+  }
+  return connection.localDescription?.sdp;
+}
+
+async function ExecutiveCall_start() {
+  if (executiveCall || !executiveActiveRoom || !executiveSelectedPeer) return;
+  const call = ExecutiveCall_create(executiveSelectedPeer, crypto.randomUUID());
+  ExecutiveCall_show("発信しています…");
+  try {
+    const connection = await ExecutiveCall_connect(call);
+    if (!connection) return;
+    const sdp = await ExecutiveCall_localDescription(connection, "offer");
+    if (executiveCall !== call) return;
+    const result = await ExecutiveCall_signal(call, "offer", sdp);
+    if (!result.delivered) ExecutiveCall_fail(call, "相手のSHiCIに不在着信を残しました。");
+  } catch {
+    ExecutiveCall_fail(call);
+  }
+}
+
+async function ExecutiveCall_answer() {
+  const call = executiveCall;
+  if (!call?.offer || call.answering) return;
+  call.answering = true;
+  ExecutiveCall_show("通話に接続しています…");
+  try {
+    const connection = await ExecutiveCall_connect(call);
+    if (!connection) return;
+    await connection.setRemoteDescription({type: "offer", sdp: call.offer});
+    const sdp = await ExecutiveCall_localDescription(connection, "answer");
+    if (executiveCall !== call) return;
+    const result = await ExecutiveCall_signal(call, "answer", sdp);
+    if (!result.delivered) ExecutiveCall_fail(call, "発信者との接続が終了しました。");
+  } catch {
+    ExecutiveCall_fail(call);
+  }
+}
+
+async function ExecutiveCall_receive(event) {
+  const call = executiveCall;
+  if (event.kind === "offer") {
+    if (call || document.hidden || !ExecutiveMessageController_isOpen()) return;
+    ExecutiveCall_create(event.peer, event.id, event.sdp);
+    ExecutiveCall_show("伸幸ファインテクノから連絡", true);
+    return;
+  }
+  if (!call || event.id !== call.id || event.peer !== call.peer) return;
+  if (event.kind === "end") {
+    ExecutiveCall_finish();
+    ExecutiveMessageController_status("通話が終了しました。");
+  } else if (event.kind === "answer" && !call.offer && call.connection?.signalingState === "have-local-offer") {
+    try { await call.connection.setRemoteDescription({type: "answer", sdp: event.sdp}); }
+    catch { ExecutiveCall_fail(call); }
+  }
 }

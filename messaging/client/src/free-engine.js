@@ -29,6 +29,9 @@ export class FreeEngine {
       const actions={start:()=>this.start(payload),selectPeer:()=>this.selectPeer(payload.peerId),confirmPeer:()=>this.confirmPeer(payload),
         older:()=>this.history(true),sendText:()=>this.sendText(payload),sendFile:()=>this.sendFile(payload),download:()=>this.download(payload),
         pushConfiguration:()=>this.json("/push/config"),
+        callSignal:()=>this.callSignal(payload),
+        missedCall:()=>this.json("/call/missed"),
+        dismissMissedCall:()=>this.json("/call/missed/ack",{method:"POST",data:{id:payload.id}}),
         registerPush:()=>this.json("/push/subscription",{method:"POST",data:{enabled:true,subscription:payload.subscription}}),
         disablePush:()=>this.json("/push/subscription",{method:"POST",data:{enabled:false}}),
         devices:()=>([{id:this.record.deviceId,name:"登録したブラウザ",current:true,fingerprint:this.ownFingerprint}]),_sync:()=>this.syncAndRefresh()};
@@ -58,6 +61,19 @@ export class FreeEngine {
     return response;
   }
   async json(path,options) {return (await this.api(path,options)).json();}
+  async callSignal({peer,id,kind,sdp}) {
+    const pin = this.record?.pins[peer];
+    if (!pin || !this.config.peers.some(value => value.userId === peer)) {
+      throw Error("相手の端末を確認してから通話してください。");
+    }
+    if (kind !== "end") {
+      const keys = await this.peerKeys(peer);
+      if (pin.id !== keys.id || pin.ed !== keys.ed || pin.curve !== keys.curve) {
+        throw Error("相手の端末の鍵を確認できません。");
+      }
+    }
+    return this.json("/call/signal", {method:"POST",data:{peer,id,kind,sdp}});
+  }
   async save() {await this.vault.saveDevice(this.name,this.record);}
   async start({accepted=false}={}) {
     if(this.ready) return {ready:true};
@@ -279,7 +295,13 @@ export class FreeEngine {
     const url=new URL("/stream?ticket="+encodeURIComponent(ticket),this.config.baseUrl);url.protocol=url.protocol==="https:"?"wss:":"ws:";
     const socket=this.socketFactory(url.toString());this.socket=socket;
     socket.onopen=()=>{this.reconnectDelay=1000;void this.request("_sync").catch(error=>this.emit({type:"error",message:error.message}));};
-    socket.onmessage=()=>this.queueSync();
+    socket.onmessage=({data})=>{
+      let event;
+      try {event=JSON.parse(data);} catch {return;}
+      if(event?.type==="call") {
+        if(this.record?.pins[event.peer] && this.config.peers.some(peer=>peer.userId===event.peer)) this.emit(event);
+      } else if(event?.type==="changed") this.queueSync();
+    };
     socket.onclose=()=>{if(this.closed)return;this.reconnectTimer=setTimeout(()=>{void this.connectSocket().catch(error=>this.emit({type:"error",message:error.message}));},this.reconnectDelay);this.reconnectDelay=Math.min(15000,this.reconnectDelay*2);};
     socket.onerror=()=>{};
   }

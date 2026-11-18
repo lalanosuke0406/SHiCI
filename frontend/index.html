@@ -259,9 +259,19 @@
       <div class="executive-heading"><span class="executive-message-brand">SHiCI</span><span id="executivePeerTitle" class="executive-message-peer-title"></span></div>
       <button id="executiveDeviceButton" class="executive-header-button" type="button" aria-label="端末と通知の設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v.01M12 12v.01M12 16v.01"/></svg><span>設定</span></button>
     </div>
-    <div class="executive-privacy-bar"><span>メッセージ</span><button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button></div>
+    <div class="executive-privacy-bar"><span>メッセージ</span><button id="executiveCallStart" type="button" hidden>音声通話</button><button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button></div>
   </header>
   <p id="executiveStatus" role="status" aria-live="polite"></p>
+  <section id="executiveMissedCall" class="executive-setup-panel" hidden aria-label="不在着信">
+    <p role="status">伸幸ファインテクノから連絡</p>
+    <button id="executiveMissedCallDismiss" type="button">確認済みにする</button>
+  </section>
+  <section id="executiveCallPanel" class="executive-setup-panel" hidden aria-label="音声通話">
+    <p id="executiveCallStatus" role="status"></p>
+    <button id="executiveCallAnswer" type="button" hidden>応答</button>
+    <button id="executiveCallEnd" type="button">終了</button>
+    <audio id="executiveCallAudio" autoplay playsinline></audio>
+  </section>
   <section id="executiveFreeRegisterPanel" class="executive-setup-panel" hidden>
     <p>このブラウザをメッセージ用の端末として登録します。現在は1人1端末で利用します。</p>
     <p>復旧機能は準備中です。ブラウザのデータ削除、プライベートブラウズの終了、端末紛失で履歴を読めなくなることがあります。</p>

@@ -8,7 +8,7 @@ ApiClient.js
 =========================================
 */
 
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxdT6Zhk2evdrRJVHNNhpuVvp0CSTV28zNoau8DjymkWx4GDYn6bgs__Pg-tY-ptD_Igg/exec";
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycby8bL3Cz86GKy3CfWQdztF780KXgggWnMl94AJ8wXlmhFM_jMQPjhyq1xkjo0aJwP_T/exec";
 
  
 
@@ -473,4 +473,3 @@ async function askShici(text) {
     );
 
 }
-

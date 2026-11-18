@@ -1,13 +1,18 @@
-const CACHE_NAME = "shici-shell-v8";
+const CACHE_NAME = "shici-pwa-v2";
 const ASSETS = [
   "./",
   "index.html",
   "css/main.css",
-  "manifest.json",
-  "js/SessionStore.js", "js/UIRenderer.js?v=20260806-1", "js/ApiClient.js",
-  "js/TextareaController.js", "js/AuthController.js", "js/ChatController.js",
-  "js/ExecutivePrivateController.js",
-  "js/ExecutivePushController.js", "js/app.js"
+  "js/SessionStore.js",
+  "js/UIRenderer.js?v=20260806-1",
+  "js/ApiClient.js",
+  "js/TextareaController.js",
+  "js/AuthController.js",
+  "js/ChatController.js",
+  "js/ExecutiveMessageController.js",
+  "js/ExecutivePushController.js",
+  "js/app.js",
+  "manifest.json"
 ];
 
 self.addEventListener("install", function(event) {
@@ -19,28 +24,22 @@ self.addEventListener("install", function(event) {
 });
 
 self.addEventListener("activate", function(event) {
-  event.waitUntil(caches.keys().then(function(names) {
-    return Promise.all(names.filter(function(name) {
-      return name === "shici-pwa-v1" || (name.startsWith("shici-shell-") && name !== CACHE_NAME);
-    }).map(function(name) { return caches.delete(name); }));
-  }));
+  event.waitUntil(caches.delete("shici-pwa-v1"));
 });
 
 self.addEventListener("fetch", function(event) {
-  // Cache only the explicitly listed public shell. API responses, messages,
-  // tokens, cross-origin media and authenticated requests never enter this cache.
-  const request = event.request;
-  if (request.method !== "GET" || request.headers.has("Authorization")) return;
-  const allowed = ASSETS.map(function(asset) { return new URL(asset, self.registration.scope).href; });
-  if (!allowed.includes(request.url)) return;
+  if (event.request.method !== "GET" ||
+      new URL(event.request.url).origin !== self.location.origin) {
+    return;
+  }
+
   event.respondWith(
-    fetch(request).then(function(response) {
-      if (response.ok) {
-        const copy = response.clone();
-        event.waitUntil(caches.open(CACHE_NAME).then(function(cache) { return cache.put(request, copy); }));
-      }
-      return response;
-    }).catch(function() { return caches.match(request); })
+    fetch(event.request).catch(async function(error) {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(event.request);
+      if (cached) return cached;
+      throw error;
+    })
   );
 });
 
@@ -139,7 +138,6 @@ self.addEventListener(
                 "focus" in client
               ) {
 
-                client.postMessage({type: "shici-notification-open"});
                 return client.focus();
 
               }

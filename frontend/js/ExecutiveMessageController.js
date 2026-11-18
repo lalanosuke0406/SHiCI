@@ -21,6 +21,16 @@ let executiveActivePeerUserId = null;
 let executivePollTimer = null;
 let executiveIdleTimer = null;
 let executiveHandshakeNodes = [];
+let executiveSelectionVersion = 0;
+let executiveReadRequest = 0;
+let executiveAppliedReadRequest = 0;
+let executivePendingSend = null;
+
+function ExecutiveMessageController_setStatus(id, message) {
+  const status = document.getElementById(id);
+  status.textContent = message;
+  status.hidden = !message;
+}
 
 let executiveTouchStartX = null;
 let executiveTouchStartY = null;
@@ -342,6 +352,10 @@ async function ExecutiveMessageController_selectPeer(
   peerUserId
 ) {
 
+  executiveSelectionVersion += 1;
+  ExecutiveMessageController_clearConversation();
+  ExecutiveMessageController_setStatus("executiveReadStatus", "");
+
   executiveActivePeerUserId =
     String(
       peerUserId || ""
@@ -392,11 +406,28 @@ async function ExecutiveMessageController_refreshConversation() {
 
   try {
 
+    const request = ++executiveReadRequest;
+    const token = executiveSessionToken;
+    const selection = executiveSelectionVersion;
     const result =
       await listExecutiveMessages(
-        executiveSessionToken,
+        token,
         executiveActivePeerUserId
-      );
+      ).catch(() => null);
+
+    if (
+      token !== executiveSessionToken ||
+      selection !== executiveSelectionVersion ||
+      request < executiveAppliedReadRequest
+    ) {
+      return;
+    }
+
+    executiveAppliedReadRequest = request;
+
+    if (ExecutiveMessageController_handleSessionError(result)) {
+      return;
+    }
 
     if (
       !result ||
@@ -404,9 +435,7 @@ async function ExecutiveMessageController_refreshConversation() {
     ) {
 
       throw new Error(
-        result && result.message
-          ? result.message
-          : "メッセージを取得できませんでした。"
+        "メッセージを取得できませんでした。再読み込みを試みます。"
       );
 
     }
@@ -415,13 +444,26 @@ async function ExecutiveMessageController_refreshConversation() {
       result.messages || [],
       result.currentUserId || null
     );
+    ExecutiveMessageController_setStatus("executiveReadStatus", "");
 
   } catch (error) {
 
-    ExecutiveMessageController_emergencyClose();
+    ExecutiveMessageController_setStatus("executiveReadStatus", error.message);
 
   }
 
+}
+
+function ExecutiveMessageController_handleSessionError(result) {
+  if (!result || ![
+    "EXECUTIVE_SESSION_INVALID",
+    "SESSION_INVALID"
+  ].includes(result.code)) {
+    return false;
+  }
+
+  ExecutiveMessageController_emergencyClose();
+  return true;
 }
 
 function ExecutiveMessageController_renderMessages(
@@ -519,7 +561,8 @@ async function ExecutiveMessageController_handleSend(
 
   if (
     !executiveSessionToken ||
-    !executiveActivePeerUserId
+    !executiveActivePeerUserId ||
+    executivePendingSend
   ) {
     return;
   }
@@ -531,7 +574,11 @@ async function ExecutiveMessageController_handleSend(
     return;
   }
 
-  executiveMessageInput.value = "";
+  const token = executiveSessionToken;
+  const inputValue = executiveMessageInput.value;
+  const pending = {};
+  executivePendingSend = pending;
+  ExecutiveMessageController_setStatus("executiveSendStatus", "送信中…");
 
   ExecutiveMessageController_resetIdleTimer();
 
@@ -539,10 +586,15 @@ async function ExecutiveMessageController_handleSend(
 
     const result =
       await sendExecutiveMessage(
-        executiveSessionToken,
+        token,
         executiveActivePeerUserId,
         body
       );
+
+    if (token !== executiveSessionToken ||
+        ExecutiveMessageController_handleSessionError(result)) {
+      return;
+    }
 
     if (
       !result ||
@@ -550,18 +602,30 @@ async function ExecutiveMessageController_handleSend(
     ) {
 
       throw new Error(
-        result && result.message
-          ? result.message
-          : "送信できませんでした。"
+        "送信を確認できませんでした。会話を確認してから再送してください。"
       );
 
     }
 
+    if (executiveMessageInput.value === inputValue) {
+      executiveMessageInput.value = "";
+    }
+    ExecutiveMessageController_setStatus("executiveSendStatus", "");
     await ExecutiveMessageController_refreshConversation();
 
   } catch (error) {
 
-    ExecutiveMessageController_emergencyClose();
+    if (token === executiveSessionToken) {
+      ExecutiveMessageController_setStatus(
+        "executiveSendStatus",
+        "送信を確認できませんでした。会話を確認してから再送してください。"
+      );
+    }
+
+  } finally {
+    if (executivePendingSend === pending) {
+      executivePendingSend = null;
+    }
 
   }
 
@@ -829,6 +893,9 @@ function ExecutiveMessageController_emergencyClose() {
     executiveSessionToken;
 
   executiveSessionToken = null;
+  executivePendingSend = null;
+  ExecutiveMessageController_setStatus("executiveReadStatus", "");
+  ExecutiveMessageController_setStatus("executiveSendStatus", "");
 
   ExecutivePushController_clearSessionToken();
 

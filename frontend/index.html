@@ -252,77 +252,96 @@
          Executive Message
     =========================================== -->
 
-<section id="executiveMessageView" class="executive-message-view" hidden aria-label="メッセージ">
-  <header class="executive-message-header">
-    <div class="executive-titlebar">
-      <button id="executiveCloseButton" class="executive-header-button" type="button" aria-label="通常画面に戻る"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg><span>戻る</span></button>
-      <div class="executive-heading"><span class="executive-message-brand">SHiCI</span><span id="executivePeerTitle" class="executive-message-peer-title"></span></div>
-      <button id="executiveDeviceButton" class="executive-header-button" type="button" aria-label="端末と通知の設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v.01M12 12v.01M12 16v.01"/></svg><span>設定</span></button>
-    </div>
-    <div class="executive-privacy-bar"><span>メッセージ</span><button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button></div>
-  </header>
-  <p id="executiveStatus" role="status" aria-live="polite"></p>
-  <section id="executiveFreeRegisterPanel" class="executive-setup-panel" hidden>
-    <p>このブラウザをメッセージ用の端末として登録します。現在は1人1端末で利用します。</p>
-    <p>復旧機能は準備中です。ブラウザのデータ削除、プライベートブラウズの終了、端末紛失で履歴を読めなくなることがあります。</p>
-    <form id="executiveFreeRegisterForm" autocomplete="off">
-      <label><input id="executiveFreeRegisterAccepted" type="checkbox" required>内容を確認しました</label>
-      <button type="submit">この端末を登録</button>
-    </form>
-  </section>
-  <section id="executivePeerVerificationPanel" class="executive-setup-panel" hidden>
-    <p>相手と対面または電話などで、下のコード全体が同じことを確認してください。一致しなければ送信を始めないでください。</p>
-    <pre id="executiveVerificationCode" style="white-space:pre-wrap;overflow-wrap:anywhere"></pre>
-    <button id="executiveConfirmPeerButton" type="button">相手と照合して一致を確認しました</button>
-  </section>
-  <div id="executiveConnectPanel" class="executive-setup-panel">
-    <form id="executiveLoginForm" autocomplete="off" hidden>
-      <label>この端末を登録するためのパスワード<input id="executiveLoginPassword" type="password" autocomplete="off" required></label>
-      <button type="submit">この端末を登録</button>
-    </form>
-  </div>
-  <div id="executiveRecoveryPanel" class="executive-setup-panel" hidden>
-    <p>履歴を復旧するための鍵を設定します。キーは本人が保管してください。</p>
-    <button id="executiveGenerateRecovery" type="button">リカバリーキーを作成</button>
-    <form id="executiveRecoveryForm" autocomplete="off">
-      <div id="executiveExistingRecovery" hidden>
-        <label>保管しているリカバリーキー<input id="executiveRecoveryInput" type="password" autocomplete="off"></label>
-      </div>
-      <div id="executiveNewRecovery" hidden>
-        <p>このキーを安全に保管してください。この画面を閉じると表示は消えます。</p>
-        <pre id="executiveGeneratedKey"></pre>
-        <label><input id="executiveRecoverySaved" type="checkbox">リカバリーキーを保管しました</label>
-      </div>
-      <label>本人確認用パスワード（求められた場合）<input id="executiveRecoveryPassword" type="password" autocomplete="off"></label>
-      <button type="submit">鍵の設定・復元</button>
-    </form>
-  </div>
-  <div id="executiveChatPanel" class="executive-message-layout" hidden>
-    <nav id="executivePeerList" class="executive-peer-list" aria-label="連絡先"></nav>
-    <section class="executive-conversation-panel">
-      <button id="executiveOlderButton" type="button">以前の履歴</button>
-      <div id="executiveConversation" class="executive-conversation" aria-live="polite"></div>
-      <form id="executiveMessageForm" class="executive-message-form" autocomplete="off">
-        <textarea id="executiveMessageInput" aria-label="メッセージ" class="executive-message-input" rows="1" maxlength="10000" autocomplete="off" placeholder="メッセージ"></textarea>
-        <button class="executive-message-send" type="submit" aria-label="送信"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button>
-        <label class="executive-attach-button" title="添付ファイルを選ぶ"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m8 13 6-6a3 3 0 0 1 4 4l-8 8a5 5 0 0 1-7-7l8-8"/><path d="m7 14 7-7"/></svg><span class="executive-visually-hidden">添付</span><input id="executiveFileInput" type="file" aria-label="添付ファイル"></label>
-        <button id="executiveRecordButton" class="executive-record-button" type="button" aria-label="音声を録音">録音</button>
-      </form>
-    </section>
-  </div>
-  <section id="executiveDevices" class="executive-device-panel" hidden aria-labelledby="executiveDeviceHeading">
-    <div class="executive-device-sheet">
-    <div class="executive-device-heading"><div><p>SETTINGS</p><h2 id="executiveDeviceHeading">この端末の設定</h2></div><button id="executiveDevicesClose" type="button" aria-label="設定を閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6"/></svg></button></div>
-    <div id="executiveDeviceList"></div>
-    <div class="executive-notification-settings"><h3>新着メッセージの通知</h3>
-    <button id="executiveFreePushButton" type="button" hidden disabled>通知：確認中</button>
-    <p id="executiveFreePushHint" hidden>通知には本文や送信者名を表示しません。</p></div>
-    <p class="executive-device-note">登録を解除した端末も、保存済みのデータを遠隔消去できる保証はありません。</p>
-    <button id="executiveForgetButton" type="button">この端末の登録を解除して閉じる</button>
-    </div>
-  </section>
-</section>
+    <section
+        id="executiveMessageView"
+        class="executive-message-view"
+        hidden
+        aria-label="Private message"
+    >
 
+        <header class="executive-message-header">
+
+            <div class="executive-message-brand">
+                SHiCI / PRIVATE
+            </div>
+
+            <div
+                id="executivePeerTitle"
+                class="executive-message-peer-title"
+            ></div>
+
+            <button
+                id="executivePrivacySensorButton"
+                class="executive-privacy-sensor-button"
+                type="button"
+            >
+                伏せて閉じる：設定
+            </button>
+
+            <button
+                id="executivePushButton"
+                class="executive-privacy-sensor-button"
+                type="button"
+            >
+                通知：設定
+            </button>
+
+        </header>
+
+        <div class="executive-message-layout">
+
+            <nav
+                id="executivePeerList"
+                class="executive-peer-list"
+                aria-label="連絡先"
+            ></nav>
+
+            <section class="executive-conversation-panel">
+
+                <div id="executiveReadStatus" role="status" hidden></div>
+
+                <div
+                    id="executiveConversation"
+                    class="executive-conversation"
+                    aria-live="polite"
+                ></div>
+
+                <form
+                    id="executiveMessageForm"
+                    class="executive-message-form"
+                >
+
+                    <textarea
+                        id="executiveMessageInput"
+                        class="executive-message-input"
+                        rows="1"
+                        maxlength="2000"
+                        autocomplete="off"
+                        enterkeyhint="send"
+                        placeholder="メッセージ"
+                    ></textarea>
+
+                    <button
+                        class="executive-message-send"
+                        type="submit"
+                        aria-label="送信"
+                    >
+                        ↑
+                    </button>
+
+                </form>
+
+                <div id="executiveSendStatus" role="status" hidden></div>
+
+            </section>
+
+        </div>
+
+        <div class="executive-swipe-hint" aria-hidden="true">
+            ↔ swipe to close
+        </div>
+
+    </section>
 
     <!-- ==========================================
          JavaScript
@@ -341,7 +360,8 @@
     <script src="js/AuthController.js"></script>
 
     <script src="js/ChatController.js"></script>
-  <script src="js/ExecutivePrivateController.js"></script>
+
+    <script src="js/ExecutiveMessageController.js"></script>
 
     <script src="js/ExecutivePushController.js"></script>
 

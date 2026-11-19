@@ -259,7 +259,15 @@
       <div class="executive-heading"><span class="executive-message-brand">SHiCI</span><span id="executivePeerTitle" class="executive-message-peer-title"></span></div>
       <button id="executiveDeviceButton" class="executive-header-button" type="button" aria-label="端末と通知の設定"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v.01M12 12v.01M12 16v.01"/></svg><span>設定</span></button>
     </div>
-    <div class="executive-privacy-bar"><span>メッセージ</span><button id="executiveCallStart" type="button" hidden>音声通話</button><button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button></div>
+    <div class="executive-privacy-bar">
+      <span>メッセージ</span>
+      <button id="executiveCallStart" class="executive-call-button" type="button" aria-label="音声通話" title="音声通話" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M22 16.9v3a2 2 0 0 1-2.2 2 18 18 0 0 1-7.8-2.8 18 18 0 0 1-5.5-5.5 18 18 0 0 1-2.8-7.8A2 2 0 0 1 5.7 3h3a2 2 0 0 1 2 1.7c.1 1 .4 1.9.7 2.8a2 2 0 0 1-.5 2.1L9.6 11a14 14 0 0 0 5.4 5.4l1.4-1.3a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.8.7a2 2 0 0 1 .7 1.6Z"/>
+        </svg>
+      </button>
+      <button id="executivePrivacySensorButton" type="button">伏せて閉じる：設定</button>
+    </div>
   </header>
   <p id="executiveStatus" role="status" aria-live="polite"></p>
   <section id="executiveMissedCall" class="executive-setup-panel" hidden aria-label="不在着信">
